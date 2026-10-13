@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ChatWidget } from "@/components/chat/chat-widget";
 
 const COMPARATIF: Array<{ dimension: string; chatbot: string; solver: string }> = [
   {
@@ -64,43 +65,49 @@ const CAPACITES: Array<{ titre: string; description: string }> = [
 export default function Page() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      {/* === Hero === */}
-      <section className="mx-auto flex max-w-5xl flex-col items-center px-6 py-16 text-center md:py-24">
-        <Image
-          src="/logo-axisolver.png"
-          alt="AxiSolver"
-          width={240}
-          height={240}
-          priority
-          className="h-auto w-32 md:w-40"
-        />
+      {/* === Hero : identité à gauche + chat live à droite === */}
+      <section className="mx-auto max-w-7xl px-6 py-10 md:py-16">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:items-center lg:gap-14">
+          {/* Colonne gauche : logo + identité + punchline */}
+          <div className="lg:col-span-3">
+            <Image
+              src="/logo-axisolver.png"
+              alt="AxiSolver"
+              width={520}
+              height={520}
+              priority
+              className="h-auto w-56 md:w-72 lg:w-96"
+            />
 
-        <h1 className="mt-10 text-4xl font-semibold tracking-tight md:text-6xl">
-          Chatbots talk.
-          <br />
-          <span className="text-blue-600">AxiSolver</span> solves.
-        </h1>
+            <h1 className="mt-8 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
+              Chatbots talk.
+              <br />
+              <span className="text-blue-600">AxiSolver</span> solves.
+            </h1>
 
-        <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-slate-600 md:text-xl">
-          Le remplaçant des chatbots pour les entreprises qui veulent un accueil
-          qui résout vraiment. 24h/24, en voix et à l&apos;écrit, directement
-          dans votre site.
-        </p>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
+              Le remplaçant des chatbots pour les entreprises qui veulent un
+              accueil qui résout vraiment. 24h/24, en voix et à l&apos;écrit,
+              directement dans votre site.
+            </p>
 
-        <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
-          <a
-            href="https://axihub.live"
-            className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-medium uppercase tracking-[0.14em] text-white shadow-sm transition-all hover:bg-blue-700 hover:shadow-md"
-          >
-            Souscrire sur AxiHub
-            <span aria-hidden>→</span>
-          </a>
-          <a
-            href="https://ataraxis.group/axi-solver"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-medium uppercase tracking-[0.14em] text-slate-900 transition-all hover:border-slate-900"
-          >
-            Voir la démo
-          </a>
+            <div className="mt-8 flex items-center gap-3 text-sm text-slate-500">
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+                <span className="font-medium">
+                  AxiSolver est en ligne — parlez-lui maintenant
+                </span>
+              </span>
+            </div>
+          </div>
+
+          {/* Colonne droite : chat live avec AxiSolver qui accueille */}
+          <div className="lg:col-span-2">
+            <ChatWidget />
+          </div>
         </div>
       </section>
 
@@ -111,8 +118,8 @@ export default function Page() {
             Chatbot vs AxiSolver
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-center text-slate-600">
-            Les chatbots traditionnels filtrent et bloquent. AxiSolver résout et
-            transmet.
+            Les chatbots traditionnels filtrent et bloquent. AxiSolver résout
+            et transmet.
           </p>
 
           <div className="mt-12 overflow-hidden rounded-sm border border-slate-200">
