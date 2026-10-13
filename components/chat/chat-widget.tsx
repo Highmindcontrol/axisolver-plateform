@@ -8,12 +8,11 @@
  * ce qu'il obtiendrait sur son propre site : un AXI qui l'accueille,
  * mène l'entretien, qualifie et oriente vers l'adoption.
  *
- * Phase 1 (ce fichier) : UI complète + animations, mais messages
- * pré-scriptés côté client. Permet de valider l'ergonomie avant de
- * brancher Claude.
- *
- * Phase 2 (à venir) : brancher POST /api/chat avec streaming SSE,
- * conserver la mémoire de session, scripter les questions imposées.
+ * Phase 2 : branché sur POST /api/chat avec streaming SSE.
+ * - Fallback propre si ANTHROPIC_API_KEY absent côté serveur (le serveur
+ *   renvoie un message d'attente, le widget reste fonctionnel).
+ * - Historique de session conservé côté client (perdu au reload — Supabase
+ *   viendra en Phase 3).
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -21,15 +20,13 @@ import { useEffect, useRef, useState } from "react";
 type Role = "user" | "assistant";
 type ChatMessage = { id: string; role: Role; content: string };
 
-const MESSAGE_ACCUEIL: ChatMessage = {
-  id: "accueil",
-  role: "assistant",
-  content:
-    "Bonjour. Je suis AxiSolver. Ne perdons pas de temps : je peux vous montrer en 3 minutes ce que je ferais sur votre site. Vous dirigez quoi comme activité ?",
-};
+const CONTENU_ACCUEIL =
+  "Bonjour. Je suis AxiSolver. Ne perdons pas de temps : je peux vous montrer en 3 minutes ce que je ferais sur votre site. Vous dirigez quoi comme activité ?";
 
 export function ChatWidget() {
-  const [messages, setMessages] = useState<ChatMessage[]>([MESSAGE_ACCEUIL_INITIAL()]);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: "accueil", role: "assistant", content: CONTENU_ACCUEIL },
+  ]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -40,31 +37,97 @@ export function ChatWidget() {
     }
   }, [messages, thinking]);
 
-  function envoyer() {
+  async function envoyer() {
     const texte = input.trim();
     if (!texte || thinking) return;
 
-    const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: texte,
-    };
-    setMessages((prev) => [...prev, userMsg]);
+    const idUser = crypto.randomUUID();
+    const idAssistant = crypto.randomUUID();
+    const userMsg: ChatMessage = { id: idUser, role: "user", content: texte };
+
+    // Historique complet envoyé à l'API (sans le message d'accueil scripté)
+    const historiquePourAPI = [
+      ...messages.filter((m) => m.id !== "accueil"),
+      userMsg,
+    ].map((m) => ({ role: m.role, content: m.content }));
+
+    // UI : ajoute user msg + bulle assistant vide qui va se remplir en streaming
+    setMessages((prev) => [
+      ...prev,
+      userMsg,
+      { id: idAssistant, role: "assistant", content: "" },
+    ]);
     setInput("");
     setThinking(true);
 
-    // Placeholder Phase 1 — réponse pré-scriptée après délai pour l'effet.
-    // Phase 2 remplacera ça par un appel streaming à /api/chat.
-    setTimeout(() => {
-      const reponse: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content:
-          "Bonne base. Un dernier mot avant qu'on avance : AxiSolver sera branché en direct dès que la clé Claude sera posée côté serveur. En attendant, pour composer votre équipe AXI et souscrire, direction axihub.live — AXI vous y attend en live.",
-      };
-      setMessages((prev) => [...prev, reponse]);
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: historiquePourAPI }),
+      });
+
+      if (!res.ok || !res.body) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        // SSE : events séparés par \n\n, lignes commençant par "data: "
+        const events = buffer.split("\n\n");
+        buffer = events.pop() ?? "";
+
+        for (const event of events) {
+          const line = event.split("\n").find((l) => l.startsWith("data: "));
+          if (!line) continue;
+          const payload = line.slice(6);
+          try {
+            const parsed = JSON.parse(payload);
+            if (parsed.delta) {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === idAssistant
+                    ? { ...m, content: m.content + parsed.delta }
+                    : m,
+                ),
+              );
+            }
+            if (parsed.erreur) {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === idAssistant
+                    ? { ...m, content: `(erreur : ${parsed.erreur})` }
+                    : m,
+                ),
+              );
+            }
+          } catch {
+            /* chunk partiel, on continue */
+          }
+        }
+      }
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "erreur réseau";
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === idAssistant
+            ? {
+                ...m,
+                content: `Désolé, je n'ai pas pu répondre (${detail}). Réessayez dans un instant ou direction axihub.live.`,
+              }
+            : m,
+        ),
+      );
+    } finally {
       setThinking(false);
-    }, 900);
+    }
   }
 
   return (
@@ -94,7 +157,8 @@ export function ChatWidget() {
         {messages.map((msg) => (
           <MessageBulle key={msg.id} role={msg.role} content={msg.content} />
         ))}
-        {thinking && <IndicateurFrappe />}
+        {thinking &&
+          !messages[messages.length - 1]?.content && <IndicateurFrappe />}
       </div>
 
       {/* Input */}
@@ -110,7 +174,7 @@ export function ChatWidget() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={thinking}
-            placeholder="Posez votre question…"
+            placeholder="Répondez à AxiSolver…"
             className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
           />
           <button
@@ -143,11 +207,6 @@ export function ChatWidget() {
   );
 }
 
-/** Message avec initialisation UUID safe (crypto peut manquer SSR). */
-function MESSAGE_ACCEUIL_INITIAL(): ChatMessage {
-  return { ...MESSAGE_ACCUEIL };
-}
-
 function MessageBulle({ role, content }: { role: Role; content: string }) {
   if (role === "assistant") {
     return (
@@ -155,15 +214,15 @@ function MessageBulle({ role, content }: { role: Role; content: string }) {
         <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-semibold text-white">
           A
         </div>
-        <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-900 shadow-sm">
-          {content}
+        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-900 shadow-sm">
+          {content || <span className="text-slate-300">…</span>}
         </div>
       </div>
     );
   }
   return (
     <div className="flex justify-end">
-      <div className="max-w-[85%] rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
+      <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
         {content}
       </div>
     </div>

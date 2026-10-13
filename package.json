@@ -9,6 +9,7 @@
     "lint": "echo 'lint skipped — reactivate when ESLint is wired'"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
     "next": "16.4.0",
     "react": "19.0.0",
     "react-dom": "19.0.0"
