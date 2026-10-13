@@ -329,7 +329,7 @@ export function ChatWidget() {
     <div className="flex h-[640px] items-stretch gap-3 md:h-[680px]">
       {/* === AILETTE GAUCHE — Actions (desktop) === */}
       <aside
-        className={`flex flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:max-w-[280px] lg:max-w-[320px]`}
+        className={`flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
         <div className="flex w-full flex-col">
@@ -372,7 +372,7 @@ export function ChatWidget() {
 
       {/* === COLONNE CENTRALE — Chat (dominante) === */}
       <section
-        className={`flex overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:flex-[2]"}`}
+        className={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
       >
         <div className="flex w-full flex-col">
           {/* Header chat */}
@@ -500,7 +500,7 @@ export function ChatWidget() {
 
       {/* === AILETTE DROITE — Fiche (desktop) === */}
       <aside
-        className={`flex flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:max-w-[280px] lg:max-w-[320px]`}
+        className={`flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Fiche visiteur"
       >
         <div className="flex w-full flex-col">
