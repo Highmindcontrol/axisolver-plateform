@@ -32,7 +32,7 @@ type ChatMessage = { id: string; role: Role; content: string };
 type VueMobile = "actions" | "chat" | "fiche";
 
 const CONTENU_ACCUEIL =
-  "Bonjour. Je suis AxiSolver. Ne perdons pas de temps : je peux vous montrer en 3 minutes ce que je ferais sur votre site. Vous dirigez quoi comme activité ?";
+  "Bonjour, bienvenue chez moi. Je suis AxiSolver, le meilleur ami des sites web. On fait connaissance ? Que puis-je faire pour vous ?";
 
 export function ChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([
