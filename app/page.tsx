@@ -109,50 +109,46 @@ const FEATURES_SIGNATURE: Array<{
 export default function Page() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      {/* === Hero : identité compacte à gauche + widget split-view large à droite === */}
-      <section className="mx-auto max-w-[1400px] px-6 py-10 md:py-16">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center lg:gap-10">
-          {/* Colonne gauche : identité compacte (33%) */}
-          <div className="lg:col-span-4">
-            <Image
-              src="/logo-axisolver.png"
-              alt="AxiSolver"
-              width={520}
-              height={520}
-              priority
-              className="h-auto w-48 md:w-56 lg:w-64"
-            />
+      {/* === Hero : identité centrée en haut + triptyque pleine largeur en dessous === */}
+      <section className="mx-auto max-w-[1600px] px-4 py-8 md:px-6 md:py-12">
+        {/* Identité (en haut) */}
+        <div className="mx-auto max-w-4xl text-center">
+          <Image
+            src="/logo-axisolver.png"
+            alt="AxiSolver"
+            width={520}
+            height={520}
+            priority
+            className="mx-auto h-auto w-32 md:w-40 lg:w-48"
+          />
 
-            <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
-              Un seul produit.
-              <br />
-              <span className="text-blue-600">Quatre missions.</span>
-              <br />
-              Zéro équivalent au monde.
-            </h1>
+          <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
+            Un seul produit.{" "}
+            <span className="text-blue-600">Quatre missions.</span>{" "}
+            Zéro équivalent au monde.
+          </h1>
 
-            <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600 md:text-lg">
-              AxiSolver parle avec vos visiteurs. Veille sur votre site.
-              Travaille à côté de vous. Et sait aussi s&apos;amuser.
-            </p>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
+            AxiSolver parle avec vos visiteurs. Veille sur votre site.
+            Travaille à côté de vous. Et sait aussi s&apos;amuser.
+          </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-                <span className="font-medium">
-                  AxiSolver vous attend — parlez-lui maintenant
-                </span>
+          <div className="mt-6 flex justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
               </span>
-            </div>
+              <span className="font-medium">
+                AxiSolver vous attend — parlez-lui maintenant
+              </span>
+            </span>
           </div>
+        </div>
 
-          {/* Colonne droite : widget split-view (chat + panneau) (66%) */}
-          <div className="lg:col-span-8">
-            <ChatWidget />
-          </div>
+        {/* Triptyque pleine largeur */}
+        <div className="mt-10 md:mt-14">
+          <ChatWidget />
         </div>
       </section>
 

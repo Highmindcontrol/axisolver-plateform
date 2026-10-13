@@ -40,6 +40,10 @@ export type EvenementPanneau =
       titre?: string;
     }
   | {
+      type: "afficher_site_hote";
+      url: string;
+    }
+  | {
       type: "generer_reference_axi";
       reference: string;
       resume: string;
@@ -76,6 +80,7 @@ export type EtatPanneauTravail = {
       }
     | { kind: "telechargement"; libelle: string; url: string }
     | { kind: "page_web"; url: string; titre?: string }
+    | { kind: "site_hote"; url: string }
     | { kind: "envoi_fiche_email"; email?: string }
     | { kind: "morpion" };
   reference?: {
@@ -206,7 +211,7 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
   {
     name: "montrer_page_web",
     description:
-      "Affiche une page web du site hôte dans le panneau de travail (iframe léger) pour montrer visuellement où le visiteur peut trouver l'information. Préférer un chemin interne au site hôte (ex: /tarifs, /contact).",
+      "Affiche une page web du site hôte dans le panneau d'actions (gauche) pour montrer visuellement où le visiteur peut trouver l'information. Préférer un chemin interne au site hôte (ex: /tarifs, /contact).",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -217,6 +222,22 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
         titre: {
           type: "string",
           description: "Titre court affiché au-dessus de l'iframe.",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "afficher_site_hote",
+    description:
+      "Affiche l'aperçu visuel du site web du visiteur dans le panneau d'actions (gauche). À déclencher SYSTÉMATIQUEMENT dès que le visiteur te donne l'URL de son site. Effet théâtral : le visiteur sent qu'AxiSolver 'regarde chez lui' en live. Dis simplement 'Je regarde votre site' avant l'affichage.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        url: {
+          type: "string",
+          description:
+            "URL complète du site du visiteur (avec ou sans https://, le composant gère les deux).",
         },
       },
       required: ["url"],
