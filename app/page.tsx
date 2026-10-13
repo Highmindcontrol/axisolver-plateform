@@ -109,21 +109,21 @@ const FEATURES_SIGNATURE: Array<{
 export default function Page() {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      {/* === Hero : identité à gauche + chat live à droite === */}
-      <section className="mx-auto max-w-7xl px-6 py-10 md:py-16">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:items-center lg:gap-14">
-          {/* Colonne gauche : logo + identité + punchline */}
-          <div className="lg:col-span-3">
+      {/* === Hero : identité compacte à gauche + widget split-view large à droite === */}
+      <section className="mx-auto max-w-[1400px] px-6 py-10 md:py-16">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center lg:gap-10">
+          {/* Colonne gauche : identité compacte (33%) */}
+          <div className="lg:col-span-4">
             <Image
               src="/logo-axisolver.png"
               alt="AxiSolver"
               width={520}
               height={520}
               priority
-              className="h-auto w-56 md:w-72 lg:w-96"
+              className="h-auto w-48 md:w-56 lg:w-64"
             />
 
-            <h1 className="mt-8 text-4xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
+            <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
               Un seul produit.
               <br />
               <span className="text-blue-600">Quatre missions.</span>
@@ -131,26 +131,26 @@ export default function Page() {
               Zéro équivalent au monde.
             </h1>
 
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
+            <p className="mt-5 max-w-md text-base leading-relaxed text-slate-600 md:text-lg">
               AxiSolver parle avec vos visiteurs. Veille sur votre site.
               Travaille à côté de vous. Et sait aussi s&apos;amuser.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center gap-3 text-sm">
+            <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
               <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                 </span>
                 <span className="font-medium">
-                  AxiSolver est en ligne — parlez-lui maintenant
+                  AxiSolver vous attend — parlez-lui maintenant
                 </span>
               </span>
             </div>
           </div>
 
-          {/* Colonne droite : chat live avec AxiSolver qui accueille */}
-          <div className="lg:col-span-2">
+          {/* Colonne droite : widget split-view (chat + panneau) (66%) */}
+          <div className="lg:col-span-8">
             <ChatWidget />
           </div>
         </div>
