@@ -1,136 +1,149 @@
 # AxiSolver — Roadmap de construction
 
-> *Chatbots talk. AxiSolver solves.*
+> *AxiSolver parle avec vos visiteurs. Veille sur votre site. Travaille à côté de vous. Et sait aussi s'amuser. Un seul produit. Zéro concurrent au monde.*
 >
-> Produit B2B dédié aux entreprises qui veulent remplacer leur chatbot sur
-> leur site. AXI éduqué pour accueillir, résoudre et transmettre.
+> Doctrine complète figée dans [`docs/adr/001-vision-produit-complete.md`](docs/adr/001-vision-produit-complete.md).
 
 ---
 
-## Doctrine fondatrice (rappel)
+## Les quatre missions d'AxiSolver (ADR 001)
 
-AxiSolver est un **AXI dédié à la mission accueil visiteur**. Il n'est pas un
-AXI généraliste. Six lignes rouges inscrites dans son system prompt :
+Un seul produit, quatre missions, un seul tarif :
 
-1. **N'engage rien, ne signe rien** — pas de prix fermes, dates, validation.
-2. **Scope strict à l'entreprise** où il est installé.
-3. **Pas de capacités d'AXI complet** — pas d'agenda, mails, outils métier.
-4. **Mémoire opérationnelle, pas personnelle** — reconnaissance email/tél, pas de profil psychologique.
-5. **Pas de rôle organisationnel** — ne pilote pas d'équipe, pas de KPI business.
-6. **Conversation courte, orientée résolution** — 3 à 5 messages, puis fermeture avec référence `AXI-XXXX`.
+1. **Accueil visiteur** 24/7, voix et écrit, dans toutes les langues
+2. **Veille SEO** — audit initial + monitoring hebdomadaire + rapport mensuel
+3. **Veille sécurité** — audit initial + alertes régressions + CVE monitoring
+4. **Veille métriques** — connexion analytics + rapport mensuel narratif
 
-Chaque limite est un **upsell naturel** vers l'écosystème AXI complet via AxiHub.
+**Pas de version Lite.** Pas de pack « Essentiel » / « Vigilance » / « 360 ».
+Les entreprises qui ne veulent pas AxiSolver complet achètent sur AxiHub
+des **packs AXI séparés** (SEO, Sécurité, Métriques) — mais le prix cumulé
+dépasse celui d'AxiSolver complet, d'où l'upsell automatique.
 
 ---
 
-## Lots de travail
+## Les 4 features signature (uniques au monde)
 
-### Lot 0 — Landing & Marketing (en cours)
+Ce qui place AxiSolver hors catégorie face aux chatbots :
 
-- [x] Landing racine `/` avec hero, comparatif, capacités, CTA AxiHub
-- [ ] Page `/mentions-legales`
-- [ ] Page `/cgv` (Conditions Générales de Vente)
-- [ ] Page `/comment-ca-marche` (procédure installation détaillée)
-- [ ] Page `/cas-usage` (templates métiers : avocat, agence immo, cabinet comptable…)
-- [ ] Favicon + apple-touch-icon + manifest PWA
-- [ ] Partage OG optimisé (image hero AxiSolver dédiée)
-- [ ] Analytics opt-in (Plausible/Umami, pas Google)
+| # | Feature | Impact |
+|---|---|---|
+| 🪞 | **Interface vivante split-view** | Chat à gauche, panneau de travail à droite — le visiteur voit AXI prendre ses notes en live |
+| 📋 | **Rapport triple-voie** | Chaque faille détectée vient avec 3 solutions (agence / soi-même / méthode pas-à-pas) |
+| 🧐 | **Quatre missions, un tarif** | Accueil + SEO + Sécurité + Métriques dans un seul produit |
+| 🎯 | **La touche morpion** | À la fin de la conversation résolue, AXI propose un morpion → rupture mémorable |
 
-### Lot 1 — Infrastructure Supabase (bloquant pour Lot 2+)
+---
 
-- [ ] Projet Supabase Frankfurt dédié AxiSolver (séparé Praximea pour isolation RGPD par entreprise)
-- [ ] Schema `axi_solver` avec tables :
-  - `tenants` (entreprise cliente — nom, slug, domaine site, config brand, system prompt custom)
-  - `tenant_members` (users admin autorisés à voir les tickets de ce tenant)
-  - `visitors` (empreinte email/téléphone reconnue — reconnaissance return visitor)
-  - `conversations` (session de dialogue — tenant_id + visitor_id + status)
-  - `messages` (chaque tour de parole — role, content, audio_url?, timestamp)
-  - `tickets` (dossier qualifié transmis à l'équipe — référence AXI-XXXX, résumé, chaleur, status)
-  - `handoffs` (log des passages de main à un humain — qui, quand, pourquoi)
-  - `briefings` (briefs matinaux générés — tenant_id, date, markdown, audio_url?)
-- [ ] RLS strict `tenant_id` partout — un tenant ne voit JAMAIS les données d'un autre
-- [ ] Index sur colonnes critiques (visitor_email, conversation_id, created_at)
+## Lots de travail — par ordre d'attaque
 
-### Lot 2 — Widget JS embarquable (le cœur produit)
+### Lot 0 — Fondations (fait ou en cours)
+- [x] Squelette Next.js 16.4.0 + Tailwind v4 déployé sur axisolver.app
+- [x] Landing marketing V1 (hero + comparatif + capacités + CTA AxiHub)
+- [x] Widget chat live avec streaming SSE sur `/api/chat`
+- [x] System prompt punchy auto-vendeur (ADR 001 intégré)
+- [x] Doctrine `docs/doctrine-capacites.md` + ADR 001 figés
+- [ ] Pose `ANTHROPIC_API_KEY` dans Vercel (côté François)
 
-- [ ] Route `/widget.js` qui sert le snippet (~15 KB gzip max)
-- [ ] Design : bulle flottante bottom-right, inspirée du logo (bleu glossy)
-- [ ] États : minimisé (bulle avec notif), ouvert (fenêtre chat), minimisation sticky
-- [ ] Mode voix : push-to-talk + TTS réponses
-- [ ] Mode écrit : input texte classique
-- [ ] Configuration par data-attributes : `data-tenant="slug"`, `data-position`, `data-primary-color`
-- [ ] Shadow DOM pour isolation CSS totale du site hôte
-- [ ] Compatible SPA (React/Vue) et SSR (Next, Nuxt)
-- [ ] Compatible mobile (viewport dynamique, keyboard adaptative)
+### Lot A — Interface vivante split-view (PRIORITÉ — différenciant visuel)
+**Objectif** : le widget passe de 1 colonne (chat) à 2 colonnes (chat + panneau de travail).
 
-### Lot 3 — API conversationnelle
+- [ ] Refonte UI du widget en split-view (desktop) + bottom sheet (mobile)
+- [ ] Système de **Tool Calling Claude** côté API (`/api/chat` renvoie tool_use chunks en plus du texte)
+- [ ] Composant `FicheVisiteur` : prénom, email, téléphone, demande, chaleur — remplissage live
+- [ ] Composant `ChampEmailValide` : input email + regex + confirmation
+- [ ] Composant `ChampTelephoneValide` : input tel + formatage auto
+- [ ] Composant `BoutonsChoix` : 2-4 boutons cliquables
+- [ ] Composant `LienTelechargement`
+- [ ] Composant `PageWebEmbarquee` : iframe léger
+- [ ] Composant `ReferenceAxiXXXX` : encadré de clôture
+- [ ] Design responsive mobile (bottom sheet animé)
+- [ ] Mise à jour system prompt pour piloter les tools proprement
 
-- [ ] POST `/api/chat` — reçoit message visitor, renvoie réponse AXI
-  - Lookup tenant via domaine origine (header `Origin`)
-  - Load conversation context (RLS + mémoire visitor si identifié)
-  - Build messages array avec system prompt doctrine 6 lignes rouges
-  - Appel Claude Haiku 4.5 (standard) ou Sonnet 4.6 (complexité détectée)
-  - Stream SSE pour réponse progressive
-  - Persistance message visitor + réponse AXI
-- [ ] POST `/api/voice/transcribe` — Whisper audio → texte
-- [ ] POST `/api/voice/synthesize` — ElevenLabs ou Web Speech API fallback
-- [ ] POST `/api/ticket/create` — déclenchement escalade humain
-  - Génère référence AXI-XXXX (incrément atomique)
-  - Résume conversation avec Opus 4.7
-  - Email Brevo à l'équipe (template branded tenant)
-  - Enregistre en DB
-- [ ] GET `/api/widget-config/:tenant` — config dynamique du widget (couleurs, baseline, langue)
+### Lot B — Audit SEO/Sécurité/Métriques initial + rapport PDF
+**Objectif** : à l'installation, AxiSolver scanne le site hôte et produit un rapport.
 
-### Lot 4 — Console admin tenant (le SaaS de pilotage)
+#### B.1 — Audit SEO
+- [ ] Fetch HTML public + parsing (cheerio ou linkedom)
+- [ ] Checks : title, meta description, H1-H6, OG, canonicals, hreflang, alt text, sitemap.xml, robots.txt
+- [ ] Audit performance : appel Google PageSpeed Insights API (gratuite)
+- [ ] Audit structured data (JSON-LD Schema.org)
 
-> Note doctrinale : la console admin finale vit dans **AxiHub** (point d'entrée
-> unique pour toute souscription AXI). Côté AxiSolver, on peut proposer un
-> `/admin` léger pour les tenants qui veulent y accéder directement.
-> À arbitrer : où vit l'admin ? AxiSolver direct ou proxy depuis AxiHub ?
+#### B.2 — Audit sécurité
+- [ ] Headers HTTP : HSTS, CSP, X-Frame-Options, Permissions-Policy, Referrer-Policy
+- [ ] Certificat SSL + chaîne complète
+- [ ] Fichiers sensibles exposés (`.env`, `.git/`, `wp-config.php~`, backups)
+- [ ] Bibliothèques JS obsolètes avec CVE (via retire.js dataset)
+- [ ] DNS sécurité : DNSSEC, SPF/DKIM/DMARC, CAA
+- [ ] Blacklist check (Google Safe Browsing API gratuite)
+- [ ] Si WordPress détecté : version, plugins, thème, xmlrpc.php, user enumeration, backups accessibles → API wpscan.com
 
-- [ ] Auth tenant admin (Supabase Auth + magic link email)
-- [ ] Dashboard : nombre tickets aujourd'hui, taux résolution auto, temps moyen
-- [ ] Liste tickets avec filtres (statut, chaleur, date, mot-clé)
-- [ ] Détail ticket : conversation complète + résumé + actions (répondre, fermer, escalader)
-- [ ] Brief matinal (Markdown + audio TTS) — généré auto chaque matin 6h local
-- [ ] Console vocale pour interroger AXI à l'oral depuis mobile (brief vocal)
-- [ ] Settings tenant : config widget, horaires, membres équipe, intégrations
+#### B.3 — Audit métriques (si Analytics connecté)
+- [ ] OAuth Google Analytics 4 (ou clé Plausible/Matomo)
+- [ ] Lecture métriques du mois : visiteurs, bounce, pages de fuite, parcours
+- [ ] Analyse narrative par Claude Opus
 
-### Lot 5 — Protocole Duo (optionnel, phase 2)
+#### B.4 — Rapport PDF triple voie
+- [ ] Génération via `@react-pdf/renderer` (déjà utilisé dans ataraxis-platform)
+- [ ] Design : page de garde + sections SEO/Sécu/Métriques + plan d'action priorisé
+- [ ] Pour chaque faille → 3 variantes de solution (agence / soi-même / méthode pas-à-pas) générées par Claude Opus
+- [ ] Envoi email Brevo au tenant + archivage console admin
 
-> Quand l'entreprise cliente a aussi adopté l'écosystème via AxiHub,
-> AxiSolver se branche en **Duo** avec son AXI maison.
+### Lot C — Infrastructure Supabase (nécessaire pour Lot B + D)
+- [ ] Projet Supabase Frankfurt dédié AxiSolver
+- [ ] Schema `axi_solver` :
+  - `tenants` (entreprise cliente)
+  - `tenant_members` (admins autorisés)
+  - `conversations` + `messages`
+  - `tickets` (AXI-XXXX, résumé, chaleur, statut)
+  - `visitors` (reconnaissance return)
+  - `audits_seo`, `audits_securite`, `audits_metriques` (historique mois après mois)
+  - `briefings` (rapport PDF + brief matinal)
+- [ ] RLS strict `tenant_id` partout
 
-- [ ] Protocol WebSocket AXI-to-AXI pour interrogation en direct
-- [ ] Délégation d'action (RDV, mail, devis) — AXI maison agit avec son autorité
-- [ ] Enrichissement contextuel (reconnaissance client existant via CRM)
-- [ ] Validation en 2 temps (prix spécifique validé avant diffusion visiteur)
-- [ ] Debriefing bidirectionnel (AxiSolver apprend comment ses tickets ont été traités)
+### Lot D — Monitoring continu + alertes régressions
+- [ ] Cron hebdomadaire : re-run audit SEO + Sécu, diff vs semaine précédente
+- [ ] Alertes email si régression détectée (CLS qui grimpe, nouveau header manquant, broken link, nouveau CVE actif)
+- [ ] Rapport mensuel narratif automatique
+- [ ] Console admin tenant pour historique + téléchargement archives
 
-### Lot 6 — Onboarding automatique (via AxiHub)
+### Lot E — La cerise morpion + extensions ludiques
+- [ ] Composant `GrilleMorpion` (3×3 React)
+- [ ] IA minimax légère (gagne 50%, perd 25%, égalité 25%)
+- [ ] Tool Claude `proposer_jeu_morpion` déclenché à la fin de conversation
+- [ ] Garde-fous : jamais si urgent/litigieux/secteur sensible
+- [ ] Config tenant : activer/désactiver le morpion dans AxiHub
+- [ ] V2 : mini-leaderboard, code promo partenaire si bat AXI 3×
 
-- [ ] AXI d'onboarding sur AxiHub qui interroge le dirigeant (15-30 min oral/écrit)
-- [ ] Crawl automatique du site public du client → éducation produit
-- [ ] Lecture CGV, FAQ, politique retour → doctrine commerciale
+### Lot F — Protocole Duo (quand AXI maison présent via AxiHub)
+- [ ] WebSocket AXI-to-AXI pour interrogation live
+- [ ] Délégation d'action (RDV, mail, devis)
+- [ ] Validation en 2 temps (prix personnalisé)
+- [ ] Enrichissement contextuel via CRM
+- [ ] Debriefing bidirectionnel
+- [ ] Co-présence sur dossiers chauds
+
+### Lot G — Onboarding automatique (via AxiHub)
+- [ ] AXI d'onboarding sur AxiHub qui interroge le dirigeant (15-30 min)
+- [ ] Crawl automatique du site public → éducation produit
+- [ ] Lecture CGV, FAQ, politique → doctrine commerciale
 - [ ] Génération system prompt custom pour ce tenant
-- [ ] Snippet JS généré avec `data-tenant` pré-rempli → copier-coller dans `<head>`
-- [ ] Email de bienvenue avec procédure installation
+- [ ] Snippet JS généré avec `data-tenant` pré-rempli
 
----
+### Lot H — Soumission moteurs/annuaires (phase ultérieure)
+- [ ] Soumission Google Search Console (OAuth client)
+- [ ] Soumission IndexNow (Bing, Yandex, DuckDuckGo)
+- [ ] Soumission annuaires sectoriels (API par vertical)
+- [ ] Génération de meta descriptions optimisées pour pages à faible CTR
 
-## Priorités d'attaque
-
-Ordre d'implémentation suggéré pour atteindre un **MVP vendable** rapidement :
-
-1. **Lot 1 (Supabase)** — fondation nécessaire pour tout le reste
-2. **Lot 3 (API chat)** — le cerveau du produit, testable via Postman
-3. **Lot 2 (Widget JS)** — le visage du produit sur les sites clients
-4. **Lot 4 (Admin minimal)** — permet au client de voir ses tickets
-5. **Lot 0 reste (CGV + Mentions)** — nécessaire pour vendre
-6. **Lot 6 (Onboarding)** — automatise le déploiement
-7. **Lot 5 (Duo)** — upsell phase 2
-
-À chaque fin de lot, un palier de valeur délivrée. Pas de dates — François fixe le tempo.
+### Lot I — Pages marketing complémentaires
+- [ ] Page `/mentions-legales`
+- [ ] Page `/cgv`
+- [ ] Page `/comment-ca-marche`
+- [ ] Page `/cas-usage` (avocat, agence immo, cabinet comptable, boutique, restaurant…)
+- [ ] Favicon + apple-touch-icon + manifest PWA
+- [ ] Image OG dédiée AxiSolver (partage réseaux sociaux)
+- [ ] Analytics opt-in (Plausible, pas Google)
 
 ---
 
@@ -143,19 +156,30 @@ Ordre d'implémentation suggéré pour atteindre un **MVP vendable** rapidement 
 | Styling | Tailwind v4 | cohérence avec reste écosystème |
 | DB | Supabase Postgres (Frankfurt) | RGPD + RLS natif |
 | ORM | Drizzle | léger, édition schema propre |
-| LLM | Anthropic SDK | Haiku 4.5 standard, Sonnet 4.6 complexité, Opus 4.7 synthèses |
-| Email | Brevo REST | SMTP éprouvé, templates branded |
+| LLM | Anthropic SDK | Haiku 4.5 conversation, Sonnet 4.6 complexité, Opus 4.7 synthèses |
+| Email | Brevo REST | SMTP éprouvé |
+| PDF | @react-pdf/renderer | déjà en place dans ataraxis-platform |
 | STT | OpenAI Whisper API | qualité + latence |
 | TTS | ElevenLabs (fallback Web Speech) | voix naturelle |
 | Deploy | Vercel | continuité écosystème |
-| Monitoring | Vercel Analytics (basique) + Plausible frontend | pas de Google Analytics |
+| Analytics tenant | GA4 ou Plausible/Matomo | selon choix client |
+| Audit SEO | cheerio + Google PageSpeed Insights API | gratuit |
+| Audit sécu | retire.js + API wpscan.com + Google Safe Browsing | gratuit |
 
 ---
 
-## Points d'arbitrage à trancher avec François
+## Priorité absolue de la prochaine session
 
-- Où vit la console admin finale ? AxiSolver standalone ou proxy depuis AxiHub ?
-- Mémoire visitor : stockée dans quel projet Supabase ? AxiSolver dédié ou mémoire centrale AXI (dans Praximea Supabase selon doctrine mémoire architectural) ?
-- Modèle commercial du widget : usage illimité ou freemium (X tickets / mois) ?
-- Multilingue : natif dès le début ou français-only pour MVP ?
-- Branding tenant : combien de niveau de personnalisation (logo, couleurs, baseline…) ?
+**Attaquer le Lot A — Interface vivante split-view.** C'est la feature qui :
+- Transforme visuellement axisolver.app immédiatement
+- Place AxiSolver dans une catégorie à part
+- Est faisable en 5-7 jours concentrés
+- Débloque mécaniquement les Lots D et E (ils dépendent du système de tools)
+
+**Note** : les Lots B/C/D (audit + Supabase + monitoring) sont le plus gros chantier backend. On les attaquera après le Lot A pour qu'axisolver.app ait d'abord sa signature visuelle.
+
+---
+
+## Phrase de signature produit
+
+> *« AxiSolver parle avec vos visiteurs. Veille sur votre site. Travaille à côté de vous. Et sait aussi s'amuser. Un seul produit. Zéro concurrent au monde. »*
