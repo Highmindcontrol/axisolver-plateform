@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT_AXISOLVER_AUTOSELL } from "@/lib/axi-solver/system-prompt";
 import { TOOLS_AXISOLVER } from "@/lib/axi-solver/tools";
+import { auditerSite } from "@/lib/axi-solver/audit-site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -159,16 +160,49 @@ export async function POST(request: Request) {
             break;
           }
 
-          // Sinon on simule les tool_result (fire-and-forget côté UI)
-          const toolResults: Anthropic.ToolResultBlockParam[] = blocsAssistant
-            .filter(
-              (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
-            )
-            .map((b) => ({
-              type: "tool_result",
-              tool_use_id: b.id,
-              content: "OK",
-            }));
+          // Résolution des tool_result : certains tools ont un vrai retour
+          // à injecter dans la conversation (ex: auditer_site), les autres
+          // sont fire-and-forget côté UI et renvoient "OK".
+          const toolUseBlocks = blocsAssistant.filter(
+            (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
+          );
+
+          const toolResults: Anthropic.ToolResultBlockParam[] =
+            await Promise.all(
+              toolUseBlocks.map(async (b) => {
+                if (b.name === "auditer_site") {
+                  try {
+                    const input = b.input as { url?: string };
+                    if (!input?.url) {
+                      return {
+                        type: "tool_result" as const,
+                        tool_use_id: b.id,
+                        content: "Erreur : URL manquante.",
+                      };
+                    }
+                    const resultat = await auditerSite(input.url);
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: resultat.resumePourClaude,
+                    };
+                  } catch (err) {
+                    const msg =
+                      err instanceof Error ? err.message : "audit échoué";
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: `Audit non réalisable (${msg}). Continue sans ces infos.`,
+                    };
+                  }
+                }
+                return {
+                  type: "tool_result" as const,
+                  tool_use_id: b.id,
+                  content: "OK",
+                };
+              }),
+            );
 
           if (toolResults.length === 0) break;
 

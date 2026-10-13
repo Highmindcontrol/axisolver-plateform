@@ -269,6 +269,8 @@ export function PanneauActions({
       );
     case "site_hote":
       return <SiteHoteApercu url={etat.elementActif.url} />;
+    case "analyse_site":
+      return <AnalyseSiteEnCours url={etat.elementActif.url} />;
     case "envoi_fiche_email":
       return (
         <EnvoiFicheEmail
@@ -608,6 +610,56 @@ function SiteHoteApercu({ url }: { url: string }) {
             Je lance une analyse rapide — SEO, sécurité, performance.
           </p>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function AnalyseSiteEnCours({ url }: { url: string }) {
+  const urlComplete = normaliserUrl(url);
+  const hostname = (() => {
+    try {
+      return new URL(urlComplete).hostname.replace(/^www\./, "");
+    } catch {
+      return urlComplete;
+    }
+  })();
+
+  const etapes = [
+    { label: "Chargement de la page" },
+    { label: "Analyse SEO on-page" },
+    { label: "Vérification des entêtes de sécurité" },
+    { label: "Détection des technologies" },
+    { label: "Compilation du diagnostic" },
+  ];
+
+  return (
+    <section className="animate-fadeIn flex h-full flex-col overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/40">
+      <div className="flex items-center gap-2 border-b border-slate-100 bg-white px-4 py-2.5">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+        </span>
+        <span className="text-xs font-medium text-slate-700">
+          Analyse de {hostname} en cours
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col justify-center gap-3 p-5">
+        {etapes.map((etape, i) => (
+          <div
+            key={i}
+            className="animate-fadeIn flex items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-2.5 shadow-sm"
+            style={{ animationDelay: `${i * 300}ms`, animationFillMode: "both" }}
+          >
+            <div className="relative h-3 w-3 flex-shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-50" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-blue-500" />
+            </div>
+            <span className="text-xs font-medium text-slate-700">
+              {etape.label}
+            </span>
+          </div>
+        ))}
       </div>
     </section>
   );

@@ -44,6 +44,10 @@ export type EvenementPanneau =
       url: string;
     }
   | {
+      type: "auditer_site";
+      url: string;
+    }
+  | {
       type: "generer_reference_axi";
       reference: string;
       resume: string;
@@ -81,6 +85,7 @@ export type EtatPanneauTravail = {
     | { kind: "telechargement"; libelle: string; url: string }
     | { kind: "page_web"; url: string; titre?: string }
     | { kind: "site_hote"; url: string }
+    | { kind: "analyse_site"; url: string; etat: "en_cours" | "terminee" }
     | { kind: "envoi_fiche_email"; email?: string }
     | { kind: "morpion" };
   reference?: {
@@ -238,6 +243,22 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
           type: "string",
           description:
             "URL complète du site du visiteur (avec ou sans https://, le composant gère les deux).",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "auditer_site",
+    description:
+      "Lance un VRAI audit technique du site du visiteur (fetch HTML + parse SEO/sécurité/technologies). Retourne des findings concrets que tu dois commenter avec le visiteur. À appeler IMPÉDIATEMENT après afficher_site_hote dans la même réponse, pour créer l'effet 'Donnez-moi un instant, je regarde ce qui se passe sous le capot'. Après le retour du tool_result, résume avec 2-3 observations frappantes (pas la liste complète) en langage naturel vendeur.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        url: {
+          type: "string",
+          description:
+            "URL complète du site à auditer. La même que celle passée à afficher_site_hote.",
         },
       },
       required: ["url"],

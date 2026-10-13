@@ -235,6 +235,15 @@ export function ChatWidget() {
         }));
         break;
       }
+      case "auditer_site": {
+        const url = input.url as string;
+        if (!url) return;
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: { kind: "analyse_site", url, etat: "en_cours" },
+        }));
+        break;
+      }
       case "generer_reference_axi": {
         const reference = input.reference as string;
         const resume = input.resume as string;
