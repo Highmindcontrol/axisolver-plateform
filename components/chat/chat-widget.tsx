@@ -22,6 +22,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { BoutonMicro } from "./bouton-micro";
 import { PanneauActions, PanneauFiche } from "./panneau-travail";
 import {
   ETAT_PANNEAU_INITIAL,
@@ -426,6 +427,69 @@ export function ChatWidget() {
   }
 
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
+  const [lectureVocaleActive, setLectureVocaleActive] = useState(true);
+  const dernierMessageLuRef = useRef<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Lecture TTS automatique du dernier message assistant à chaque fois
+  // qu'une réponse se termine (thinking passe de true à false).
+  useEffect(() => {
+    if (!lectureVocaleActive || thinking) return;
+    const dernierMessage = messages[messages.length - 1];
+    if (!dernierMessage || dernierMessage.role !== "assistant") return;
+    if (!dernierMessage.content.trim()) return;
+    if (dernierMessageLuRef.current === dernierMessage.id) return;
+
+    dernierMessageLuRef.current = dernierMessage.id;
+    lireMessageAssistant(dernierMessage.content);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [thinking, lectureVocaleActive]);
+
+  async function lireMessageAssistant(texte: string) {
+    try {
+      // Si une lecture est déjà en cours, on l'arrête
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      const res = await fetch("/api/synthese-vocale", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ texte, voix: "nova" }),
+      });
+      if (!res.ok) return;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.play().catch(() => {
+        /* autoplay bloqué par le navigateur, on ignore */
+      });
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        if (audioRef.current === audio) audioRef.current = null;
+      };
+    } catch {
+      /* erreur silencieuse */
+    }
+  }
+
+  function basculerLectureVocale() {
+    setLectureVocaleActive((prev) => {
+      const nouveau = !prev;
+      if (!nouveau && audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      return nouveau;
+    });
+  }
+
+  function handleTranscription(texte: string) {
+    envoyerTexte(texte);
+  }
 
   function handleClotureConfirmee(optInRecontact: boolean) {
     // 1. On note l'opt-in dans l'historique pour l'équipe
@@ -539,6 +603,53 @@ export function ChatWidget() {
                 En ligne — répond maintenant
               </div>
             </div>
+            {/* Toggle lecture vocale */}
+            <button
+              onClick={basculerLectureVocale}
+              className="hidden rounded-full bg-white/15 p-2 text-white transition-colors hover:bg-white/25 md:inline-flex"
+              aria-label={
+                lectureVocaleActive
+                  ? "Désactiver la lecture vocale"
+                  : "Activer la lecture vocale"
+              }
+              title={
+                lectureVocaleActive
+                  ? "Lecture vocale activée — cliquer pour la couper"
+                  : "Lecture vocale coupée — cliquer pour l'activer"
+              }
+            >
+              {lectureVocaleActive ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4"
+                >
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4"
+                >
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <line x1="23" x2="17" y1="9" y2="15" />
+                  <line x1="17" x2="23" y1="9" y2="15" />
+                </svg>
+              )}
+            </button>
             {/* Boutons de bascule mobile */}
             <div className="flex gap-1 md:hidden">
               <button
@@ -615,13 +726,17 @@ export function ChatWidget() {
             }}
           >
             <div className="flex items-end gap-2">
+              <BoutonMicro
+                disabled={thinking}
+                onTranscription={handleTranscription}
+              />
               <input
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={thinking}
                 autoFocus
-                placeholder="Répondez à AxiSolver…"
+                placeholder="Répondez à AxiSolver (texte ou micro)…"
                 className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
               />
               <button
