@@ -159,6 +159,8 @@ export function ChatWidget() {
       );
     } finally {
       setThinking(false);
+      // Dernière phrase sans ponctuation finale éventuelle
+      flusherBufferTTS();
     }
   }
 
@@ -177,6 +179,8 @@ export function ChatWidget() {
             : m,
         ),
       );
+      // Streaming TTS phrase par phrase — latence quasi-nulle du 1er son
+      traiterChunkTexteTTS(delta, idAssistantCourant);
       return;
     }
 
@@ -529,6 +533,15 @@ export function ChatWidget() {
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
   const [lectureVocaleActive, setLectureVocaleActive] = useState(true);
   const [autoplayBloque, setAutoplayBloque] = useState(false);
+
+  // Streaming TTS — buffer de phrase en cours + queue de lecture.
+  // Dès qu'une phrase complète est détectée dans le stream Claude,
+  // elle est envoyée au TTS. Les audios s'enchaînent via la queue.
+  const bufferPhraseRef = useRef<string>("");
+  const queueAudioRef = useRef<Array<Promise<string | null>>>([]);
+  const lectureEnCoursRef = useRef<boolean>(false);
+  // Pour détecter un nouveau message et vider le buffer
+  const idMessageEnCoursRef = useRef<string | null>(null);
   // Voix TTS actuelle — par défaut echo (voix d'homme neutre, moins grave qu'onyx)
   const [voix, setVoix] = useState<
     "onyx" | "echo" | "nova" | "shimmer" | "alloy" | "fable"
@@ -540,148 +553,128 @@ export function ChatWidget() {
   useEffect(() => {
     etatPanneauRef.current = etatPanneau;
   }, [etatPanneau]);
-  const dernierMessageLuRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Lecture TTS automatique du dernier message assistant à chaque fois
-  // qu'une réponse se termine (thinking passe de true à false).
-  useEffect(() => {
-    if (!lectureVocaleActive || thinking) return;
-    const dernierMessage = messages[messages.length - 1];
-    if (!dernierMessage || dernierMessage.role !== "assistant") return;
-    if (!dernierMessage.content.trim()) return;
-    if (dernierMessageLuRef.current === dernierMessage.id) return;
-
-    dernierMessageLuRef.current = dernierMessage.id;
-    lireMessageAssistant(dernierMessage.content);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [thinking, lectureVocaleActive]);
+  // Note : plus de useEffect ici — la lecture TTS se fait en streaming
+  // au fur et à mesure que Claude écrit, phrase par phrase, via
+  // traiterChunkTexteTTS appelé depuis traiterEvenementSSE.
 
   /**
-   * Découpe un long texte en morceaux de ~3500 chars max en respectant
-   * les frontières de phrases (ponctuation). OpenAI TTS a une limite
-   * dure de 4096 chars par requête.
+   * Génère l'audio TTS d'une phrase et le met en queue de lecture.
+   * Appelé dès qu'une phrase complète est détectée dans le stream Claude.
+   * La génération démarre immédiatement, la lecture suit via la queue.
    */
-  function decouperEnChunks(texte: string, max = 3500): string[] {
-    if (texte.length <= max) return [texte];
-    const chunks: string[] = [];
-    const phrases = texte
-      .split(/(?<=[.!?…])\s+/)
-      .filter((p) => p.trim().length > 0);
-    let courant = "";
-    for (const phrase of phrases) {
-      if (courant.length + phrase.length + 1 > max && courant) {
-        chunks.push(courant.trim());
-        courant = phrase;
-      } else {
-        courant = courant ? `${courant} ${phrase}` : phrase;
+  function envoyerPhraseTTS(phrase: string) {
+    if (!lectureVocaleActive) return;
+    const texteNettoye = phrase.trim();
+    if (texteNettoye.length < 2) return;
+
+    const promesseUrl: Promise<string | null> = (async () => {
+      try {
+        const res = await fetch("/api/synthese-vocale", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ texte: texteNettoye, voix }),
+        });
+        if (!res.ok) {
+          console.error(`[tts] phrase HTTP ${res.status}`);
+          return null;
+        }
+        const blob = await res.blob();
+        if (blob.size === 0) return null;
+        return URL.createObjectURL(blob);
+      } catch (err) {
+        console.error("[tts] fetch phrase :", err);
+        return null;
       }
+    })();
+
+    queueAudioRef.current.push(promesseUrl);
+    if (!lectureEnCoursRef.current) {
+      lancerQueueAudio();
     }
-    if (courant) chunks.push(courant.trim());
-    return chunks;
   }
 
-  async function lireMessageAssistant(texte: string) {
-    try {
-      // Si une lecture est déjà en cours, on l'arrête
+  async function lancerQueueAudio() {
+    lectureEnCoursRef.current = true;
+    while (queueAudioRef.current.length > 0) {
+      const promesseUrl = queueAudioRef.current.shift();
+      if (!promesseUrl) continue;
+      const url = await promesseUrl;
+      if (!url) continue;
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+
+      await new Promise<void>((resolve) => {
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          if (audioRef.current === audio) audioRef.current = null;
+          resolve();
+        };
+        audio.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve();
+        };
+        audio.play().catch((err) => {
+          console.error("[tts] play() refusé :", err?.name, err?.message);
+          setAutoplayBloque(true);
+          resolve();
+        });
+      });
+    }
+    lectureEnCoursRef.current = false;
+  }
+
+  /**
+   * Traite un delta de texte du stream Claude.
+   * Détecte les fins de phrases et lance le TTS dès qu'une phrase
+   * complète est disponible — sans attendre la fin du message.
+   */
+  function traiterChunkTexteTTS(delta: string, idMessage: string) {
+    if (!lectureVocaleActive) return;
+
+    // Nouveau message → reset du buffer
+    if (idMessageEnCoursRef.current !== idMessage) {
+      bufferPhraseRef.current = "";
+      idMessageEnCoursRef.current = idMessage;
+      // Vider la queue des anciens audios en cours
+      queueAudioRef.current = [];
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
       }
+      lectureEnCoursRef.current = false;
+    }
 
-      const chunks = decouperEnChunks(texte);
+    bufferPhraseRef.current += delta;
 
-      // On génère tous les audios en parallèle (plus rapide), on les
-      // joue séquentiellement dans l'ordre.
-      const urls: string[] = [];
-      const promessesChunks = chunks.map(async (chunk, i) => {
-        try {
-          const res = await fetch("/api/synthese-vocale", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ texte: chunk, voix }),
-          });
-          if (!res.ok) {
-            const texteErreur = await res.text();
-            console.error(
-              `[tts] chunk ${i} HTTP ${res.status} :`,
-              texteErreur,
-            );
-            return null;
-          }
-          const blob = await res.blob();
-          if (blob.size === 0) {
-            console.error(`[tts] chunk ${i} blob vide`);
-            return null;
-          }
-          return URL.createObjectURL(blob);
-        } catch (err) {
-          console.error(`[tts] chunk ${i} exception :`, err);
-          return null;
-        }
-      });
-
-      // Attendre le premier chunk pour commencer la lecture rapidement
-      const premierUrl = await promessesChunks[0];
-      if (!premierUrl) {
-        console.error("[tts] premier chunk nul — aucune lecture possible");
-        return;
+    // Détecter les phrases complètes (ponctuation suivie d'un espace ou fin)
+    // Regex : capture jusqu'à .!?… suivi d'un espace, newline ou fin
+    const regex = /(.+?[.!?…])(\s|$)/;
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(bufferPhraseRef.current)) !== null) {
+      const phrase = match[1].trim();
+      // Évite de couper sur abréviations courantes (M., Dr., etc.)
+      if (phrase.length < 8 || /\b(M|Mme|Dr|Pr|Me|St|Ste|etc)\.$/.test(phrase)) {
+        break;
       }
-      urls.push(premierUrl);
+      envoyerPhraseTTS(phrase);
+      bufferPhraseRef.current = bufferPhraseRef.current.slice(
+        match.index + match[1].length + (match[2] ? 1 : 0),
+      );
+    }
+  }
 
-      let indexCourant = 0;
-      let audio = new Audio(premierUrl);
-      audioRef.current = audio;
-
-      // Log explicite si la lecture auto est bloquée (cas typique Safari
-      // / Chrome strict mode / absence d'interaction utilisateur préalable)
-      audio.play().catch((err) => {
-        console.error(
-          "[tts] audio.play() refusé par le navigateur :",
-          err?.name,
-          err?.message,
-        );
-        setAutoplayBloque(true);
-      });
-
-      // À la fin de chaque chunk, enchaîner avec le suivant
-      const jouerSuivant = () => {
-        indexCourant++;
-        if (indexCourant >= chunks.length) {
-          // Fin de tous les chunks — nettoyage
-          urls.forEach((u) => URL.revokeObjectURL(u));
-          if (audioRef.current === audio) audioRef.current = null;
-          return;
-        }
-        // Récupérer l'URL du chunk suivant (peut déjà être dispo)
-        promessesChunks[indexCourant]
-          .then((url) => {
-            if (!url) {
-              console.warn(`[tts] chunk ${indexCourant} nul, saute au suivant`);
-              jouerSuivant();
-              return;
-            }
-            urls.push(url);
-            const nextAudio = new Audio(url);
-            audio = nextAudio;
-            audioRef.current = nextAudio;
-            nextAudio.onended = jouerSuivant;
-            nextAudio.play().catch((err) => {
-              console.error(
-                `[tts] chunk ${indexCourant} play() refusé :`,
-                err?.name,
-                err?.message,
-              );
-            });
-          })
-          .catch((err) => {
-            console.error(`[tts] chunk ${indexCourant} promesse rejetée :`, err);
-            jouerSuivant();
-          });
-      };
-      audio.onended = jouerSuivant;
-    } catch {
-      /* erreur silencieuse */
+  /**
+   * Vide le buffer restant à la fin du streaming (phrase sans ponctuation
+   * finale, ou dernière phrase un peu courte).
+   */
+  function flusherBufferTTS() {
+    const reste = bufferPhraseRef.current.trim();
+    if (reste.length > 0 && lectureVocaleActive) {
+      envoyerPhraseTTS(reste);
+      bufferPhraseRef.current = "";
     }
   }
 
