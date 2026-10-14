@@ -709,22 +709,44 @@ export function ChatWidget() {
         ? "[Clôture confirmée. Opt-in Ataraxis : OUI.]"
         : "[Clôture confirmée. Opt-in Ataraxis : NON.]",
     );
-    // 2. Déclenche la séquence de fermeture
+    // 2. Déclenche la phase 'aurevoir' tout de suite (mascotte visible)
     setFermetureEnCours(true);
     setPhaseFermeture("aurevoir");
-    // 2a. Après 3500ms (temps de lire la bulle au revoir), les ailettes se replient
-    setTimeout(() => setPhaseFermeture("ailettes"), 3500);
-    // 2b. Après 5400ms (ailettes 1900ms), le chat central fade-out
-    setTimeout(() => setPhaseFermeture("chat"), 5400);
-    // 3. Après 6300ms (chat fade 900ms), on referme vraiment le widget
+
+    // Fonction qui attend que la lecture audio en cours ET la queue
+    // soient vides (= AxiSolver a fini de parler) avant de déclencher
+    // la vraie fermeture. Timeout de sécurité à 20 secondes au cas où.
+    const attendreFinVoix = (callback: () => void, debutMs = Date.now()) => {
+      const audioEnCours = !!audioRef.current && !audioRef.current.ended;
+      const queueActive =
+        queueAudioRef.current.length > 0 || lectureEnCoursRef.current;
+      const timeout = Date.now() - debutMs > 20000;
+
+      if ((audioEnCours || queueActive) && !timeout) {
+        setTimeout(() => attendreFinVoix(callback, debutMs), 400);
+      } else {
+        callback();
+      }
+    };
+
+    // On laisse d'abord 4 secondes minimum pour que le visiteur lise la
+    // bulle au revoir, PUIS on attend la fin de la voix si elle parle encore
     setTimeout(() => {
-      setWidgetOuvert(false);
-      setFermetureEnCours(false);
-      setPhaseFermeture("aucune");
-      // Reset pour une éventuelle réouverture
-      setMessages([]);
-      setEtatPanneau(ETAT_PANNEAU_INITIAL);
-    }, 6300);
+      attendreFinVoix(() => {
+        // Les ailettes se replient
+        setPhaseFermeture("ailettes");
+        // Le chat central fade-out après la fin des ailettes (1900ms)
+        setTimeout(() => setPhaseFermeture("chat"), 1900);
+        // On referme vraiment après le fade-out du chat (900ms)
+        setTimeout(() => {
+          setWidgetOuvert(false);
+          setFermetureEnCours(false);
+          setPhaseFermeture("aucune");
+          setMessages([]);
+          setEtatPanneau(ETAT_PANNEAU_INITIAL);
+        }, 2800);
+      });
+    }, 4000);
   }
 
   function envoyer() {
@@ -1200,7 +1222,7 @@ function BoutonOuverture({ onOuvrir }: { onOuvrir: () => void }) {
 
 function MascotteAuRevoir({ prenom }: { prenom?: string }) {
   return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center">
+    <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex flex-col items-center px-5">
       <div className="animate-mascotteAuRevoir mb-3 w-full max-w-sm rounded-2xl rounded-br-sm border border-slate-200 bg-white px-5 py-4 shadow-md">
         <p className="text-sm leading-relaxed text-slate-900">
           Merci {prenom ? `${prenom} ` : ""}d&apos;être passé par ici.{" "}
@@ -1216,9 +1238,9 @@ function MascotteAuRevoir({ prenom }: { prenom?: string }) {
           <Image
             src="/axi-mascotte-aurevoir.png"
             alt="AxiSolver vous salue"
-            width={400}
-            height={400}
-            className="h-auto w-36 md:w-40"
+            width={520}
+            height={520}
+            className="h-auto w-44 md:w-48 lg:w-52"
           />
         </div>
       </div>
