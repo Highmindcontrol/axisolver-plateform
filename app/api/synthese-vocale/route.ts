@@ -195,6 +195,10 @@ function nettoyerPourVocal(texte: string): string {
       .replace(/\s?»/g, "")
       .replace(/`([^`]+)`/g, "$1")
       .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      // Supprime la virgule avant un mot capitalisé probablement prénom
+      // (évite la pause synthétique artificielle avant 'François', 'Lucien', etc.)
+      // Pattern : espace + virgule + espace + Majuscule → espace + Majuscule
+      .replace(/\s*,\s+([A-ZÉÈÀÇÎÔÛÄÖÜŒÆ][a-zéèàçîôûäöüœæ]+)/g, " $1")
       .replace(/\s+/g, " ")
       .trim()
   );
