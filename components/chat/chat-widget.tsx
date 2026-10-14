@@ -856,12 +856,12 @@ export function ChatWidget() {
                 title="Choisir la voix d'AxiSolver"
                 aria-label="Choisir la voix"
               >
-                <option value="onyx">Onyx (homme grave)</option>
-                <option value="echo">Echo (homme neutre)</option>
-                <option value="fable">Fable (homme UK)</option>
-                <option value="nova">Nova (femme)</option>
-                <option value="shimmer">Shimmer (femme douce)</option>
-                <option value="alloy">Alloy (neutre)</option>
+                <option value="onyx">Henri (homme posé)</option>
+                <option value="echo">Jérôme (homme dynamique)</option>
+                <option value="fable">Alain (homme informatif)</option>
+                <option value="nova">Denise (femme naturelle)</option>
+                <option value="shimmer">Céleste (femme douce)</option>
+                <option value="alloy">Rémy (moderne multilingue)</option>
               </select>
             )}
             {/* Toggle lecture vocale */}
