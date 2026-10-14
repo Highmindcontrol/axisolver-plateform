@@ -528,6 +528,7 @@ export function ChatWidget() {
 
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
   const [lectureVocaleActive, setLectureVocaleActive] = useState(true);
+  const [autoplayBloque, setAutoplayBloque] = useState(false);
   // Voix TTS actuelle — par défaut echo (voix d'homme neutre, moins grave qu'onyx)
   const [voix, setVoix] = useState<
     "onyx" | "echo" | "nova" | "shimmer" | "alloy" | "fable"
@@ -622,14 +623,25 @@ export function ChatWidget() {
 
       // Attendre le premier chunk pour commencer la lecture rapidement
       const premierUrl = await promessesChunks[0];
-      if (!premierUrl) return;
+      if (!premierUrl) {
+        console.error("[tts] premier chunk nul — aucune lecture possible");
+        return;
+      }
       urls.push(premierUrl);
 
       let indexCourant = 0;
       let audio = new Audio(premierUrl);
       audioRef.current = audio;
-      audio.play().catch(() => {
-        /* autoplay bloqué, on ignore */
+
+      // Log explicite si la lecture auto est bloquée (cas typique Safari
+      // / Chrome strict mode / absence d'interaction utilisateur préalable)
+      audio.play().catch((err) => {
+        console.error(
+          "[tts] audio.play() refusé par le navigateur :",
+          err?.name,
+          err?.message,
+        );
+        setAutoplayBloque(true);
       });
 
       // À la fin de chaque chunk, enchaîner avec le suivant
@@ -645,6 +657,7 @@ export function ChatWidget() {
         promessesChunks[indexCourant]
           .then((url) => {
             if (!url) {
+              console.warn(`[tts] chunk ${indexCourant} nul, saute au suivant`);
               jouerSuivant();
               return;
             }
@@ -653,9 +666,16 @@ export function ChatWidget() {
             audio = nextAudio;
             audioRef.current = nextAudio;
             nextAudio.onended = jouerSuivant;
-            nextAudio.play().catch(() => {});
+            nextAudio.play().catch((err) => {
+              console.error(
+                `[tts] chunk ${indexCourant} play() refusé :`,
+                err?.name,
+                err?.message,
+              );
+            });
           })
-          .catch(() => {
+          .catch((err) => {
+            console.error(`[tts] chunk ${indexCourant} promesse rejetée :`, err);
             jouerSuivant();
           });
       };
@@ -951,6 +971,40 @@ export function ChatWidget() {
           {(phaseFermeture === "aurevoir" ||
             phaseFermeture === "ailettes") && (
             <MascotteAuRevoir prenom={etatPanneau.fiche.prenom} />
+          )}
+
+          {/* Bandeau d'alerte si l'autoplay audio est bloqué par le navigateur */}
+          {autoplayBloque && (
+            <button
+              onClick={() => {
+                setAutoplayBloque(false);
+                if (audioRef.current) {
+                  audioRef.current
+                    .play()
+                    .catch(() => setAutoplayBloque(true));
+                }
+              }}
+              className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-900 transition-colors hover:bg-amber-100"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4 flex-shrink-0"
+              >
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              </svg>
+              <span className="flex-1 text-left">
+                Votre navigateur bloque la lecture auto. Cliquez pour activer
+                la voix d&apos;AxiSolver.
+              </span>
+            </button>
           )}
 
           {/* Fil de messages — masqué pendant la fermeture pour éviter
