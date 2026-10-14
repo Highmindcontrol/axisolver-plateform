@@ -486,6 +486,17 @@ export function ChatWidget() {
 
   function handleMorpionTermine() {
     setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
+    // Safety net : si Claude n'a pas appelé proposer_cloture_conversation
+    // dans les 6 secondes après la fin du morpion, on l'affiche
+    // automatiquement pour ne pas laisser le visiteur bloqué.
+    setTimeout(() => {
+      if (etatPanneauRef.current.elementActif.kind === "aucun") {
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: { kind: "cloture" },
+        }));
+      }
+    }, 6000);
   }
 
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
@@ -518,6 +529,30 @@ export function ChatWidget() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [thinking, lectureVocaleActive]);
 
+  /**
+   * Découpe un long texte en morceaux de ~3500 chars max en respectant
+   * les frontières de phrases (ponctuation). OpenAI TTS a une limite
+   * dure de 4096 chars par requête.
+   */
+  function decouperEnChunks(texte: string, max = 3500): string[] {
+    if (texte.length <= max) return [texte];
+    const chunks: string[] = [];
+    const phrases = texte
+      .split(/(?<=[.!?…])\s+/)
+      .filter((p) => p.trim().length > 0);
+    let courant = "";
+    for (const phrase of phrases) {
+      if (courant.length + phrase.length + 1 > max && courant) {
+        chunks.push(courant.trim());
+        courant = phrase;
+      } else {
+        courant = courant ? `${courant} ${phrase}` : phrase;
+      }
+    }
+    if (courant) chunks.push(courant.trim());
+    return chunks;
+  }
+
   async function lireMessageAssistant(texte: string) {
     try {
       // Si une lecture est déjà en cours, on l'arrête
@@ -526,83 +561,62 @@ export function ChatWidget() {
         audioRef.current = null;
       }
 
-      const res = await fetch("/api/synthese-vocale", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texte, voix }),
-      });
-      if (!res.ok || !res.body) return;
+      const chunks = decouperEnChunks(texte);
 
-      // Streaming TTS via MediaSource API — réduit la latence perceptive
-      // en commençant la lecture dès les premiers chunks reçus (sans
-      // attendre que tout le fichier MP3 soit généré).
-      const supporteMSE =
-        typeof MediaSource !== "undefined" &&
-        MediaSource.isTypeSupported("audio/mpeg");
-
-      if (supporteMSE) {
-        const mediaSource = new MediaSource();
-        const audioUrl = URL.createObjectURL(mediaSource);
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
-
-        mediaSource.addEventListener("sourceopen", async () => {
-          try {
-            const sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
-            const reader = res.body!.getReader();
-
-            const appendChunk = (chunk: Uint8Array) =>
-              new Promise<void>((resolve) => {
-                const onUpdate = () => {
-                  sourceBuffer.removeEventListener("updateend", onUpdate);
-                  resolve();
-                };
-                sourceBuffer.addEventListener("updateend", onUpdate);
-                // Copie dans un ArrayBuffer propre pour éviter les
-                // conflits de type SharedArrayBuffer vs ArrayBuffer
-                const buffer = new Uint8Array(chunk.byteLength);
-                buffer.set(chunk);
-                sourceBuffer.appendBuffer(buffer.buffer);
-              });
-
-            let dejaDemarre = false;
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) {
-                if (mediaSource.readyState === "open") {
-                  mediaSource.endOfStream();
-                }
-                break;
-              }
-              await appendChunk(value);
-              if (!dejaDemarre) {
-                dejaDemarre = true;
-                audio.play().catch(() => {
-                  /* autoplay bloqué, on ignore */
-                });
-              }
-            }
-          } catch {
-            /* erreur silencieuse */
-          }
+      // On génère tous les audios en parallèle (plus rapide), on les
+      // joue séquentiellement dans l'ordre.
+      const urls: string[] = [];
+      const promessesChunks = chunks.map(async (chunk) => {
+        const res = await fetch("/api/synthese-vocale", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ texte: chunk, voix }),
         });
-
-        audio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          if (audioRef.current === audio) audioRef.current = null;
-        };
-      } else {
-        // Fallback : attendre le blob complet (safari ancien, etc.)
+        if (!res.ok) return null;
         const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audioRef.current = audio;
-        audio.play().catch(() => {});
-        audio.onended = () => {
-          URL.revokeObjectURL(url);
+        return URL.createObjectURL(blob);
+      });
+
+      // Attendre le premier chunk pour commencer la lecture rapidement
+      const premierUrl = await promessesChunks[0];
+      if (!premierUrl) return;
+      urls.push(premierUrl);
+
+      let indexCourant = 0;
+      let audio = new Audio(premierUrl);
+      audioRef.current = audio;
+      audio.play().catch(() => {
+        /* autoplay bloqué, on ignore */
+      });
+
+      // À la fin de chaque chunk, enchaîner avec le suivant
+      const jouerSuivant = () => {
+        indexCourant++;
+        if (indexCourant >= chunks.length) {
+          // Fin de tous les chunks — nettoyage
+          urls.forEach((u) => URL.revokeObjectURL(u));
           if (audioRef.current === audio) audioRef.current = null;
-        };
-      }
+          return;
+        }
+        // Récupérer l'URL du chunk suivant (peut déjà être dispo)
+        promessesChunks[indexCourant]
+          .then((url) => {
+            if (!url) {
+              jouerSuivant();
+              return;
+            }
+            urls.push(url);
+            const nextAudio = new Audio(url);
+            audio = nextAudio;
+            audioRef.current = nextAudio;
+            nextAudio.onended = jouerSuivant;
+            nextAudio.play().catch(() => {});
+          })
+          .catch(() => {
+            jouerSuivant();
+          });
+      };
+      audio.onended = jouerSuivant;
     } catch {
       /* erreur silencieuse */
     }
@@ -642,11 +656,11 @@ export function ChatWidget() {
     // 2. Déclenche la séquence de fermeture
     setFermetureEnCours(true);
     setPhaseFermeture("aurevoir");
-    // 2a. Après 1000ms, les ailettes se replient (durée slideBack ~1900ms)
-    setTimeout(() => setPhaseFermeture("ailettes"), 1000);
-    // 2b. Après 2900ms, le chat central fade-out (durée chatFadeOut ~900ms)
-    setTimeout(() => setPhaseFermeture("chat"), 2900);
-    // 3. Après 3800ms, on referme vraiment le widget
+    // 2a. Après 3500ms (temps de lire la bulle au revoir), les ailettes se replient
+    setTimeout(() => setPhaseFermeture("ailettes"), 3500);
+    // 2b. Après 5400ms (ailettes 1900ms), le chat central fade-out
+    setTimeout(() => setPhaseFermeture("chat"), 5400);
+    // 3. Après 6300ms (chat fade 900ms), on referme vraiment le widget
     setTimeout(() => {
       setWidgetOuvert(false);
       setFermetureEnCours(false);
@@ -654,7 +668,7 @@ export function ChatWidget() {
       // Reset pour une éventuelle réouverture
       setMessages([]);
       setEtatPanneau(ETAT_PANNEAU_INITIAL);
-    }, 3800);
+    }, 6300);
   }
 
   function envoyer() {
@@ -896,10 +910,15 @@ export function ChatWidget() {
             <MascotteAuRevoir prenom={etatPanneau.fiche.prenom} />
           )}
 
-          {/* Fil de messages */}
+          {/* Fil de messages — masqué pendant la fermeture pour éviter
+              l'effet palimpseste (texte visible derrière la mascotte) */}
           <div
             ref={scrollRef}
-            className="flex-1 space-y-3 overflow-y-auto bg-slate-50 px-4 py-5"
+            className={`flex-1 space-y-3 overflow-y-auto bg-slate-50 px-4 py-5 transition-opacity duration-500 ${
+              phaseFermeture === "aurevoir" || phaseFermeture === "ailettes"
+                ? "opacity-0"
+                : "opacity-100"
+            }`}
           >
             {messages
               .filter((m) => !m.content.startsWith("["))
@@ -1127,11 +1146,13 @@ function MascotteAccueil() {
       {/* Bulle de dialogue, posée au-dessus de la mascotte */}
       <div className="animate-bulle relative mb-3 w-full max-w-xs rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-5 py-4 shadow-md">
         <p className="text-sm leading-relaxed text-slate-900">
-          Bonjour, bienvenue chez moi.{" "}
+          Bonjour, bienvenue !{" "}
           <span className="font-semibold text-blue-600">
-            Je suis AxiSolver, le meilleur ami des sites web.
+            Je suis AxiSolver,
           </span>{" "}
-          On fait connaissance ? Que puis-je faire pour vous ?
+          et je n&apos;en ai peut-être pas l&apos;air comme ça 😄 mais
+          d&apos;ici peu, vous n&apos;allez plus pouvoir vous passer de
+          moi. On fait connaissance ?
         </p>
         {/* Petite flèche vers la mascotte */}
         <div className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 border-b border-r border-slate-200 bg-white" />
