@@ -49,16 +49,47 @@ export async function POST(request: Request) {
       | "onyx";
 
     const openai = new OpenAI({ apiKey: cle });
-    // Modèle gpt-4o-mini-tts : nouvelle génération, 3-4× plus rapide
-    // que tts-1 avec une qualité égale ou supérieure, et vrai streaming
-    // des chunks dès les premières millisecondes.
-    const audio = await openai.audio.speech.create({
-      model: "gpt-4o-mini-tts",
-      voice: voix,
-      input: texteNettoye,
-      response_format: "mp3",
-      speed: 1.05,
-    });
+
+    // Tente d'abord gpt-4o-mini-tts (plus rapide, meilleur streaming)
+    // puis fallback automatique sur tts-1 si refusé par la clé API.
+    // Loggue l'erreur côté serveur pour debug Vercel.
+    let audio: Awaited<ReturnType<typeof openai.audio.speech.create>>;
+    try {
+      audio = await openai.audio.speech.create({
+        model: "gpt-4o-mini-tts",
+        voice: voix,
+        input: texteNettoye,
+        response_format: "mp3",
+        speed: 1.05,
+      });
+    } catch (errMini) {
+      const detail =
+        errMini instanceof Error ? errMini.message : "modèle TTS indisponible";
+      console.warn(
+        `[synthese-vocale] gpt-4o-mini-tts a échoué (${detail}), fallback sur tts-1`,
+      );
+      try {
+        audio = await openai.audio.speech.create({
+          model: "tts-1",
+          voice: voix,
+          input: texteNettoye,
+          response_format: "mp3",
+          speed: 1.05,
+        });
+      } catch (errFallback) {
+        const detailFb =
+          errFallback instanceof Error
+            ? errFallback.message
+            : "tts-1 aussi en erreur";
+        console.error(
+          `[synthese-vocale] tts-1 fallback aussi échoué : ${detailFb}`,
+        );
+        return Response.json(
+          { erreur: `TTS impossible (${detailFb})` },
+          { status: 500 },
+        );
+      }
+    }
 
     // Le SDK retourne un ReadableStream — on le relaie tel quel
     return new Response(audio.body, {
@@ -69,6 +100,7 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "erreur TTS";
+    console.error(`[synthese-vocale] erreur générale : ${message}`);
     return Response.json({ erreur: message }, { status: 500 });
   }
 }

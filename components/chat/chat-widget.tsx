@@ -593,15 +593,31 @@ export function ChatWidget() {
       // On génère tous les audios en parallèle (plus rapide), on les
       // joue séquentiellement dans l'ordre.
       const urls: string[] = [];
-      const promessesChunks = chunks.map(async (chunk) => {
-        const res = await fetch("/api/synthese-vocale", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ texte: chunk, voix }),
-        });
-        if (!res.ok) return null;
-        const blob = await res.blob();
-        return URL.createObjectURL(blob);
+      const promessesChunks = chunks.map(async (chunk, i) => {
+        try {
+          const res = await fetch("/api/synthese-vocale", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ texte: chunk, voix }),
+          });
+          if (!res.ok) {
+            const texteErreur = await res.text();
+            console.error(
+              `[tts] chunk ${i} HTTP ${res.status} :`,
+              texteErreur,
+            );
+            return null;
+          }
+          const blob = await res.blob();
+          if (blob.size === 0) {
+            console.error(`[tts] chunk ${i} blob vide`);
+            return null;
+          }
+          return URL.createObjectURL(blob);
+        } catch (err) {
+          console.error(`[tts] chunk ${i} exception :`, err);
+          return null;
+        }
       });
 
       // Attendre le premier chunk pour commencer la lecture rapidement
