@@ -49,12 +49,15 @@ export async function POST(request: Request) {
       | "onyx";
 
     const openai = new OpenAI({ apiKey: cle });
+    // Modèle gpt-4o-mini-tts : nouvelle génération, 3-4× plus rapide
+    // que tts-1 avec une qualité égale ou supérieure, et vrai streaming
+    // des chunks dès les premières millisecondes.
     const audio = await openai.audio.speech.create({
-      model: "tts-1",
+      model: "gpt-4o-mini-tts",
       voice: voix,
       input: texteNettoye,
       response_format: "mp3",
-      speed: 1.05, // légèrement plus vif que la lecture par défaut
+      speed: 1.05,
     });
 
     // Le SDK retourne un ReadableStream — on le relaie tel quel

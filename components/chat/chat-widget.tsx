@@ -224,18 +224,22 @@ export function ChatWidget() {
 
   function appliquerToolUse(tool: string, input: Record<string, unknown>) {
     // Protection : si on est en pleine partie de morpion et que Claude
-    // tente d'afficher autre chose (clôture par ex.), on IGNORE pour
-    // laisser le visiteur finir sa partie. Le morpion n'est libéré que
-    // via onMorpionTermine (callback du composant JeuMorpion).
+    // tente d'afficher autre chose (clôture, envoi fiche email…), on
+    // IGNORE pour laisser le visiteur finir sa partie. Le morpion n'est
+    // libéré que via onMorpionTermine (callback du composant JeuMorpion).
+    //
+    // IMPORTANT : on lit via la ref (etatPanneauRef) et pas via la
+    // closure (etatPanneau) pour avoir la vraie valeur courante — car
+    // plusieurs tool_use peuvent arriver dans la même frame React, et
+    // la closure capturerait l'ancien état.
+    const kindCourant = etatPanneauRef.current.elementActif.kind;
     if (
-      etatPanneau.elementActif.kind === "morpion" &&
+      kindCourant === "morpion" &&
       tool !== "ajouter_note_fiche" &&
       tool !== "generer_reference_axi"
     ) {
-      // On note silencieusement — l'intention de Claude sera revalidée
-      // automatiquement à la fin du morpion
       console.warn(
-        `[chat-widget] Tool ${tool} ignoré pendant une partie de morpion en cours`,
+        `[chat-widget] Tool ${tool} ignoré pendant morpion en cours`,
       );
       return;
     }
@@ -486,10 +490,17 @@ export function ChatWidget() {
 
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
   const [lectureVocaleActive, setLectureVocaleActive] = useState(true);
-  // Voix TTS actuelle — par défaut onyx (voix d'homme, posée, confiance)
+  // Voix TTS actuelle — par défaut echo (voix d'homme neutre, moins grave qu'onyx)
   const [voix, setVoix] = useState<
     "onyx" | "echo" | "nova" | "shimmer" | "alloy" | "fable"
-  >("onyx");
+  >("echo");
+
+  // Ref synchronisée avec l'état panneau — pour éviter les stale closures
+  // dans appliquerToolUse quand plusieurs tools arrivent coup sur coup
+  const etatPanneauRef = useRef<EtatPanneauTravail>(etatPanneau);
+  useEffect(() => {
+    etatPanneauRef.current = etatPanneau;
+  }, [etatPanneau]);
   const dernierMessageLuRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
