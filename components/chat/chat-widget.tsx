@@ -193,10 +193,22 @@ export function ChatWidget() {
         titre: string;
         detail?: string;
       };
+      type FindingRef = {
+        requete: string;
+        position: number | null;
+        totalResultats?: number;
+        concurrents: Array<{ titre: string; url: string; snippet?: string }>;
+      };
       const findings = (evt.findings as FindingAudit[] | undefined) ?? [];
+      const findingsReferencement =
+        (evt.findingsReferencement as FindingRef[] | undefined) ?? undefined;
       const technologies = (evt.technologies as string[] | undefined) ?? [];
       const url = (evt.url as string) ?? "";
-      const volet = evt.volet as "securite" | "seo" | undefined;
+      const volet = evt.volet as
+        | "securite"
+        | "seo"
+        | "referencement"
+        | undefined;
       setEtatPanneau((e) => ({
         ...e,
         elementActif: {
@@ -206,6 +218,7 @@ export function ChatWidget() {
           volet,
           findings,
           technologies,
+          findingsReferencement,
         },
       }));
       return;
@@ -373,6 +386,20 @@ export function ChatWidget() {
             url,
             etat: "en_cours",
             volet: "seo",
+          },
+        }));
+        break;
+      }
+      case "auditer_referencement": {
+        const url = input.url as string;
+        if (!url) return;
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: {
+            kind: "analyse_site",
+            url,
+            etat: "en_cours",
+            volet: "referencement",
           },
         }));
         break;

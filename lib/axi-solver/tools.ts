@@ -94,7 +94,7 @@ export type EtatPanneauTravail = {
         kind: "analyse_site";
         url: string;
         etat: "en_cours" | "terminee";
-        volet?: "securite" | "seo";
+        volet?: "securite" | "seo" | "referencement";
         findings?: Array<{
           categorie: "seo" | "securite" | "performance" | "metier";
           severite: "info" | "amelioration" | "critique";
@@ -102,6 +102,16 @@ export type EtatPanneauTravail = {
           detail?: string;
         }>;
         technologies?: string[];
+        findingsReferencement?: Array<{
+          requete: string;
+          position: number | null;
+          totalResultats?: number;
+          concurrents: Array<{
+            titre: string;
+            url: string;
+            snippet?: string;
+          }>;
+        }>;
       }
     | {
         kind: "choix_multiple";
@@ -350,6 +360,29 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
         },
       },
       required: ["url"],
+    },
+  },
+  {
+    name: "auditer_referencement",
+    description:
+      "Lance un audit RÉFÉRENCEMENT externe du site (position sur Google pour les requêtes métier du client, concurrents visibles). Interroge Serper/Google Search sur 2-4 requêtes représentatives. Durée garantie minimum 8 secondes, animation côté panneau. Appelle ce tool APRÈS l'audit SEO, après avoir demandé l'autorisation : 'Et dernière chose, j'aimerais regarder comment vous êtes référencé — où vous apparaissez quand on cherche votre métier.' Fournis les mots-clés adaptés au secteur du visiteur (métier + ville ou pays, nom de marque, type de produit).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        url: {
+          type: "string",
+          description: "URL complète du site à auditer en référencement.",
+        },
+        mots_cles: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "2 à 4 requêtes à tester sur Google. Adapte-les au secteur du client. Exemples pour une boulangerie à Lyon : ['boulangerie Lyon', 'pain traditionnel Lyon', 'nom-de-la-marque']. Exemples pour un cabinet d'avocats droit du travail à Paris : ['avocat droit du travail Paris', 'avocat prud'hommes', 'nom-du-cabinet'].",
+          minItems: 2,
+          maxItems: 4,
+        },
+      },
+      required: ["url", "mots_cles"],
     },
   },
   {

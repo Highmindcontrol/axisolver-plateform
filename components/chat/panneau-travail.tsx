@@ -280,6 +280,17 @@ export function PanneauActions({
       return <SiteHoteApercu url={etat.elementActif.url} />;
     case "analyse_site":
       if (etat.elementActif.etat === "terminee") {
+        if (
+          etat.elementActif.volet === "referencement" &&
+          etat.elementActif.findingsReferencement
+        ) {
+          return (
+            <CompteRenduReferencement
+              url={etat.elementActif.url}
+              findings={etat.elementActif.findingsReferencement}
+            />
+          );
+        }
         return (
           <CompteRenduAudit
             url={etat.elementActif.url}
@@ -840,7 +851,7 @@ function CompteRenduAudit({
   technologies,
 }: {
   url: string;
-  volet?: "securite" | "seo";
+  volet?: "securite" | "seo" | "referencement";
   findings: Finding[];
   technologies: string[];
 }) {
@@ -974,6 +985,140 @@ function CompteRenduAudit({
   );
 }
 
+// --- Compte-rendu Référencement externe (Serper / Google) ------- //
+
+type FindingReferencement = {
+  requete: string;
+  position: number | null;
+  totalResultats?: number;
+  concurrents: Array<{ titre: string; url: string; snippet?: string }>;
+};
+
+function CompteRenduReferencement({
+  url,
+  findings,
+}: {
+  url: string;
+  findings: FindingReferencement[];
+}) {
+  const hostname = (() => {
+    try {
+      return new URL(normaliserUrl(url)).hostname.replace(/^www\./, "");
+    } catch {
+      return url;
+    }
+  })();
+
+  function couleurPosition(position: number | null): string {
+    if (position === null) return "border-red-200 bg-red-50 text-red-900";
+    if (position <= 3) return "border-emerald-200 bg-emerald-50 text-emerald-900";
+    if (position <= 10) return "border-amber-200 bg-amber-50 text-amber-900";
+    return "border-orange-200 bg-orange-50 text-orange-900";
+  }
+
+  function labelPosition(position: number | null): string {
+    if (position === null) return "Non visible top 20";
+    if (position <= 3) return `#${position} · top 3`;
+    if (position <= 10) return `#${position} · page 1`;
+    return `#${position} · page 2+`;
+  }
+
+  return (
+    <section className="animate-fadeIn flex h-full flex-col overflow-hidden bg-white">
+      <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50/50 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 text-emerald-600"
+            aria-hidden
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
+            Audit référencement terminé — {hostname}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="space-y-4">
+          {findings.map((f, i) => (
+            <div
+              key={i}
+              className="rounded-md border border-slate-200 bg-slate-50 p-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
+                    Requête testée
+                  </div>
+                  <div className="mt-1 font-semibold text-slate-900">
+                    &laquo; {f.requete} &raquo;
+                  </div>
+                </div>
+                <span
+                  className={`flex-shrink-0 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${couleurPosition(f.position)}`}
+                >
+                  {labelPosition(f.position)}
+                </span>
+              </div>
+
+              {f.totalResultats !== undefined && f.totalResultats > 0 && (
+                <div className="mt-2 text-[11px] text-slate-500">
+                  {formaterGrandNombre(f.totalResultats)} résultats au total sur
+                  Google.
+                </div>
+              )}
+
+              {f.concurrents.length > 0 && (
+                <div className="mt-3">
+                  <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                    Top concurrents visibles
+                  </div>
+                  <div className="space-y-1.5">
+                    {f.concurrents.map((c, j) => (
+                      <div
+                        key={j}
+                        className="rounded border border-slate-200 bg-white px-2 py-1.5 text-xs"
+                      >
+                        <div className="truncate font-medium text-slate-900">
+                          {c.titre}
+                        </div>
+                        <div className="truncate text-[10px] text-blue-600">
+                          {c.url}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {findings.length === 0 && (
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              Aucune requête testée.
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function formaterGrandNombre(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)} k`;
+  return `${n}`;
+}
+
 // --- Analyse en cours (animée) ---------------------------------- //
 
 function AnalyseSiteEnCours({
@@ -981,7 +1126,7 @@ function AnalyseSiteEnCours({
   volet,
 }: {
   url: string;
-  volet?: "securite" | "seo";
+  volet?: "securite" | "seo" | "referencement";
 }) {
   const urlComplete = normaliserUrl(url);
   const hostname = (() => {
@@ -1012,13 +1157,30 @@ function AnalyseSiteEnCours({
     { label: "Compilation du diagnostic SEO" },
   ];
 
-  const etapes = volet === "seo" ? etapesSeo : etapesSecurite;
+  const etapesReferencement = [
+    { label: "Interrogation du moteur Google" },
+    { label: "Recherche sur votre nom de marque" },
+    { label: "Recherche sur les requêtes métier" },
+    { label: "Détection de votre position dans les résultats" },
+    { label: "Identification des concurrents visibles" },
+    { label: "Analyse du volume de recherche" },
+    { label: "Compilation du diagnostic référencement" },
+  ];
+
+  const etapes =
+    volet === "seo"
+      ? etapesSeo
+      : volet === "referencement"
+        ? etapesReferencement
+        : etapesSecurite;
   const titreVolet =
     volet === "seo"
       ? `Audit SEO de ${hostname}`
       : volet === "securite"
         ? `Audit sécurité de ${hostname}`
-        : `Analyse de ${hostname}`;
+        : volet === "referencement"
+          ? `Audit référencement de ${hostname}`
+          : `Analyse de ${hostname}`;
 
   return (
     <section className="animate-fadeIn flex h-full flex-col overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/40">

@@ -5,6 +5,7 @@ import {
   auditerSite,
   auditerSiteParCategorie,
 } from "@/lib/axi-solver/audit-site";
+import { auditerReferencement } from "@/lib/axi-solver/audit-referencement";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -211,6 +212,47 @@ export async function POST(request: Request) {
                       type: "tool_result" as const,
                       tool_use_id: b.id,
                       content: `Audit non réalisable (${msg}). Continue sans ces infos.`,
+                    };
+                  }
+                }
+
+                // --- Audit référencement externe (Serper/Google) --- //
+                if (b.name === "auditer_referencement") {
+                  try {
+                    const input = b.input as {
+                      url?: string;
+                      mots_cles?: string[];
+                    };
+                    if (!input?.url) {
+                      return {
+                        type: "tool_result" as const,
+                        tool_use_id: b.id,
+                        content: "Erreur : URL manquante.",
+                      };
+                    }
+                    const resultat = await auditerReferencement(
+                      input.url,
+                      input.mots_cles,
+                    );
+                    emit({
+                      type: "audit_termine",
+                      url: resultat.url,
+                      hostname: resultat.hostname,
+                      volet: "referencement",
+                      findingsReferencement: resultat.findings,
+                    });
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: resultat.resumePourClaude,
+                    };
+                  } catch (err) {
+                    const msg =
+                      err instanceof Error ? err.message : "audit échoué";
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: `Audit référencement non réalisable (${msg}). Continue sans ces infos.`,
                     };
                   }
                 }
