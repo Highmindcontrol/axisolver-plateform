@@ -104,7 +104,8 @@ export type EtatPanneauTravail = {
         options: Array<{ libelle: string; valeur: string }>;
       }
     | { kind: "envoi_fiche_email"; email?: string }
-    | { kind: "morpion" };
+    | { kind: "morpion" }
+    | { kind: "cloture" };
   reference?: {
     reference: string;
     resume: string;
@@ -375,6 +376,16 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
     name: "proposer_jeu_morpion",
     description:
       "Propose une partie de morpion dans le panneau de travail — rupture de ton pour terminer la conversation sur une note mémorable. À N'APPELER QUE si le visiteur est détendu, pas pressé, pas en contexte urgent / litigieux / secteur sensible (santé, juridique grave, deuil). Appel après le rituel de clôture.",
+    input_schema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "proposer_cloture_conversation",
+    description:
+      "Affiche l'écran de clôture final dans le panneau de gauche : case à cocher 'J'accepte d'être recontacté par Ataraxis' + bouton 'Clôturer et recevoir mon compte-rendu'. Le bouton ne s'active que si la case est cochée. À appeler systématiquement à la fin de la conversation, après le morpion (ou directement après la référence AXI si le morpion n'a pas été proposé). C'est la dernière action du widget — après le clic du visiteur, les ailettes se replient et le widget se ferme.",
     input_schema: {
       type: "object" as const,
       properties: {},

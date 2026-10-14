@@ -40,30 +40,83 @@ body {
    depuis derrière le chat central vers leur position d'ouverture.
    Durée longue et easing doux pour un effet « rideau de scène ». */
 @keyframes slideOutLeft {
-  from {
-    transform: translateX(60%) scale(0.92);
+  0% {
+    transform: translateX(80%) scale(0.88);
     opacity: 0;
   }
-  to {
+  40% {
+    opacity: 1;
+  }
+  100% {
     transform: translateX(0) scale(1);
     opacity: 1;
   }
 }
 @keyframes slideOutRight {
-  from {
-    transform: translateX(-60%) scale(0.92);
+  0% {
+    transform: translateX(-80%) scale(0.88);
     opacity: 0;
   }
-  to {
+  40% {
+    opacity: 1;
+  }
+  100% {
     transform: translateX(0) scale(1);
     opacity: 1;
   }
 }
 .animate-slideOutLeft {
-  animation: slideOutLeft 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: slideOutLeft 1900ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .animate-slideOutRight {
-  animation: slideOutRight 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: slideOutRight 1900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Fermeture des ailettes — glissent vers l'intérieur et s'estompent */
+@keyframes slideBackLeft {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(80%) scale(0.9);
+    opacity: 0;
+  }
+}
+@keyframes slideBackRight {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(-80%) scale(0.9);
+    opacity: 0;
+  }
+}
+.animate-slideBackLeft {
+  animation: slideBackLeft 1400ms cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+.animate-slideBackRight {
+  animation: slideBackRight 1400ms cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+@keyframes chatFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+.animate-chatFadeOut {
+  animation: chatFadeOut 1400ms ease-in forwards;
 }
 
 /* Apparition de la mascotte d'accueil à gauche + sa bulle de dialogue */

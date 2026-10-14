@@ -199,6 +199,7 @@ type PropsActions = {
   onEnvoiFicheConfirme: (email: string) => void;
   onMorpionMessage: (message: string) => void;
   onMorpionTermine: () => void;
+  onClotureConfirmee: (optInRecontact: boolean) => void;
 };
 
 export function PanneauActions({
@@ -210,6 +211,7 @@ export function PanneauActions({
   onEnvoiFicheConfirme,
   onMorpionMessage,
   onMorpionTermine,
+  onClotureConfirmee,
 }: PropsActions) {
   switch (etat.elementActif.kind) {
     case "demande_email":
@@ -289,6 +291,8 @@ export function PanneauActions({
           onPartiesTerminees={onMorpionTermine}
         />
       );
+    case "cloture":
+      return <ClotureConversation onConfirme={onClotureConfirmee} />;
     case "aucun":
     default:
       return <AccueilAxiSolver />;
@@ -979,6 +983,88 @@ function EnvoiFicheEmail({
 // --- Morpion (protocole 3 manches max) ------------------------------ //
 
 type CaseM = "X" | "O" | null;
+
+// --- Clôture de conversation (bouton final + opt-in) ------------- //
+
+function ClotureConversation({
+  onConfirme,
+}: {
+  onConfirme: (optInRecontact: boolean) => void;
+}) {
+  const [optIn, setOptIn] = useState(false);
+
+  return (
+    <div className="flex h-full flex-col items-center justify-center p-5">
+      <section className="animate-fadeIn w-full rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-6 shadow-md">
+        <div className="mb-4 flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-5 w-5 text-blue-600"
+            aria-hidden
+          >
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <path d="M14 2v6h6" />
+            <path d="M10 14h4" />
+            <path d="M10 18h4" />
+          </svg>
+          <h3 className="text-base font-semibold text-slate-900">
+            Clôturer notre échange
+          </h3>
+        </div>
+
+        <p className="text-xs leading-relaxed text-slate-600">
+          Avant de nous quitter, voici ce qui va suivre : vous allez recevoir
+          par email le compte-rendu complet de notre conversation — audit
+          sécurité, audit SEO, pistes d&apos;action. Une base solide pour
+          avancer.
+        </p>
+
+        <label
+          className={`mt-5 flex cursor-pointer items-start gap-3 rounded-md border p-3 text-xs transition-all ${
+            optIn
+              ? "border-blue-500 bg-blue-50"
+              : "border-slate-200 bg-white hover:border-blue-300"
+          }`}
+        >
+          <input
+            type="checkbox"
+            checked={optIn}
+            onChange={(e) => setOptIn(e.target.checked)}
+            className="mt-0.5 h-4 w-4 cursor-pointer accent-blue-600"
+          />
+          <span className="flex-1 leading-relaxed text-slate-700">
+            J&apos;accepte d&apos;être recontacté par la société Ataraxis
+            et de recevoir des informations utiles de leur part.
+          </span>
+        </label>
+
+        <button
+          onClick={() => onConfirme(optIn)}
+          disabled={!optIn}
+          className={`mt-5 w-full rounded-md px-4 py-3 text-sm font-semibold transition-all ${
+            optIn
+              ? "animate-pulseGlow bg-blue-600 text-white hover:bg-blue-700"
+              : "cursor-not-allowed bg-slate-100 text-slate-400"
+          }`}
+        >
+          Clôturer et recevoir mon compte-rendu
+        </button>
+
+        {!optIn && (
+          <p className="mt-3 text-center text-[11px] italic text-slate-400">
+            Cochez la case ci-dessus pour activer le bouton.
+          </p>
+        )}
+      </section>
+    </div>
+  );
+}
 
 function JeuMorpion({
   onMessageChat,

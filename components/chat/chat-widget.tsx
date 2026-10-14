@@ -33,7 +33,7 @@ type ChatMessage = { id: string; role: Role; content: string };
 type VueMobile = "actions" | "chat" | "fiche";
 
 const CONTENU_ACCUEIL =
-  "Bonjour, bienvenue chez moi. Je suis AxiSolver, le meilleur ami des sites web. On fait connaissance ? Que puis-je faire pour vous ?";
+  "Bonjour, bienvenue ! Je suis AxiSolver, et je n'en ai peut-être pas l'air comme ça 😄 mais d'ici peu, vous n'allez plus pouvoir vous passer de moi. On fait connaissance ?";
 
 export function ChatWidget() {
   const [widgetOuvert, setWidgetOuvert] = useState(false);
@@ -375,6 +375,12 @@ export function ChatWidget() {
           elementActif: { kind: "morpion" },
         }));
         break;
+      case "proposer_cloture_conversation":
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: { kind: "cloture" },
+        }));
+        break;
     }
   }
 
@@ -419,6 +425,27 @@ export function ChatWidget() {
     setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
   }
 
+  const [fermetureEnCours, setFermetureEnCours] = useState(false);
+
+  function handleClotureConfirmee(optInRecontact: boolean) {
+    // 1. On note l'opt-in dans l'historique pour l'équipe
+    envoyerTexte(
+      optInRecontact
+        ? "[Clôture confirmée. Opt-in Ataraxis : OUI.]"
+        : "[Clôture confirmée. Opt-in Ataraxis : NON.]",
+    );
+    // 2. On déclenche l'animation de fermeture
+    setFermetureEnCours(true);
+    // 3. Après 1600ms (animation terminée), on referme le widget
+    setTimeout(() => {
+      setWidgetOuvert(false);
+      setFermetureEnCours(false);
+      // Reset de l'état pour une éventuelle réouverture
+      setMessages([]);
+      setEtatPanneau(ETAT_PANNEAU_INITIAL);
+    }, 1600);
+  }
+
   function envoyer() {
     const texte = input.trim();
     if (!texte || thinking) return;
@@ -443,7 +470,7 @@ export function ChatWidget() {
     <div className="flex h-[640px] items-stretch gap-3 md:h-[680px]">
       {/* === AILETTE GAUCHE — Actions (desktop) === */}
       <aside
-        className={`animate-slideOutLeft flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        className={`${fermetureEnCours ? "animate-slideBackLeft" : "animate-slideOutLeft"} flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
         <div className="flex w-full flex-col">
@@ -485,6 +512,7 @@ export function ChatWidget() {
                 onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
                 onMorpionMessage={handleMorpionMessage}
                 onMorpionTermine={handleMorpionTermine}
+                onClotureConfirmee={handleClotureConfirmee}
               />
             )}
           </div>
@@ -493,7 +521,7 @@ export function ChatWidget() {
 
       {/* === COLONNE CENTRALE — Chat (dominante) === */}
       <section
-        className={`overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
+        className={`${fermetureEnCours ? "animate-chatFadeOut" : ""} overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
       >
         <div className="flex w-full flex-col">
           {/* Header chat */}
@@ -623,7 +651,7 @@ export function ChatWidget() {
 
       {/* === AILETTE DROITE — Fiche (desktop) === */}
       <aside
-        className={`animate-slideOutRight flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        className={`${fermetureEnCours ? "animate-slideBackRight" : "animate-slideOutRight"} flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Fiche visiteur"
       >
         <div className="flex w-full flex-col">
