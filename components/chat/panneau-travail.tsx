@@ -193,7 +193,11 @@ function ReferenceAxi({ reference }: { reference: string }) {
 type PropsActions = {
   etat: EtatPanneauTravail;
   onEmailValide: (email: string) => void;
+  onEmailRefuse: () => void;
   onTelephoneValide: (telephone: string) => void;
+  onTelephoneRefuse: () => void;
+  onUrlSiteValide: (url: string) => void;
+  onUrlSiteRefuse: () => void;
   onChoixClique: (valeur: string) => void;
   onChoixMultipleValide: (valeurs: string[]) => void;
   onEnvoiFicheConfirme: (email: string) => void;
@@ -205,7 +209,11 @@ type PropsActions = {
 export function PanneauActions({
   etat,
   onEmailValide,
+  onEmailRefuse,
   onTelephoneValide,
+  onTelephoneRefuse,
+  onUrlSiteValide,
+  onUrlSiteRefuse,
   onChoixClique,
   onChoixMultipleValide,
   onEnvoiFicheConfirme,
@@ -219,6 +227,7 @@ export function PanneauActions({
         <ChampEmail
           raison={etat.elementActif.raison}
           onValide={onEmailValide}
+          onRefuse={onEmailRefuse}
         />
       );
     case "demande_telephone":
@@ -226,6 +235,15 @@ export function PanneauActions({
         <ChampTelephone
           raison={etat.elementActif.raison}
           onValide={onTelephoneValide}
+          onRefuse={onTelephoneRefuse}
+        />
+      );
+    case "demande_url_site":
+      return (
+        <ChampUrlSite
+          raison={etat.elementActif.raison}
+          onValide={onUrlSiteValide}
+          onRefuse={onUrlSiteRefuse}
         />
       );
     case "choix":
@@ -325,9 +343,11 @@ function AccueilAxiSolver() {
 function ChampEmail({
   raison,
   onValide,
+  onRefuse,
 }: {
   raison?: string;
   onValide: (email: string) => void;
+  onRefuse: () => void;
 }) {
   const [val, setVal] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -383,6 +403,13 @@ function ChampEmail({
           >
             Valider
           </button>
+          <button
+            type="button"
+            onClick={onRefuse}
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-xs text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+          >
+            Je préfère ne pas le donner pour l&apos;instant
+          </button>
         </div>
         {erreur && <p className="mt-2 text-xs text-red-600">{erreur}</p>}
       </form>
@@ -393,9 +420,11 @@ function ChampEmail({
 function ChampTelephone({
   raison,
   onValide,
+  onRefuse,
 }: {
   raison?: string;
   onValide: (tel: string) => void;
+  onRefuse: () => void;
 }) {
   const [val, setVal] = useState("");
   const [erreur, setErreur] = useState<string | null>(null);
@@ -463,6 +492,92 @@ function ChampTelephone({
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
           >
             Valider
+          </button>
+          <button
+            type="button"
+            onClick={onRefuse}
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-xs text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+          >
+            Je préfère ne pas le donner pour l&apos;instant
+          </button>
+        </div>
+        {erreur && <p className="mt-2 text-xs text-red-600">{erreur}</p>}
+      </form>
+    </div>
+  );
+}
+
+function ChampUrlSite({
+  raison,
+  onValide,
+  onRefuse,
+}: {
+  raison?: string;
+  onValide: (url: string) => void;
+  onRefuse: () => void;
+}) {
+  const [val, setVal] = useState("");
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  function soumettre(e: React.FormEvent) {
+    e.preventDefault();
+    const v = val.trim();
+    if (v.length < 3) {
+      setErreur("Entrez une URL valide (ex : monsite.com).");
+      return;
+    }
+    setErreur(null);
+    onValide(v);
+  }
+
+  return (
+    <div className="flex h-full flex-col justify-center p-5">
+      <form
+        onSubmit={soumettre}
+        className="animate-fadeIn rounded-xl border border-blue-200 bg-white p-5 shadow-sm"
+      >
+        <div className="flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 text-blue-600"
+            aria-hidden
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+          </svg>
+          <h3 className="text-sm font-semibold text-slate-900">
+            L&apos;URL de votre site
+          </h3>
+        </div>
+        {raison && <p className="mt-1 text-xs text-slate-600">{raison}</p>}
+        <div className="mt-3 flex flex-col gap-2">
+          <input
+            type="text"
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            placeholder="monsite.com"
+            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Valider
+          </button>
+          <button
+            type="button"
+            onClick={onRefuse}
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-xs text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+          >
+            Je préfère ne pas le donner pour l&apos;instant
           </button>
         </div>
         {erreur && <p className="mt-2 text-xs text-red-600">{erreur}</p>}

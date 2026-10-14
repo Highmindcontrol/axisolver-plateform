@@ -40,6 +40,10 @@ export type EvenementPanneau =
       titre?: string;
     }
   | {
+      type: "demander_url_site";
+      raison?: string;
+    }
+  | {
       type: "afficher_site_hote";
       url: string;
     }
@@ -77,6 +81,7 @@ export type EtatPanneauTravail = {
     | { kind: "aucun" }
     | { kind: "demande_email"; raison?: string }
     | { kind: "demande_telephone"; raison?: string }
+    | { kind: "demande_url_site"; raison?: string }
     | {
         kind: "choix";
         question: string;
@@ -282,6 +287,22 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
         },
       },
       required: ["url"],
+    },
+  },
+  {
+    name: "demander_url_site",
+    description:
+      "Affiche dans le panneau d'actions (gauche) un formulaire élégant pour que le visiteur saisisse l'URL de son site web. Le formulaire comprend un champ URL avec validation + un bouton Valider + un bouton 'Je préfère ne pas le donner' pour éviter de bloquer la conversation. À appeler APRÈS avoir obtenu le prénom + le secteur + le volume de visiteurs, avant de proposer l'audit. Tu reçois ensuite soit [URL site : ...] soit [URL site refusée] et tu adaptes la suite.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        raison: {
+          type: "string",
+          description:
+            "Phrase courte expliquant pourquoi tu demandes l'URL (ex: « pour auditer rapidement votre site »).",
+        },
+      },
+      required: [],
     },
   },
   {

@@ -223,6 +223,23 @@ export function ChatWidget() {
   }
 
   function appliquerToolUse(tool: string, input: Record<string, unknown>) {
+    // Protection : si on est en pleine partie de morpion et que Claude
+    // tente d'afficher autre chose (clôture par ex.), on IGNORE pour
+    // laisser le visiteur finir sa partie. Le morpion n'est libéré que
+    // via onMorpionTermine (callback du composant JeuMorpion).
+    if (
+      etatPanneau.elementActif.kind === "morpion" &&
+      tool !== "ajouter_note_fiche" &&
+      tool !== "generer_reference_axi"
+    ) {
+      // On note silencieusement — l'intention de Claude sera revalidée
+      // automatiquement à la fin du morpion
+      console.warn(
+        `[chat-widget] Tool ${tool} ignoré pendant une partie de morpion en cours`,
+      );
+      return;
+    }
+
     switch (tool) {
       case "ajouter_note_fiche": {
         const champ = input.champ as string | undefined;
@@ -248,6 +265,15 @@ export function ChatWidget() {
           ...e,
           elementActif: {
             kind: "demande_telephone",
+            raison: input.raison as string | undefined,
+          },
+        }));
+        break;
+      case "demander_url_site":
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: {
+            kind: "demande_url_site",
             raison: input.raison as string | undefined,
           },
         }));
@@ -400,6 +426,11 @@ export function ChatWidget() {
     envoyerTexte(`[Email saisi : ${email}]`);
   }
 
+  function handleEmailRefuse() {
+    setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
+    envoyerTexte("[Email : visiteur préfère ne pas le donner pour l'instant.]");
+  }
+
   function handleTelephoneValide(tel: string) {
     setEtatPanneau((e) => ({
       ...e,
@@ -407,6 +438,27 @@ export function ChatWidget() {
       elementActif: { kind: "aucun" },
     }));
     envoyerTexte(`[Téléphone saisi : ${tel}]`);
+  }
+
+  function handleTelephoneRefuse() {
+    setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
+    envoyerTexte(
+      "[Téléphone : visiteur préfère ne pas le donner pour l'instant.]",
+    );
+  }
+
+  function handleUrlSiteValide(url: string) {
+    setEtatPanneau((e) => ({
+      ...e,
+      fiche: { ...e.fiche, site_web: url },
+      elementActif: { kind: "aucun" },
+    }));
+    envoyerTexte(`[URL site : ${url}]`);
+  }
+
+  function handleUrlSiteRefuse() {
+    setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
+    envoyerTexte("[URL site : visiteur préfère ne pas la donner pour l'instant.]");
   }
 
   function handleChoixClique(valeur: string) {
@@ -434,6 +486,10 @@ export function ChatWidget() {
 
   const [fermetureEnCours, setFermetureEnCours] = useState(false);
   const [lectureVocaleActive, setLectureVocaleActive] = useState(true);
+  // Voix TTS actuelle — par défaut onyx (voix d'homme, posée, confiance)
+  const [voix, setVoix] = useState<
+    "onyx" | "echo" | "nova" | "shimmer" | "alloy" | "fable"
+  >("onyx");
   const dernierMessageLuRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -462,21 +518,80 @@ export function ChatWidget() {
       const res = await fetch("/api/synthese-vocale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ texte, voix: "nova" }),
+        body: JSON.stringify({ texte, voix }),
       });
-      if (!res.ok) return;
+      if (!res.ok || !res.body) return;
 
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-      audio.play().catch(() => {
-        /* autoplay bloqué par le navigateur, on ignore */
-      });
-      audio.onended = () => {
-        URL.revokeObjectURL(url);
-        if (audioRef.current === audio) audioRef.current = null;
-      };
+      // Streaming TTS via MediaSource API — réduit la latence perceptive
+      // en commençant la lecture dès les premiers chunks reçus (sans
+      // attendre que tout le fichier MP3 soit généré).
+      const supporteMSE =
+        typeof MediaSource !== "undefined" &&
+        MediaSource.isTypeSupported("audio/mpeg");
+
+      if (supporteMSE) {
+        const mediaSource = new MediaSource();
+        const audioUrl = URL.createObjectURL(mediaSource);
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+
+        mediaSource.addEventListener("sourceopen", async () => {
+          try {
+            const sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
+            const reader = res.body!.getReader();
+
+            const appendChunk = (chunk: Uint8Array) =>
+              new Promise<void>((resolve) => {
+                const onUpdate = () => {
+                  sourceBuffer.removeEventListener("updateend", onUpdate);
+                  resolve();
+                };
+                sourceBuffer.addEventListener("updateend", onUpdate);
+                // Copie dans un ArrayBuffer propre pour éviter les
+                // conflits de type SharedArrayBuffer vs ArrayBuffer
+                const buffer = new Uint8Array(chunk.byteLength);
+                buffer.set(chunk);
+                sourceBuffer.appendBuffer(buffer.buffer);
+              });
+
+            let dejaDemarre = false;
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) {
+                if (mediaSource.readyState === "open") {
+                  mediaSource.endOfStream();
+                }
+                break;
+              }
+              await appendChunk(value);
+              if (!dejaDemarre) {
+                dejaDemarre = true;
+                audio.play().catch(() => {
+                  /* autoplay bloqué, on ignore */
+                });
+              }
+            }
+          } catch {
+            /* erreur silencieuse */
+          }
+        });
+
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          if (audioRef.current === audio) audioRef.current = null;
+        };
+      } else {
+        // Fallback : attendre le blob complet (safari ancien, etc.)
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audioRef.current = audio;
+        audio.play().catch(() => {});
+        audio.onended = () => {
+          URL.revokeObjectURL(url);
+          if (audioRef.current === audio) audioRef.current = null;
+        };
+      }
     } catch {
       /* erreur silencieuse */
     }
@@ -606,7 +721,11 @@ export function ChatWidget() {
               <PanneauActions
                 etat={etatPanneau}
                 onEmailValide={handleEmailValide}
+                onEmailRefuse={handleEmailRefuse}
                 onTelephoneValide={handleTelephoneValide}
+                onTelephoneRefuse={handleTelephoneRefuse}
+                onUrlSiteValide={handleUrlSiteValide}
+                onUrlSiteRefuse={handleUrlSiteRefuse}
                 onChoixClique={handleChoixClique}
                 onChoixMultipleValide={handleChoixMultipleValide}
                 onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
@@ -645,6 +764,25 @@ export function ChatWidget() {
                 En ligne — répond maintenant
               </div>
             </div>
+            {/* Sélecteur de voix TTS — menu caché affiché au clic */}
+            {lectureVocaleActive && (
+              <select
+                value={voix}
+                onChange={(e) =>
+                  setVoix(e.target.value as typeof voix)
+                }
+                className="hidden rounded-full bg-white/15 px-2 py-1 text-xs font-medium text-white outline-none transition-colors hover:bg-white/25 md:inline-flex [&>option]:text-slate-900"
+                title="Choisir la voix d'AxiSolver"
+                aria-label="Choisir la voix"
+              >
+                <option value="onyx">Onyx (homme grave)</option>
+                <option value="echo">Echo (homme neutre)</option>
+                <option value="fable">Fable (homme UK)</option>
+                <option value="nova">Nova (femme)</option>
+                <option value="shimmer">Shimmer (femme douce)</option>
+                <option value="alloy">Alloy (neutre)</option>
+              </select>
+            )}
             {/* Toggle lecture vocale */}
             <button
               onClick={basculerLectureVocale}
@@ -913,19 +1051,19 @@ function BoutonOuverture({ onOuvrir }: { onOuvrir: () => void }) {
         vous. Deux à trois minutes maximum.
       </p>
 
-      {/* Gros bouton rond noir avec logo AxiSolver — pulsation permanente */}
+      {/* Gros bouton rond noir avec la mascotte AxiSolver — pulsation permanente */}
       <button
         onClick={onOuvrir}
         aria-label="Démarrer la conversation avec AxiSolver"
-        className="animate-pulseAxi group mt-10 flex h-40 w-40 items-center justify-center rounded-full bg-slate-900 shadow-xl transition-transform hover:scale-105 md:h-48 md:w-48"
+        className="animate-pulseAxi group mt-10 flex h-44 w-44 items-center justify-center overflow-hidden rounded-full bg-slate-900 shadow-xl transition-transform hover:scale-105 md:h-52 md:w-52"
       >
         <Image
-          src="/logo-axisolver.png"
+          src="/axi-mascotte-bouton.png"
           alt="AxiSolver"
-          width={320}
-          height={320}
+          width={400}
+          height={400}
           priority
-          className="h-auto w-28 transition-transform group-hover:scale-105 md:w-32"
+          className="h-auto w-36 translate-y-1 transition-transform group-hover:scale-110 md:w-40"
         />
       </button>
 
@@ -956,15 +1094,13 @@ function MascotteAuRevoir({ prenom }: { prenom?: string }) {
       <div className="animate-mascotteAuRevoir relative w-full">
         <div className="mx-auto flex justify-center">
           <Image
-            src="/logo-axisolver.png"
+            src="/axi-mascotte-aurevoir.png"
             alt="AxiSolver vous salue"
-            width={320}
-            height={320}
-            className="h-auto w-32 md:w-36"
+            width={400}
+            height={400}
+            className="h-auto w-36 md:w-40"
           />
         </div>
-        {/* Masque les pieds de la mascotte */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-slate-50 to-transparent" />
       </div>
     </div>
   );
@@ -990,21 +1126,18 @@ function MascotteAccueil() {
         <div className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 border-b border-r border-slate-200 bg-white" />
       </div>
 
-      {/* Mascotte — bras derrière le dos, pieds cachés par le fond
-          (le dégradé du bas se fond pour masquer la base) */}
+      {/* Mascotte — bras derrière le dos (image dédiée accueil) */}
       <div className="relative w-full">
         <div className="animate-mascotte mx-auto flex justify-center">
           <Image
-            src="/logo-axisolver.png"
-            alt="AxiSolver"
-            width={320}
-            height={320}
+            src="/axi-mascotte-accueil.png"
+            alt="AxiSolver vous accueille"
+            width={420}
+            height={420}
             priority
-            className="h-auto w-40 md:w-44 lg:w-48"
+            className="h-auto w-44 md:w-48 lg:w-52"
           />
         </div>
-        {/* Dégradé qui masque la base de la mascotte */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-slate-50 to-transparent" />
       </div>
     </div>
   );
