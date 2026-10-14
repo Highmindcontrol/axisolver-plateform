@@ -38,6 +38,12 @@ const CONTENU_ACCUEIL =
 
 export function ChatWidget() {
   const [widgetOuvert, setWidgetOuvert] = useState(false);
+  // Phase d'ouverture séquencée :
+  // 1. "chat" → chat central fade-in seul (0-900ms)
+  // 2. "complet" → ailettes glissent et deviennent visibles
+  const [phaseOuverture, setPhaseOuverture] = useState<"chat" | "complet">(
+    "chat",
+  );
   // Pas de message d'accueil dans le chat au démarrage — il est affiché
   // dans la mascotte à gauche, et ne passera dans le chat qu'après la
   // première réponse du visiteur.
@@ -491,23 +497,38 @@ export function ChatWidget() {
     envoyerTexte(texte);
   }
 
+  // Phase de fermeture séquencée :
+  // 1. "aurevoir"    → mascotte au revoir apparaît au centre bas (0-1000ms)
+  // 2. "ailettes"    → ailettes se replient (1000-2900ms)
+  // 3. "chat"        → chat central fade-out (2900-3800ms)
+  // 4. widget fermé  → retour au bouton d'ouverture (4000ms)
+  const [phaseFermeture, setPhaseFermeture] = useState<
+    "aucune" | "aurevoir" | "ailettes" | "chat"
+  >("aucune");
+
   function handleClotureConfirmee(optInRecontact: boolean) {
-    // 1. On note l'opt-in dans l'historique pour l'équipe
+    // 1. Note l'opt-in dans l'historique pour l'équipe
     envoyerTexte(
       optInRecontact
         ? "[Clôture confirmée. Opt-in Ataraxis : OUI.]"
         : "[Clôture confirmée. Opt-in Ataraxis : NON.]",
     );
-    // 2. On déclenche l'animation de fermeture
+    // 2. Déclenche la séquence de fermeture
     setFermetureEnCours(true);
-    // 3. Après 1600ms (animation terminée), on referme le widget
+    setPhaseFermeture("aurevoir");
+    // 2a. Après 1000ms, les ailettes se replient (durée slideBack ~1900ms)
+    setTimeout(() => setPhaseFermeture("ailettes"), 1000);
+    // 2b. Après 2900ms, le chat central fade-out (durée chatFadeOut ~900ms)
+    setTimeout(() => setPhaseFermeture("chat"), 2900);
+    // 3. Après 3800ms, on referme vraiment le widget
     setTimeout(() => {
       setWidgetOuvert(false);
       setFermetureEnCours(false);
-      // Reset de l'état pour une éventuelle réouverture
+      setPhaseFermeture("aucune");
+      // Reset pour une éventuelle réouverture
       setMessages([]);
       setEtatPanneau(ETAT_PANNEAU_INITIAL);
-    }, 1600);
+    }, 3800);
   }
 
   function envoyer() {
@@ -527,14 +548,29 @@ export function ChatWidget() {
 
   // Si le widget n'est pas encore ouvert, on affiche le bouton d'invitation
   if (!widgetOuvert) {
-    return <BoutonOuverture onOuvrir={() => setWidgetOuvert(true)} />;
+    return (
+      <BoutonOuverture
+        onOuvrir={() => {
+          setWidgetOuvert(true);
+          setPhaseOuverture("chat");
+          // Les ailettes apparaissent 900ms après le chat central
+          setTimeout(() => setPhaseOuverture("complet"), 900);
+        }}
+      />
+    );
   }
 
   return (
     <div className="flex h-[640px] items-stretch gap-3 md:h-[680px]">
       {/* === AILETTE GAUCHE — Actions (desktop) === */}
       <aside
-        className={`${fermetureEnCours ? "animate-slideBackLeft" : "animate-slideOutLeft"} flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        className={`${
+          phaseFermeture === "ailettes" || phaseFermeture === "chat"
+            ? "animate-slideBackLeft"
+            : phaseOuverture === "complet"
+              ? "animate-slideOutLeft"
+              : "pointer-events-none opacity-0"
+        } flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
         <div className="flex w-full flex-col">
@@ -585,7 +621,13 @@ export function ChatWidget() {
 
       {/* === COLONNE CENTRALE — Chat (dominante) === */}
       <section
-        className={`${fermetureEnCours ? "animate-chatFadeOut" : ""} overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
+        className={`relative ${
+          phaseFermeture === "chat"
+            ? "animate-chatFadeOut"
+            : phaseOuverture === "chat" || phaseOuverture === "complet"
+              ? "animate-chatFadeIn"
+              : ""
+        } overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
       >
         <div className="flex w-full flex-col">
           {/* Header chat */}
@@ -699,6 +741,12 @@ export function ChatWidget() {
             </div>
           </div>
 
+          {/* Mascotte au revoir — superposée en bas pendant la fermeture */}
+          {(phaseFermeture === "aurevoir" ||
+            phaseFermeture === "ailettes") && (
+            <MascotteAuRevoir prenom={etatPanneau.fiche.prenom} />
+          )}
+
           {/* Fil de messages */}
           <div
             ref={scrollRef}
@@ -766,7 +814,13 @@ export function ChatWidget() {
 
       {/* === AILETTE DROITE — Fiche (desktop) === */}
       <aside
-        className={`${fermetureEnCours ? "animate-slideBackRight" : "animate-slideOutRight"} flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        className={`${
+          phaseFermeture === "ailettes" || phaseFermeture === "chat"
+            ? "animate-slideBackRight"
+            : phaseOuverture === "complet"
+              ? "animate-slideOutRight"
+              : "pointer-events-none opacity-0"
+        } flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Fiche visiteur"
       >
         <div className="flex w-full flex-col">
@@ -850,16 +904,6 @@ function IndicateurFrappe() {
 function BoutonOuverture({ onOuvrir }: { onOuvrir: () => void }) {
   return (
     <div className="flex min-h-[480px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50/50 p-10 text-center md:min-h-[560px]">
-      <div className="mb-6">
-        <Image
-          src="/logo-axisolver.png"
-          alt="AxiSolver"
-          width={280}
-          height={280}
-          priority
-          className="h-auto w-32 md:w-40"
-        />
-      </div>
       <h2 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl">
         AxiSolver vous attend
       </h2>
@@ -868,28 +912,60 @@ function BoutonOuverture({ onOuvrir }: { onOuvrir: () => void }) {
         regarder votre site, et vous dire ce qu&apos;il peut faire pour
         vous. Deux à trois minutes maximum.
       </p>
+
+      {/* Gros bouton rond noir avec logo AxiSolver — pulsation permanente */}
       <button
         onClick={onOuvrir}
-        className="animate-pulseGlow mt-8 inline-flex items-center gap-3 rounded-full bg-blue-600 px-8 py-4 text-base font-medium text-white transition-all hover:bg-blue-700 hover:scale-105"
+        aria-label="Démarrer la conversation avec AxiSolver"
+        className="animate-pulseAxi group mt-10 flex h-40 w-40 items-center justify-center rounded-full bg-slate-900 shadow-xl transition-transform hover:scale-105 md:h-48 md:w-48"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-5 w-5"
-          aria-hidden
-        >
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-        </svg>
-        Démarrer la conversation
+        <Image
+          src="/logo-axisolver.png"
+          alt="AxiSolver"
+          width={320}
+          height={320}
+          priority
+          className="h-auto w-28 transition-transform group-hover:scale-105 md:w-32"
+        />
       </button>
-      <p className="mt-4 text-xs text-slate-400">
-        Pas d&apos;inscription, pas de formulaire — un dialogue direct.
+
+      <p className="mt-8 text-xs text-slate-400">
+        Cliquez sur AxiSolver pour démarrer la conversation.
       </p>
+    </div>
+  );
+}
+
+// ================================================================== //
+// Mascotte "au revoir" — à l'écran central avant fermeture           //
+// ================================================================== //
+
+function MascotteAuRevoir({ prenom }: { prenom?: string }) {
+  return (
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col items-center">
+      <div className="animate-mascotteAuRevoir mb-3 w-full max-w-sm rounded-2xl rounded-br-sm border border-slate-200 bg-white px-5 py-4 shadow-md">
+        <p className="text-sm leading-relaxed text-slate-900">
+          Merci {prenom ? `${prenom} ` : ""}d&apos;être passé par ici.{" "}
+          <span className="font-semibold text-blue-600">
+            À très bientôt
+          </span>{" "}
+          — et n&apos;oubliez pas, vous allez recevoir votre compte-rendu
+          par email dès que notre canal sera activé. 👋
+        </p>
+      </div>
+      <div className="animate-mascotteAuRevoir relative w-full">
+        <div className="mx-auto flex justify-center">
+          <Image
+            src="/logo-axisolver.png"
+            alt="AxiSolver vous salue"
+            width={320}
+            height={320}
+            className="h-auto w-32 md:w-36"
+          />
+        </div>
+        {/* Masque les pieds de la mascotte */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-slate-50 to-transparent" />
+      </div>
     </div>
   );
 }
