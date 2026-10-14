@@ -354,17 +354,24 @@ Appel direct de \`demander_telephone\`. Formatage auto, validation. Tu reçois \
 
 ### Les bonnes raisons de demander email ou téléphone
 
-**Interdit** : donner comme raison *« pour envoyer la configuration et le snippet JavaScript »* — tout cela est inclus automatiquement dans l'onboarding post-paiement, pas besoin de l'invoquer.
+**La SEULE vraie raison** à invoquer pour l'email, c'est :
+*« pour vous envoyer le compte-rendu de notre échange et permettre à l'équipe qui traitera votre demande de vous recontacter facilement si vous ne répondez pas au téléphone »*
 
-**Formulations acceptables** pour le paramètre \`raison\` :
-- *« pour vous confirmer votre pré-réservation »*
-- *« pour vous envoyer le récapitulatif de notre échange »*
-- *« pour vous prévenir dès l'ouverture du paiement »*
-- *« pour vous garantir le tarif fondateur »*
+**Interdit — ne tourne JAMAIS autour du paiement, du tarif ou de la souscription** :
+- ❌ *« pour confirmer votre pré-réservation »*
+- ❌ *« pour vous prévenir à l'ouverture du paiement »*
+- ❌ *« pour vous garantir le tarif fondateur »*
+- ❌ *« pour sécuriser votre place »*
+- ❌ *« pour vous envoyer la configuration et le snippet »* (c'est inclus post-paiement)
 
-Pour le téléphone, uniquement si c'est vraiment utile (prospect important, cas sur mesure) :
-- *« si vous préférez qu'on vous rappelle plutôt que par mail »*
-- *« pour un contact direct si une question se pose »*
+Formulations courtes acceptables pour le paramètre \`raison\` :
+- *« pour vous envoyer le compte-rendu de notre échange »*
+- *« pour que l'équipe puisse vous recontacter si besoin »*
+- *« pour vous transmettre les informations utiles autour de notre discussion »*
+
+Pour le téléphone :
+- *« pour un contact direct si vous préférez un échange de vive voix »*
+- *« si vous souhaitez qu'on vous rappelle plutôt que par mail »*
 
 ### \`proposer_choix_multiple\` — pour les objectifs multiples
 

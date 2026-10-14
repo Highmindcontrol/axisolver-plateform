@@ -20,6 +20,7 @@
  * Responsive mobile : 3 vues en bascule (actions / chat / fiche).
  */
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { PanneauActions, PanneauFiche } from "./panneau-travail";
 import {
@@ -35,9 +36,11 @@ const CONTENU_ACCUEIL =
   "Bonjour, bienvenue chez moi. Je suis AxiSolver, le meilleur ami des sites web. On fait connaissance ? Que puis-je faire pour vous ?";
 
 export function ChatWidget() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: "accueil", role: "assistant", content: CONTENU_ACCUEIL },
-  ]);
+  const [widgetOuvert, setWidgetOuvert] = useState(false);
+  // Pas de message d'accueil dans le chat au démarrage — il est affiché
+  // dans la mascotte à gauche, et ne passera dans le chat qu'après la
+  // première réponse du visiteur.
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const [etatPanneau, setEtatPanneau] = useState<EtatPanneauTravail>(
@@ -45,6 +48,11 @@ export function ChatWidget() {
   );
   const [vueMobile, setVueMobile] = useState<VueMobile>("chat");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // La mascotte d'accueil est affichée tant que le visiteur n'a pas répondu.
+  const mascotteVisible =
+    widgetOuvert && !messages.some((m) => m.role === "user");
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -59,18 +67,38 @@ export function ChatWidget() {
     }
   }, [etatPanneau.elementActif.kind]);
 
+  // Autofocus permanent du champ de saisie : au montage, après chaque
+  // envoi, et dès que l'IA finit de répondre. Ça évite au visiteur de
+  // devoir cliquer manuellement dans l'input entre chaque échange.
+  useEffect(() => {
+    if (widgetOuvert && !thinking && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [widgetOuvert, thinking, messages.length]);
+
   async function envoyerTexte(texte: string) {
     const idUser = crypto.randomUUID();
     const idAssistant = crypto.randomUUID();
     const userMsg: ChatMessage = { id: idUser, role: "user", content: texte };
 
+    // Au premier échange, on injecte le message d'accueil dans le chat
+    // juste avant la réponse visiteur pour conserver le fil narratif.
+    const estPremierEchange = !messages.some((m) => m.role === "user");
+    const messageAccueilInjecte: ChatMessage | null = estPremierEchange
+      ? { id: "accueil-injecte", role: "assistant", content: CONTENU_ACCUEIL }
+      : null;
+
     const historiquePourAPI = [
-      ...messages.filter((m) => m.id !== "accueil"),
+      ...messages,
+      ...(messageAccueilInjecte ? [messageAccueilInjecte] : []),
       userMsg,
-    ].map((m) => ({ role: m.role, content: m.content }));
+    ]
+      .filter((m) => !m.content.startsWith("["))
+      .map((m) => ({ role: m.role, content: m.content }));
 
     setMessages((prev) => [
       ...prev,
+      ...(messageAccueilInjecte ? [messageAccueilInjecte] : []),
       userMsg,
       { id: idAssistant, role: "assistant", content: "" },
     ]);
@@ -375,11 +403,16 @@ export function ChatWidget() {
     !!etatPanneau.telephoneValide ||
     !!etatPanneau.reference;
 
+  // Si le widget n'est pas encore ouvert, on affiche le bouton d'invitation
+  if (!widgetOuvert) {
+    return <BoutonOuverture onOuvrir={() => setWidgetOuvert(true)} />;
+  }
+
   return (
     <div className="flex h-[640px] items-stretch gap-3 md:h-[680px]">
       {/* === AILETTE GAUCHE — Actions (desktop) === */}
       <aside
-        className={`flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        className={`animate-slideOutLeft flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
         <div className="flex w-full flex-col">
@@ -409,16 +442,20 @@ export function ChatWidget() {
             <div className="w-5 md:hidden" />
           </div>
           <div className="flex-1 overflow-auto">
-            <PanneauActions
-              etat={etatPanneau}
-              onEmailValide={handleEmailValide}
-              onTelephoneValide={handleTelephoneValide}
-              onChoixClique={handleChoixClique}
-              onChoixMultipleValide={handleChoixMultipleValide}
-              onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
-              onMorpionMessage={handleMorpionMessage}
-              onMorpionTermine={handleMorpionTermine}
-            />
+            {mascotteVisible ? (
+              <MascotteAccueil />
+            ) : (
+              <PanneauActions
+                etat={etatPanneau}
+                onEmailValide={handleEmailValide}
+                onTelephoneValide={handleTelephoneValide}
+                onChoixClique={handleChoixClique}
+                onChoixMultipleValide={handleChoixMultipleValide}
+                onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
+                onMorpionMessage={handleMorpionMessage}
+                onMorpionTermine={handleMorpionTermine}
+              />
+            )}
           </div>
         </div>
       </aside>
@@ -520,9 +557,11 @@ export function ChatWidget() {
           >
             <div className="flex items-end gap-2">
               <input
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={thinking}
+                autoFocus
                 placeholder="Répondez à AxiSolver…"
                 className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
               />
@@ -553,7 +592,7 @@ export function ChatWidget() {
 
       {/* === AILETTE DROITE — Fiche (desktop) === */}
       <aside
-        className={`flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        className={`animate-slideOutRight flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Fiche visiteur"
       >
         <div className="flex w-full flex-col">
@@ -625,6 +664,97 @@ function IndicateurFrappe() {
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ================================================================== //
+// Bouton d'ouverture — invite à démarrer la conversation             //
+// ================================================================== //
+
+function BoutonOuverture({ onOuvrir }: { onOuvrir: () => void }) {
+  return (
+    <div className="flex min-h-[480px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50/50 p-10 text-center md:min-h-[560px]">
+      <div className="mb-6">
+        <Image
+          src="/logo-axisolver.png"
+          alt="AxiSolver"
+          width={280}
+          height={280}
+          priority
+          className="h-auto w-32 md:w-40"
+        />
+      </div>
+      <h2 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl">
+        AxiSolver vous attend
+      </h2>
+      <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-600 md:text-base">
+        Il va vous accueillir en direct, écouter votre contexte,
+        regarder votre site, et vous dire ce qu&apos;il peut faire pour
+        vous. Deux à trois minutes maximum.
+      </p>
+      <button
+        onClick={onOuvrir}
+        className="animate-pulseGlow mt-8 inline-flex items-center gap-3 rounded-full bg-blue-600 px-8 py-4 text-base font-medium text-white transition-all hover:bg-blue-700 hover:scale-105"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-5 w-5"
+          aria-hidden
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        Démarrer la conversation
+      </button>
+      <p className="mt-4 text-xs text-slate-400">
+        Pas d&apos;inscription, pas de formulaire — un dialogue direct.
+      </p>
+    </div>
+  );
+}
+
+// ================================================================== //
+// Mascotte d'accueil — à gauche au premier contact                   //
+// ================================================================== //
+
+function MascotteAccueil() {
+  return (
+    <div className="flex h-full flex-col items-center justify-end bg-gradient-to-br from-slate-50 to-blue-50/40 px-5 pt-5">
+      {/* Bulle de dialogue, posée au-dessus de la mascotte */}
+      <div className="animate-bulle relative mb-3 w-full max-w-xs rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-5 py-4 shadow-md">
+        <p className="text-sm leading-relaxed text-slate-900">
+          Bonjour, bienvenue chez moi.{" "}
+          <span className="font-semibold text-blue-600">
+            Je suis AxiSolver, le meilleur ami des sites web.
+          </span>{" "}
+          On fait connaissance ? Que puis-je faire pour vous ?
+        </p>
+        {/* Petite flèche vers la mascotte */}
+        <div className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 border-b border-r border-slate-200 bg-white" />
+      </div>
+
+      {/* Mascotte — bras derrière le dos, pieds cachés par le fond
+          (le dégradé du bas se fond pour masquer la base) */}
+      <div className="relative w-full">
+        <div className="animate-mascotte mx-auto flex justify-center">
+          <Image
+            src="/logo-axisolver.png"
+            alt="AxiSolver"
+            width={320}
+            height={320}
+            priority
+            className="h-auto w-40 md:w-44 lg:w-48"
+          />
+        </div>
+        {/* Dégradé qui masque la base de la mascotte */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-slate-50 to-transparent" />
       </div>
     </div>
   );

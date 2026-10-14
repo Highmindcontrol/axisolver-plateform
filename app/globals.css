@@ -35,3 +35,80 @@ body {
 .animate-fadeIn {
   animation: fadeIn 240ms ease-out;
 }
+
+/* Ouverture théâtrale des ailettes du triptyque — elles glissent
+   depuis derrière le chat central vers leur position d'ouverture.
+   Durée longue et easing doux pour un effet « rideau de scène ». */
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(60%) scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes slideOutRight {
+  from {
+    transform: translateX(-60%) scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+.animate-slideOutLeft {
+  animation: slideOutLeft 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-slideOutRight {
+  animation: slideOutRight 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Apparition de la mascotte d'accueil à gauche + sa bulle de dialogue */
+@keyframes mascotteApparait {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-mascotte {
+  animation: mascotteApparait 800ms cubic-bezier(0.34, 1.56, 0.64, 1) 400ms both;
+}
+
+/* Bulle de dialogue mascotte qui apparaît après la mascotte */
+@keyframes bulleApparait {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-bulle {
+  animation: bulleApparait 500ms ease-out 1000ms both;
+}
+
+/* Petite pulsation d'invite sur le bouton d'ouverture */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(37, 99, 235, 0);
+  }
+}
+.animate-pulseGlow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
