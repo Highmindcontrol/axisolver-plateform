@@ -85,7 +85,23 @@ export type EtatPanneauTravail = {
     | { kind: "telechargement"; libelle: string; url: string }
     | { kind: "page_web"; url: string; titre?: string }
     | { kind: "site_hote"; url: string }
-    | { kind: "analyse_site"; url: string; etat: "en_cours" | "terminee" }
+    | {
+        kind: "analyse_site";
+        url: string;
+        etat: "en_cours" | "terminee";
+        findings?: Array<{
+          categorie: "seo" | "securite" | "performance" | "metier";
+          severite: "info" | "amelioration" | "critique";
+          titre: string;
+          detail?: string;
+        }>;
+        technologies?: string[];
+      }
+    | {
+        kind: "choix_multiple";
+        question: string;
+        options: Array<{ libelle: string; valeur: string }>;
+      }
     | { kind: "envoi_fiche_email"; email?: string }
     | { kind: "morpion" };
   reference?: {
@@ -163,7 +179,7 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
   {
     name: "proposer_choix",
     description:
-      "Affiche dans le panneau de travail une question avec 2 à 4 boutons cliquables, pour éviter au visiteur de taper une réponse à choix fermé. Idéal pour : préférence contact (email / téléphone / RDV), choix de pack, confirmation oui/non.",
+      "Affiche dans le panneau d'action une question avec 2 à 4 boutons cliquables (choix UNIQUE). Idéal pour : préférence de contact, confirmation oui/non, choix d'un seul chemin.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -185,6 +201,40 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
               valeur: {
                 type: "string",
                 description: "La valeur envoyée au backend quand cliqué.",
+              },
+            },
+            required: ["libelle", "valeur"],
+          },
+        },
+      },
+      required: ["question", "options"],
+    },
+  },
+  {
+    name: "proposer_choix_multiple",
+    description:
+      "Affiche dans le panneau d'action une question avec des cases à cocher — le visiteur peut en sélectionner PLUSIEURS. Idéal pour : objectifs multiples, besoins combinés, intérêts croisés. Utilise ce tool quand plusieurs réponses sont possibles (ex: 'quels sont vos objectifs ?').",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        question: {
+          type: "string",
+          description: "La question posée au visiteur.",
+        },
+        options: {
+          type: "array",
+          minItems: 2,
+          maxItems: 6,
+          items: {
+            type: "object",
+            properties: {
+              libelle: {
+                type: "string",
+                description: "Le texte affiché à côté de la checkbox.",
+              },
+              valeur: {
+                type: "string",
+                description: "La valeur envoyée au backend quand cochée.",
               },
             },
             required: ["libelle", "valeur"],

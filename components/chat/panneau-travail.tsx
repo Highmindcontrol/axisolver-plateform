@@ -18,11 +18,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import type {
-  ChaleurTicket,
-  ChampFiche,
-  EtatPanneauTravail,
-} from "@/lib/axi-solver/tools";
+import type { ChampFiche, EtatPanneauTravail } from "@/lib/axi-solver/tools";
 
 // ================================================================== //
 // PANNEAU FICHE (DROITE) — pur récap conversation                    //
@@ -41,6 +37,8 @@ const LIBELLES_CHAMPS: Record<ChampFiche, string> = {
 
 export function PanneauFiche({ etat }: { etat: EtatPanneauTravail }) {
   const ficheVide = Object.keys(etat.fiche).length === 0;
+  // La notion d'urgence reste visible (le visiteur comprend sa propre urgence),
+  // mais pas la chaleur commerciale (froid/tiede/chaud) qui est pour l'équipe.
   const champsOrdonnes: ChampFiche[] = [
     "prenom",
     "nom",
@@ -86,10 +84,7 @@ export function PanneauFiche({ etat }: { etat: EtatPanneauTravail }) {
 
       {etat.reference && (
         <div className="mt-auto">
-          <ReferenceAxi
-            reference={etat.reference.reference}
-            chaleur={etat.reference.chaleur}
-          />
+          <ReferenceAxi reference={etat.reference.reference} />
         </div>
       )}
     </div>
@@ -161,20 +156,7 @@ function ChampLigne({
   );
 }
 
-const COULEUR_CHALEUR_FICHE: Record<ChaleurTicket, string> = {
-  froid: "bg-white/15 border-white/30",
-  tiede: "bg-amber-400/20 border-amber-200/40",
-  chaud: "bg-orange-400/20 border-orange-200/40",
-  urgent: "bg-red-400/20 border-red-200/40",
-};
-
-function ReferenceAxi({
-  reference,
-  chaleur,
-}: {
-  reference: string;
-  chaleur: ChaleurTicket;
-}) {
+function ReferenceAxi({ reference }: { reference: string }) {
   const [copie, setCopie] = useState(false);
 
   function copier() {
@@ -186,16 +168,9 @@ function ReferenceAxi({
 
   return (
     <section className="animate-fadeIn rounded-xl border border-blue-600 bg-gradient-to-br from-blue-600 to-blue-700 p-4 text-white shadow-md">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-100">
-          Votre référence
-        </h3>
-        <span
-          className={`rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase text-white ${COULEUR_CHALEUR_FICHE[chaleur]}`}
-        >
-          {chaleur}
-        </span>
-      </div>
+      <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-100">
+        Votre référence
+      </h3>
       <div className="mt-3 flex items-center justify-between gap-3">
         <div className="font-mono text-xl font-bold tracking-wider">
           {reference}
@@ -220,7 +195,10 @@ type PropsActions = {
   onEmailValide: (email: string) => void;
   onTelephoneValide: (telephone: string) => void;
   onChoixClique: (valeur: string) => void;
+  onChoixMultipleValide: (valeurs: string[]) => void;
   onEnvoiFicheConfirme: (email: string) => void;
+  onMorpionMessage: (message: string) => void;
+  onMorpionTermine: () => void;
 };
 
 export function PanneauActions({
@@ -228,7 +206,10 @@ export function PanneauActions({
   onEmailValide,
   onTelephoneValide,
   onChoixClique,
+  onChoixMultipleValide,
   onEnvoiFicheConfirme,
+  onMorpionMessage,
+  onMorpionTermine,
 }: PropsActions) {
   switch (etat.elementActif.kind) {
     case "demande_email":
@@ -253,6 +234,14 @@ export function PanneauActions({
           onClique={onChoixClique}
         />
       );
+    case "choix_multiple":
+      return (
+        <CasesACocher
+          question={etat.elementActif.question}
+          options={etat.elementActif.options}
+          onValide={onChoixMultipleValide}
+        />
+      );
     case "telechargement":
       return (
         <LienTelechargement
@@ -270,6 +259,15 @@ export function PanneauActions({
     case "site_hote":
       return <SiteHoteApercu url={etat.elementActif.url} />;
     case "analyse_site":
+      if (etat.elementActif.etat === "terminee") {
+        return (
+          <CompteRenduAudit
+            url={etat.elementActif.url}
+            findings={etat.elementActif.findings ?? []}
+            technologies={etat.elementActif.technologies ?? []}
+          />
+        );
+      }
       return <AnalyseSiteEnCours url={etat.elementActif.url} />;
     case "envoi_fiche_email":
       return (
@@ -279,7 +277,12 @@ export function PanneauActions({
         />
       );
     case "morpion":
-      return <JeuMorpion />;
+      return (
+        <JeuMorpion
+          onMessageChat={onMorpionMessage}
+          onPartiesTerminees={onMorpionTermine}
+        />
+      );
     case "aucun":
     default:
       return <AccueilAxiSolver />;
@@ -487,6 +490,68 @@ function BoutonsChoix({
   );
 }
 
+function CasesACocher({
+  question,
+  options,
+  onValide,
+}: {
+  question: string;
+  options: Array<{ libelle: string; valeur: string }>;
+  onValide: (valeurs: string[]) => void;
+}) {
+  const [selection, setSelection] = useState<Set<string>>(new Set());
+
+  function toggle(valeur: string) {
+    setSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(valeur)) next.delete(valeur);
+      else next.add(valeur);
+      return next;
+    });
+  }
+
+  return (
+    <div className="flex h-full flex-col justify-center p-5">
+      <section className="animate-fadeIn rounded-xl border border-blue-200 bg-white p-5 shadow-sm">
+        <h3 className="text-sm font-medium text-slate-900">{question}</h3>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Plusieurs choix possibles.
+        </p>
+        <div className="mt-4 space-y-2">
+          {options.map((opt) => {
+            const checked = selection.has(opt.valeur);
+            return (
+              <label
+                key={opt.valeur}
+                className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm transition-all ${
+                  checked
+                    ? "border-blue-500 bg-blue-50 text-blue-900"
+                    : "border-slate-200 bg-white text-slate-900 hover:border-blue-300 hover:bg-blue-50/40"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => toggle(opt.valeur)}
+                  className="h-4 w-4 cursor-pointer accent-blue-600"
+                />
+                <span className="flex-1 font-medium">{opt.libelle}</span>
+              </label>
+            );
+          })}
+        </div>
+        <button
+          onClick={() => onValide(Array.from(selection))}
+          disabled={selection.size === 0}
+          className="mt-4 w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Valider ({selection.size} sélectionné{selection.size > 1 ? "s" : ""})
+        </button>
+      </section>
+    </div>
+  );
+}
+
 function LienTelechargement({
   libelle,
   url,
@@ -615,6 +680,168 @@ function SiteHoteApercu({ url }: { url: string }) {
   );
 }
 
+// --- Compte-rendu audit (persistant) ---------------------------- //
+
+type Finding = {
+  categorie: "seo" | "securite" | "performance" | "metier";
+  severite: "info" | "amelioration" | "critique";
+  titre: string;
+  detail?: string;
+};
+
+const COULEUR_SEVERITE: Record<Finding["severite"], string> = {
+  critique: "border-red-200 bg-red-50 text-red-900",
+  amelioration: "border-amber-200 bg-amber-50 text-amber-900",
+  info: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+const ICONE_SEVERITE: Record<Finding["severite"], string> = {
+  critique: "⚠",
+  amelioration: "⚡",
+  info: "ⓘ",
+};
+
+const LIBELLE_CATEGORIE: Record<Finding["categorie"], string> = {
+  seo: "SEO",
+  securite: "Sécurité",
+  performance: "Performance",
+  metier: "Métier",
+};
+
+function CompteRenduAudit({
+  url,
+  findings,
+  technologies,
+}: {
+  url: string;
+  findings: Finding[];
+  technologies: string[];
+}) {
+  const hostname = (() => {
+    try {
+      return new URL(normaliserUrl(url)).hostname.replace(/^www\./, "");
+    } catch {
+      return url;
+    }
+  })();
+
+  const critiques = findings.filter((f) => f.severite === "critique");
+  const ameliorations = findings.filter((f) => f.severite === "amelioration");
+  const infos = findings.filter((f) => f.severite === "info");
+
+  return (
+    <section className="animate-fadeIn flex h-full flex-col overflow-hidden bg-white">
+      <div className="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-slate-50 to-blue-50/50 px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 text-emerald-600"
+            aria-hidden
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
+            Audit terminé — {hostname}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4">
+        {/* Résumé compact */}
+        <div className="mb-4 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-md border border-red-200 bg-red-50 px-2 py-2">
+            <div className="text-lg font-bold text-red-700">
+              {critiques.length}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-red-700">
+              Critique
+            </div>
+          </div>
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-2 py-2">
+            <div className="text-lg font-bold text-amber-700">
+              {ameliorations.length}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-amber-700">
+              À améliorer
+            </div>
+          </div>
+          <div className="rounded-md border border-slate-200 bg-slate-50 px-2 py-2">
+            <div className="text-lg font-bold text-slate-700">
+              {infos.length}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-slate-500">
+              Info
+            </div>
+          </div>
+        </div>
+
+        {technologies.length > 0 && (
+          <div className="mb-4">
+            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Technologies détectées
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {technologies.map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Liste détaillée des findings */}
+        <div className="space-y-2">
+          {[...critiques, ...ameliorations, ...infos].map((f, i) => (
+            <div
+              key={i}
+              className={`rounded-md border p-2.5 text-xs ${COULEUR_SEVERITE[f.severite]}`}
+            >
+              <div className="flex items-start gap-2">
+                <span className="flex-shrink-0 font-bold">
+                  {ICONE_SEVERITE[f.severite]}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="font-semibold leading-tight">
+                      {f.titre}
+                    </span>
+                    <span className="flex-shrink-0 text-[10px] font-medium uppercase tracking-wider opacity-70">
+                      {LIBELLE_CATEGORIE[f.categorie]}
+                    </span>
+                  </div>
+                  {f.detail && (
+                    <p className="mt-1 text-[11px] leading-relaxed opacity-80">
+                      {f.detail}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+          {findings.length === 0 && (
+            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">
+              Aucun point d&apos;attention immédiat détecté. Un audit complet
+              à l&apos;installation ira plus loin.
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// --- Analyse en cours (animée) ---------------------------------- //
+
 function AnalyseSiteEnCours({ url }: { url: string }) {
   const urlComplete = normaliserUrl(url);
   const hostname = (() => {
@@ -705,26 +932,90 @@ function EnvoiFicheEmail({
   );
 }
 
-// --- Morpion ------------------------------------------------------- //
+// --- Morpion (protocole 3 manches max) ------------------------------ //
 
 type CaseM = "X" | "O" | null;
 
-function JeuMorpion() {
+function JeuMorpion({
+  onMessageChat,
+  onPartiesTerminees,
+}: {
+  onMessageChat: (message: string) => void;
+  onPartiesTerminees: () => void;
+}) {
   const [cases, setCases] = useState<CaseM[]>(Array(9).fill(null));
   const [tourJoueur, setTourJoueur] = useState(true);
+  const [partiesJouees, setPartiesJouees] = useState(0);
+  const [victoiresVisiteur, setVictoiresVisiteur] = useState(0);
+  const [victoiresAxi, setVictoiresAxi] = useState(0);
+  const [partieEnPause, setPartieEnPause] = useState(false);
+
   const gagnant = detecterGagnant(cases);
   const nul = !gagnant && cases.every((c) => c !== null);
+  const partieFinie = !!gagnant || nul;
+
+  // Déclencher la fin de partie + messages chat au bon moment
+  useState(() => {
+    /* placeholder — on utilise useEffect ailleurs via le flux naturel */
+  });
+
+  // Lorsqu'une partie se termine, décompter et envoyer le message approprié
+  if (partieFinie && !partieEnPause) {
+    setPartieEnPause(true);
+    const nouveauPartiesJouees = partiesJouees + 1;
+    const nouveauVictoiresVisiteur =
+      victoiresVisiteur + (gagnant === "X" ? 1 : 0);
+    const nouveauVictoiresAxi = victoiresAxi + (gagnant === "O" ? 1 : 0);
+
+    setPartiesJouees(nouveauPartiesJouees);
+    setVictoiresVisiteur(nouveauVictoiresVisiteur);
+    setVictoiresAxi(nouveauVictoiresAxi);
+
+    // Message chat du résultat
+    let messageResultat = "";
+    if (gagnant === "X") {
+      messageResultat = `[Morpion partie ${nouveauPartiesJouees} : le visiteur gagne. Score ${nouveauVictoiresVisiteur}-${nouveauVictoiresAxi}.]`;
+    } else if (gagnant === "O") {
+      messageResultat = `[Morpion partie ${nouveauPartiesJouees} : AxiSolver gagne. Score ${nouveauVictoiresVisiteur}-${nouveauVictoiresAxi}.]`;
+    } else {
+      messageResultat = `[Morpion partie ${nouveauPartiesJouees} : match nul. Score ${nouveauVictoiresVisiteur}-${nouveauVictoiresAxi}.]`;
+    }
+    // Fin définitive après 3 parties OU si l'un gagne 2 fois
+    if (
+      nouveauPartiesJouees >= 3 ||
+      nouveauVictoiresVisiteur >= 2 ||
+      nouveauVictoiresAxi >= 2
+    ) {
+      const champion =
+        nouveauVictoiresVisiteur > nouveauVictoiresAxi
+          ? "visiteur"
+          : nouveauVictoiresAxi > nouveauVictoiresVisiteur
+            ? "AxiSolver"
+            : "égalité";
+      messageResultat += ` [Morpion terminé. Champion : ${champion}.]`;
+      setTimeout(() => {
+        onMessageChat(messageResultat);
+        onPartiesTerminees();
+      }, 1200);
+    } else {
+      setTimeout(() => onMessageChat(messageResultat), 800);
+    }
+  }
 
   function jouerJoueur(index: number) {
-    if (cases[index] || gagnant || !tourJoueur) return;
+    if (cases[index] || gagnant || !tourJoueur || partieEnPause) return;
     const nouv = [...cases];
     nouv[index] = "X";
     setCases(nouv);
     setTourJoueur(false);
 
     setTimeout(() => {
+      if (detecterGagnant(nouv)) {
+        setTourJoueur(true);
+        return;
+      }
       const indexAxi = coupAxiSolver(nouv);
-      if (indexAxi !== -1 && !detecterGagnant(nouv)) {
+      if (indexAxi !== -1) {
         const apres = [...nouv];
         apres[indexAxi] = "O";
         setCases(apres);
@@ -733,31 +1024,37 @@ function JeuMorpion() {
     }, 500);
   }
 
-  function reset() {
+  function rejouer() {
     setCases(Array(9).fill(null));
     setTourJoueur(true);
+    setPartieEnPause(false);
   }
+
+  const partiesRestantes =
+    3 - partiesJouees > 0 &&
+    victoiresVisiteur < 2 &&
+    victoiresAxi < 2;
 
   return (
     <div className="flex h-full flex-col items-center justify-center p-5">
       <section className="animate-fadeIn w-full rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-slate-50 p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-slate-900">
-            🎯 Petite partie ?
+            🎯 Partie {partiesJouees + (partieEnPause ? 0 : 1)} / 3
           </h3>
-          <button
-            onClick={reset}
-            className="text-[11px] text-blue-600 hover:underline"
-          >
-            Nouvelle partie
-          </button>
+          <div className="flex items-center gap-2 text-[11px] font-medium text-slate-600">
+            <span>Vous {victoiresVisiteur}</span>
+            <span className="text-slate-300">·</span>
+            <span>Moi {victoiresAxi}</span>
+          </div>
         </div>
+
         <div className="mt-3 grid grid-cols-3 gap-1.5">
           {cases.map((c, i) => (
             <button
               key={i}
               onClick={() => jouerJoueur(i)}
-              disabled={!!c || !!gagnant || !tourJoueur}
+              disabled={!!c || partieFinie || !tourJoueur}
               className="flex aspect-square items-center justify-center rounded-md border border-slate-200 bg-white text-2xl font-bold transition-all hover:border-blue-400 hover:bg-blue-50 disabled:cursor-not-allowed"
               aria-label={`Case ${i + 1}`}
             >
@@ -775,26 +1072,31 @@ function JeuMorpion() {
             </button>
           ))}
         </div>
+
         <div className="mt-3 text-center text-xs">
-          {gagnant === "X" && (
-            <span className="font-medium text-blue-600">
-              🏆 Vous me battez. Bien joué.
-            </span>
-          )}
-          {gagnant === "O" && (
-            <span className="font-medium text-slate-700">
-              Un petit point pour moi. Rematch ?
-            </span>
-          )}
-          {nul && (
-            <span className="font-medium text-slate-500">
-              Match nul. Honneurs partagés.
-            </span>
-          )}
-          {!gagnant && !nul && (
+          {!partieFinie && (
             <span className="text-slate-500">
               {tourJoueur ? "À vous (X)" : "À moi…"}
             </span>
+          )}
+          {partieFinie && (
+            <div className="flex flex-col items-center gap-2">
+              <span className="font-medium text-slate-700">
+                {gagnant === "X" && "🏆 Vous me battez. Bien joué."}
+                {gagnant === "O" && "Un petit point pour moi."}
+                {nul && "Match nul. Honneurs partagés."}
+              </span>
+              {partiesRestantes && (
+                <button
+                  onClick={rejouer}
+                  className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700"
+                >
+                  {victoiresVisiteur === 1 && victoiresAxi === 1
+                    ? "La belle !"
+                    : "Revanche"}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </section>

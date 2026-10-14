@@ -149,6 +149,30 @@ export function ChatWidget() {
       return;
     }
 
+    if (type === "audit_termine") {
+      // Compte-rendu structuré de l'audit backend — reste affiché à gauche
+      type FindingAudit = {
+        categorie: "seo" | "securite" | "performance" | "metier";
+        severite: "info" | "amelioration" | "critique";
+        titre: string;
+        detail?: string;
+      };
+      const findings = (evt.findings as FindingAudit[] | undefined) ?? [];
+      const technologies = (evt.technologies as string[] | undefined) ?? [];
+      const url = (evt.url as string) ?? "";
+      setEtatPanneau((e) => ({
+        ...e,
+        elementActif: {
+          kind: "analyse_site",
+          url,
+          etat: "terminee",
+          findings,
+          technologies,
+        },
+      }));
+      return;
+    }
+
     if (type === "erreur" && typeof evt.message === "string") {
       setMessages((prev) =>
         prev.map((m) =>
@@ -200,6 +224,19 @@ export function ChatWidget() {
         setEtatPanneau((e) => ({
           ...e,
           elementActif: { kind: "choix", question, options },
+        }));
+        break;
+      }
+      case "proposer_choix_multiple": {
+        const question = input.question as string;
+        const options = input.options as Array<{
+          libelle: string;
+          valeur: string;
+        }>;
+        if (!question || !Array.isArray(options)) return;
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: { kind: "choix_multiple", question, options },
         }));
         break;
       }
@@ -305,9 +342,22 @@ export function ChatWidget() {
     envoyerTexte(valeur);
   }
 
+  function handleChoixMultipleValide(valeurs: string[]) {
+    setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
+    envoyerTexte(`[Choix multiple : ${valeurs.join(", ")}]`);
+  }
+
   function handleEnvoiFicheConfirme(email: string) {
     setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
     envoyerTexte(`[Fiche à envoyer à : ${email}]`);
+  }
+
+  function handleMorpionMessage(message: string) {
+    envoyerTexte(message);
+  }
+
+  function handleMorpionTermine() {
+    setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
   }
 
   function envoyer() {
@@ -364,7 +414,10 @@ export function ChatWidget() {
               onEmailValide={handleEmailValide}
               onTelephoneValide={handleTelephoneValide}
               onChoixClique={handleChoixClique}
+              onChoixMultipleValide={handleChoixMultipleValide}
               onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
+              onMorpionMessage={handleMorpionMessage}
+              onMorpionTermine={handleMorpionTermine}
             />
           </div>
         </div>

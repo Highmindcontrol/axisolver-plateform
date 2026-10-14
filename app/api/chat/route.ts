@@ -181,6 +181,15 @@ export async function POST(request: Request) {
                       };
                     }
                     const resultat = await auditerSite(input.url);
+                    // Émettre un event SSE spécifique pour afficher le
+                    // compte-rendu structuré dans le panneau de gauche.
+                    emit({
+                      type: "audit_termine",
+                      url: resultat.url,
+                      hostname: resultat.hostname,
+                      findings: resultat.findings,
+                      technologies: resultat.technologies,
+                    });
                     return {
                       type: "tool_result" as const,
                       tool_use_id: b.id,
