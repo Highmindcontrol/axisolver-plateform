@@ -89,6 +89,7 @@ export type EtatPanneauTravail = {
         kind: "analyse_site";
         url: string;
         etat: "en_cours" | "terminee";
+        volet?: "securite" | "seo";
         findings?: Array<{
           categorie: "seo" | "securite" | "performance" | "metier";
           severite: "info" | "amelioration" | "critique";
@@ -299,9 +300,9 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
     },
   },
   {
-    name: "auditer_site",
+    name: "auditer_securite",
     description:
-      "Lance un VRAI audit technique du site du visiteur (fetch HTML + parse SEO/sécurité/technologies). Retourne des findings concrets que tu dois commenter avec le visiteur. À appeler IMPÉDIATEMENT après afficher_site_hote dans la même réponse, pour créer l'effet 'Donnez-moi un instant, je regarde ce qui se passe sous le capot'. Après le retour du tool_result, résume avec 2-3 observations frappantes (pas la liste complète) en langage naturel vendeur.",
+      "Lance un audit SÉCURITÉ du site du visiteur (headers HTTP, HSTS, CSP, X-Frame, HTTPS, serveur exposé, X-Powered-By, version CMS). Durée garantie minimum 8 secondes pour un effet de sérieux. Pendant ce temps, tu NE PARLES PAS. À la fin, Claude reçoit le tool_result avec les findings à commenter. Appelle ce tool APRÈS la question au visiteur 'En termes de sécurité, votre site est en norme ?' (quelle que soit sa réponse).",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -309,6 +310,21 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
           type: "string",
           description:
             "URL complète du site à auditer. La même que celle passée à afficher_site_hote.",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "auditer_seo",
+    description:
+      "Lance un audit SEO du site du visiteur (title, meta description, H1, Open Graph, images sans alt, langue, poids HTML). Durée garantie minimum 8 secondes. Pendant ce temps, tu NE PARLES PAS. Appelle ce tool APRÈS l'audit sécurité, après avoir affiché à nouveau le site hôte (afficher_site_hote) et dit 'Je vais faire la même chose avec votre SEO, donnez-moi deux minutes'.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        url: {
+          type: "string",
+          description: "URL complète du site à auditer.",
         },
       },
       required: ["url"],

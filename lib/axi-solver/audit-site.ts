@@ -27,6 +27,98 @@ export type ResultatAudit = {
   resumePourClaude: string;
 };
 
+/** Catégorie d'audit demandé par les tools dédiés. */
+export type CategorieAudit = "securite" | "seo";
+
+/** Variante filtrée de l'audit — renvoie seulement les findings d'une
+ *  catégorie (sécurité ou SEO). Utilisée par les tools dédiés
+ *  `auditer_securite` et `auditer_seo` pour séparer les deux phases
+ *  dramaturgiques du protocole d'audit.
+ *
+ *  Un délai minimum de 8 secondes est garanti pour éviter l'effet
+ *  « instantané pas sérieux ». Le fetch réel se fait en parallèle. */
+export async function auditerSiteParCategorie(
+  urlBrute: string,
+  categorie: CategorieAudit,
+  delaiMinimumMs = 8000,
+): Promise<ResultatAudit> {
+  const [resultat] = await Promise.all([
+    auditerSite(urlBrute),
+    new Promise((resolve) => setTimeout(resolve, delaiMinimumMs)),
+  ]);
+
+  // Filtre les findings par catégorie demandée
+  const findingsCategorie = resultat.findings.filter(
+    (f) => f.categorie === categorie,
+  );
+
+  return {
+    ...resultat,
+    findings: findingsCategorie,
+    resumePourClaude: construireResumePourCategorie(
+      resultat.hostname,
+      categorie,
+      findingsCategorie,
+      resultat.technologies,
+    ),
+  };
+}
+
+function construireResumePourCategorie(
+  hostname: string,
+  categorie: CategorieAudit,
+  findings: FindingAudit[],
+  technologies: string[],
+): string {
+  const libelleCategorie =
+    categorie === "securite" ? "SÉCURITÉ" : "SEO";
+  const lignes: string[] = [];
+  lignes.push(`AUDIT ${libelleCategorie} DU SITE ${hostname} :`);
+  lignes.push("");
+
+  if (technologies.length > 0 && categorie === "securite") {
+    lignes.push(`- Technologies détectées : ${technologies.join(", ")}`);
+    lignes.push("");
+  }
+
+  const parSev = {
+    critique: findings.filter((f) => f.severite === "critique"),
+    amelioration: findings.filter((f) => f.severite === "amelioration"),
+    info: findings.filter((f) => f.severite === "info"),
+  };
+
+  lignes.push(`${findings.length} point${findings.length > 1 ? "s" : ""} observé${findings.length > 1 ? "s" : ""} :`);
+  if (parSev.critique.length > 0) {
+    lignes.push(`\n🔴 ${parSev.critique.length} critique(s) :`);
+    parSev.critique.forEach((f) =>
+      lignes.push(`  - ${f.titre}${f.detail ? ` — ${f.detail}` : ""}`),
+    );
+  }
+  if (parSev.amelioration.length > 0) {
+    lignes.push(`\n🟠 ${parSev.amelioration.length} à améliorer :`);
+    parSev.amelioration.forEach((f) =>
+      lignes.push(`  - ${f.titre}${f.detail ? ` — ${f.detail}` : ""}`),
+    );
+  }
+  if (parSev.info.length > 0) {
+    lignes.push(`\n🔵 ${parSev.info.length} info(s) :`);
+    parSev.info.forEach((f) => lignes.push(`  - ${f.titre}`));
+  }
+
+  if (findings.length === 0) {
+    lignes.push(`Aucun point d'attention majeur sur ce volet ${libelleCategorie.toLowerCase()}. L'audit complet à l'installation ira plus loin.`);
+  }
+
+  lignes.push("");
+  const instructionCategorie =
+    categorie === "securite"
+      ? "INSTRUCTION : Commente avec 2-3 observations SÉCURITÉ frappantes tirées des findings ci-dessus. Jamais alarmiste. Mets le visiteur devant les faits avec calme. Termine par : 'Si je m'occupais de votre site, je ne me contenterais pas de vous dire ce qui ne va pas — je vous ferais un dossier clair avec toutes les solutions à envisager. Ici, en démo, je ne peux que vous alerter.'"
+      : "INSTRUCTION : Commente avec 2-3 observations SEO frappantes tirées des findings ci-dessus. Mets en lumière les quick wins et les choses qui gaspillent du trafic. Termine en rappelant que vous enverrez un compte-rendu complet par email à la fin de la conversation.";
+  lignes.push(instructionCategorie);
+
+  return lignes.join("\n");
+}
+
 /**
  * Lance un mini-audit du site fourni et retourne un résumé pour Claude.
  * Toutes les opérations sont best-effort — on ne lève jamais, on

@@ -263,12 +263,18 @@ export function PanneauActions({
         return (
           <CompteRenduAudit
             url={etat.elementActif.url}
+            volet={etat.elementActif.volet}
             findings={etat.elementActif.findings ?? []}
             technologies={etat.elementActif.technologies ?? []}
           />
         );
       }
-      return <AnalyseSiteEnCours url={etat.elementActif.url} />;
+      return (
+        <AnalyseSiteEnCours
+          url={etat.elementActif.url}
+          volet={etat.elementActif.volet}
+        />
+      );
     case "envoi_fiche_email":
       return (
         <EnvoiFicheEmail
@@ -710,10 +716,12 @@ const LIBELLE_CATEGORIE: Record<Finding["categorie"], string> = {
 
 function CompteRenduAudit({
   url,
+  volet,
   findings,
   technologies,
 }: {
   url: string;
+  volet?: "securite" | "seo";
   findings: Finding[];
   technologies: string[];
 }) {
@@ -728,6 +736,13 @@ function CompteRenduAudit({
   const critiques = findings.filter((f) => f.severite === "critique");
   const ameliorations = findings.filter((f) => f.severite === "amelioration");
   const infos = findings.filter((f) => f.severite === "info");
+
+  const titreVolet =
+    volet === "securite"
+      ? "Audit sécurité terminé"
+      : volet === "seo"
+        ? "Audit SEO terminé"
+        : "Audit terminé";
 
   return (
     <section className="animate-fadeIn flex h-full flex-col overflow-hidden bg-white">
@@ -747,7 +762,7 @@ function CompteRenduAudit({
             <path d="M20 6 9 17l-5-5" />
           </svg>
           <span className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-700">
-            Audit terminé — {hostname}
+            {titreVolet} — {hostname}
           </span>
         </div>
       </div>
@@ -842,7 +857,13 @@ function CompteRenduAudit({
 
 // --- Analyse en cours (animée) ---------------------------------- //
 
-function AnalyseSiteEnCours({ url }: { url: string }) {
+function AnalyseSiteEnCours({
+  url,
+  volet,
+}: {
+  url: string;
+  volet?: "securite" | "seo";
+}) {
   const urlComplete = normaliserUrl(url);
   const hostname = (() => {
     try {
@@ -852,13 +873,33 @@ function AnalyseSiteEnCours({ url }: { url: string }) {
     }
   })();
 
-  const etapes = [
+  const etapesSecurite = [
     { label: "Chargement de la page" },
-    { label: "Analyse SEO on-page" },
-    { label: "Vérification des entêtes de sécurité" },
-    { label: "Détection des technologies" },
-    { label: "Compilation du diagnostic" },
+    { label: "Vérification du certificat SSL" },
+    { label: "Inspection des entêtes HTTP" },
+    { label: "Détection des technologies & CMS" },
+    { label: "Analyse des failles connues (CVE)" },
+    { label: "Recherche de fichiers sensibles exposés" },
+    { label: "Compilation du diagnostic sécurité" },
   ];
+
+  const etapesSeo = [
+    { label: "Chargement de la page" },
+    { label: "Analyse balises title et meta description" },
+    { label: "Vérification de la structure Hn" },
+    { label: "Audit Open Graph et balises sociales" },
+    { label: "Inspection des images (alt, poids)" },
+    { label: "Analyse du poids et du temps de chargement" },
+    { label: "Compilation du diagnostic SEO" },
+  ];
+
+  const etapes = volet === "seo" ? etapesSeo : etapesSecurite;
+  const titreVolet =
+    volet === "seo"
+      ? `Audit SEO de ${hostname}`
+      : volet === "securite"
+        ? `Audit sécurité de ${hostname}`
+        : `Analyse de ${hostname}`;
 
   return (
     <section className="animate-fadeIn flex h-full flex-col overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50/40">
@@ -868,15 +909,18 @@ function AnalyseSiteEnCours({ url }: { url: string }) {
           <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
         </span>
         <span className="text-xs font-medium text-slate-700">
-          Analyse de {hostname} en cours
+          {titreVolet} en cours
         </span>
       </div>
-      <div className="flex flex-1 flex-col justify-center gap-3 p-5">
+      <div className="flex flex-1 flex-col justify-center gap-2 p-5">
         {etapes.map((etape, i) => (
           <div
             key={i}
             className="animate-fadeIn flex items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-2.5 shadow-sm"
-            style={{ animationDelay: `${i * 300}ms`, animationFillMode: "both" }}
+            style={{
+              animationDelay: `${i * 1000}ms`,
+              animationFillMode: "both",
+            }}
           >
             <div className="relative h-3 w-3 flex-shrink-0">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-50" />

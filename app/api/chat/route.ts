@@ -1,7 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT_AXISOLVER_AUTOSELL } from "@/lib/axi-solver/system-prompt";
 import { TOOLS_AXISOLVER } from "@/lib/axi-solver/tools";
-import { auditerSite } from "@/lib/axi-solver/audit-site";
+import {
+  auditerSite,
+  auditerSiteParCategorie,
+} from "@/lib/axi-solver/audit-site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -170,6 +173,49 @@ export async function POST(request: Request) {
           const toolResults: Anthropic.ToolResultBlockParam[] =
             await Promise.all(
               toolUseBlocks.map(async (b) => {
+                // --- Audits par volet (sécurité ou SEO) --- //
+                if (b.name === "auditer_securite" || b.name === "auditer_seo") {
+                  const volet = b.name === "auditer_securite"
+                    ? "securite"
+                    : "seo";
+                  try {
+                    const input = b.input as { url?: string };
+                    if (!input?.url) {
+                      return {
+                        type: "tool_result" as const,
+                        tool_use_id: b.id,
+                        content: "Erreur : URL manquante.",
+                      };
+                    }
+                    const resultat = await auditerSiteParCategorie(
+                      input.url,
+                      volet,
+                    );
+                    emit({
+                      type: "audit_termine",
+                      url: resultat.url,
+                      hostname: resultat.hostname,
+                      volet,
+                      findings: resultat.findings,
+                      technologies: resultat.technologies,
+                    });
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: resultat.resumePourClaude,
+                    };
+                  } catch (err) {
+                    const msg =
+                      err instanceof Error ? err.message : "audit échoué";
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: `Audit non réalisable (${msg}). Continue sans ces infos.`,
+                    };
+                  }
+                }
+
+                // --- Legacy : auditer_site (tout en un) --- //
                 if (b.name === "auditer_site") {
                   try {
                     const input = b.input as { url?: string };
@@ -181,8 +227,6 @@ export async function POST(request: Request) {
                       };
                     }
                     const resultat = await auditerSite(input.url);
-                    // Émettre un event SSE spécifique pour afficher le
-                    // compte-rendu structuré dans le panneau de gauche.
                     emit({
                       type: "audit_termine",
                       url: resultat.url,
@@ -205,6 +249,7 @@ export async function POST(request: Request) {
                     };
                   }
                 }
+
                 return {
                   type: "tool_result" as const,
                   tool_use_id: b.id,

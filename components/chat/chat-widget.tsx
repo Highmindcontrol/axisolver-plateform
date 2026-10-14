@@ -189,12 +189,14 @@ export function ChatWidget() {
       const findings = (evt.findings as FindingAudit[] | undefined) ?? [];
       const technologies = (evt.technologies as string[] | undefined) ?? [];
       const url = (evt.url as string) ?? "";
+      const volet = evt.volet as "securite" | "seo" | undefined;
       setEtatPanneau((e) => ({
         ...e,
         elementActif: {
           kind: "analyse_site",
           url,
           etat: "terminee",
+          volet,
           findings,
           technologies,
         },
@@ -307,6 +309,34 @@ export function ChatWidget() {
         setEtatPanneau((e) => ({
           ...e,
           elementActif: { kind: "analyse_site", url, etat: "en_cours" },
+        }));
+        break;
+      }
+      case "auditer_securite": {
+        const url = input.url as string;
+        if (!url) return;
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: {
+            kind: "analyse_site",
+            url,
+            etat: "en_cours",
+            volet: "securite",
+          },
+        }));
+        break;
+      }
+      case "auditer_seo": {
+        const url = input.url as string;
+        if (!url) return;
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: {
+            kind: "analyse_site",
+            url,
+            etat: "en_cours",
+            volet: "seo",
+          },
         }));
         break;
       }
