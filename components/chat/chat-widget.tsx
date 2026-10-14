@@ -88,13 +88,14 @@ export function ChatWidget() {
       ? { id: "accueil-injecte", role: "assistant", content: CONTENU_ACCUEIL }
       : null;
 
+    // On transmet TOUT à Claude, y compris les messages système [Email saisi : ...]
+    // car ce sont des informations essentielles. Le filtre d'affichage est fait
+    // uniquement au rendu du fil de messages (pas ici).
     const historiquePourAPI = [
       ...messages,
       ...(messageAccueilInjecte ? [messageAccueilInjecte] : []),
       userMsg,
-    ]
-      .filter((m) => !m.content.startsWith("["))
-      .map((m) => ({ role: m.role, content: m.content }));
+    ].map((m) => ({ role: m.role, content: m.content }));
 
     setMessages((prev) => [
       ...prev,

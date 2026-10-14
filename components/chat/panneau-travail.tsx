@@ -17,7 +17,7 @@
  */
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChampFiche, EtatPanneauTravail } from "@/lib/axi-solver/tools";
 
 // ================================================================== //
@@ -954,13 +954,11 @@ function JeuMorpion({
   const nul = !gagnant && cases.every((c) => c !== null);
   const partieFinie = !!gagnant || nul;
 
-  // Déclencher la fin de partie + messages chat au bon moment
-  useState(() => {
-    /* placeholder — on utilise useEffect ailleurs via le flux naturel */
-  });
+  // Détection de fin de partie — géré en useEffect pour éviter setState
+  // pendant le rendu (ce qui causait un gel du composant)
+  useEffect(() => {
+    if (!partieFinie || partieEnPause) return;
 
-  // Lorsqu'une partie se termine, décompter et envoyer le message approprié
-  if (partieFinie && !partieEnPause) {
     setPartieEnPause(true);
     const nouveauPartiesJouees = partiesJouees + 1;
     const nouveauVictoiresVisiteur =
@@ -971,7 +969,6 @@ function JeuMorpion({
     setVictoiresVisiteur(nouveauVictoiresVisiteur);
     setVictoiresAxi(nouveauVictoiresAxi);
 
-    // Message chat du résultat
     let messageResultat = "";
     if (gagnant === "X") {
       messageResultat = `[Morpion partie ${nouveauPartiesJouees} : le visiteur gagne. Score ${nouveauVictoiresVisiteur}-${nouveauVictoiresAxi}.]`;
@@ -980,12 +977,13 @@ function JeuMorpion({
     } else {
       messageResultat = `[Morpion partie ${nouveauPartiesJouees} : match nul. Score ${nouveauVictoiresVisiteur}-${nouveauVictoiresAxi}.]`;
     }
-    // Fin définitive après 3 parties OU si l'un gagne 2 fois
-    if (
+
+    const serieTerminee =
       nouveauPartiesJouees >= 3 ||
       nouveauVictoiresVisiteur >= 2 ||
-      nouveauVictoiresAxi >= 2
-    ) {
+      nouveauVictoiresAxi >= 2;
+
+    if (serieTerminee) {
       const champion =
         nouveauVictoiresVisiteur > nouveauVictoiresAxi
           ? "visiteur"
@@ -993,14 +991,17 @@ function JeuMorpion({
             ? "AxiSolver"
             : "égalité";
       messageResultat += ` [Morpion terminé. Champion : ${champion}.]`;
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         onMessageChat(messageResultat);
         onPartiesTerminees();
       }, 1200);
+      return () => clearTimeout(timeoutId);
     } else {
-      setTimeout(() => onMessageChat(messageResultat), 800);
+      const timeoutId = setTimeout(() => onMessageChat(messageResultat), 800);
+      return () => clearTimeout(timeoutId);
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [partieFinie, gagnant]);
 
   function jouerJoueur(index: number) {
     if (cases[index] || gagnant || !tourJoueur || partieEnPause) return;
@@ -1031,9 +1032,7 @@ function JeuMorpion({
   }
 
   const partiesRestantes =
-    3 - partiesJouees > 0 &&
-    victoiresVisiteur < 2 &&
-    victoiresAxi < 2;
+    partiesJouees < 3 && victoiresVisiteur < 2 && victoiresAxi < 2;
 
   return (
     <div className="flex h-full flex-col items-center justify-center p-5">
