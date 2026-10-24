@@ -803,8 +803,8 @@ export function ChatWidget() {
   return (
     <ModalOverlay onFermer={() => setWidgetOuvert(false)}>
     <div className="flex h-full items-stretch gap-3 md:h-full">
-      {/* === AILETTE GAUCHE — Actions (desktop) — contenu direct sur
-          l'aurore, pas de header, pattern AxiHub strict === */}
+      {/* === AILETTE GAUCHE — Actions (desktop) — titre centré au
+          dessus du panneau, pattern symétrique à l'ailette droite === */}
       <aside
         className={`${
           phaseFermeture === "ailettes" || phaseFermeture === "chat"
@@ -812,9 +812,14 @@ export function ChatWidget() {
             : phaseOuverture === "complet"
               ? "animate-slideOutLeft"
               : "pointer-events-none opacity-0"
-        } flex-1 overflow-hidden ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        } flex-1 overflow-hidden ${vueMobile === "actions" ? "flex flex-col" : "hidden md:flex md:flex-col"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
+        <div className="px-5 pt-5 pb-1">
+          <h3 className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
+            Actions
+          </h3>
+        </div>
         <div className="flex-1 overflow-auto">
           <PanneauActions
             etat={etatPanneau}

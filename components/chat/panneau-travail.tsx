@@ -56,13 +56,13 @@ export function PanneauFiche({ etat }: { etat: EtatPanneauTravail }) {
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto p-5">
-      <div className="mb-1 flex items-center justify-between">
+      <div className="relative mb-1 flex items-center justify-center">
+        <span className="absolute left-0 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-blue-700">
+          en direct
+        </span>
         <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
           Fiche visiteur
         </h3>
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-blue-700">
-          en direct
-        </span>
       </div>
 
       <dl className="space-y-2">
