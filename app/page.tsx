@@ -223,41 +223,46 @@ const FEATURES_SIGNATURE: Array<{
 export default function Page() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* === Hero === */}
-      <section className="mx-auto max-w-[1600px] px-4 py-10 md:px-6 md:py-16">
-        <div className="mx-auto max-w-4xl text-center">
+      {/* === Hero — image en background, contenu centré par-dessus === */}
+      <section className="relative overflow-hidden">
+        {/* Image de fond — mascotte AXI pointant une démo du produit */}
+        <div className="absolute inset-0 -z-10">
           <Image
-            src="/logo-axisolver.png"
-            alt="AxiSolver"
-            width={2172}
-            height={724}
+            src="/hero-mascotte-demo.png"
+            alt=""
+            fill
             priority
-            className="mx-auto h-auto w-56 md:w-72 lg:w-80"
+            sizes="100vw"
+            className="object-cover object-center"
           />
-
-          <h1 className="mt-8 text-3xl font-semibold tracking-tight text-white md:text-5xl lg:text-6xl">
-            Un seul produit.{" "}
-            <span className="text-amber-400">Six missions.</span>{" "}
-            Zéro équivalent au monde.
-          </h1>
-
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-            AxiSolver parle avec vos visiteurs. Veille sur votre site.
-            Travaille à côté de vous. Et sait aussi s&apos;amuser.
-          </p>
+          {/* Voile sombre pour garantir la lisibilité du texte par-dessus */}
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-b from-zinc-950/85 via-zinc-950/70 to-zinc-950"
+          />
         </div>
 
-        {/* Visuel hero — mascotte AXI pointant une démo du produit */}
-        <div className="mx-auto mt-12 max-w-5xl md:mt-16">
-          <div className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-amber-400/5">
+        <div className="mx-auto flex min-h-[640px] max-w-[1600px] flex-col items-center justify-center px-4 py-16 md:min-h-[760px] md:px-6 md:py-24">
+          <div className="mx-auto max-w-4xl text-center">
             <Image
-              src="/hero-mascotte-demo.png"
-              alt="La mascotte AXI présente AxiSolver en action — chat vocal, panneau d'actions et fiche visiteur en temps réel"
-              width={1672}
-              height={941}
+              src="/logo-axisolver.png"
+              alt="AxiSolver"
+              width={2172}
+              height={724}
               priority
-              className="h-auto w-full"
+              className="mx-auto h-auto w-64 md:w-80 lg:w-96 drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
             />
+
+            <h1 className="mt-10 text-3xl font-semibold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] md:text-5xl lg:text-6xl">
+              Un seul produit.{" "}
+              <span className="text-amber-400">Six missions.</span>{" "}
+              Zéro équivalent au monde.
+            </h1>
+
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.75)] md:text-lg">
+              AxiSolver parle avec vos visiteurs. Veille sur votre site.
+              Travaille à côté de vous. Et sait aussi s&apos;amuser.
+            </p>
           </div>
         </div>
       </section>
