@@ -686,14 +686,8 @@ export function ChatWidget() {
     envoyerTexte(texte);
   }
 
-  // Phase de fermeture séquencée :
-  // 1. "aurevoir"    → mascotte au revoir apparaît au centre bas (0-1000ms)
-  // 2. "ailettes"    → ailettes se replient (1000-2900ms)
-  // 3. "chat"        → chat central fade-out (2900-3800ms)
-  // 4. widget fermé  → retour au bouton d'ouverture (4000ms)
-  const [phaseFermeture, setPhaseFermeture] = useState<
-    "aucune" | "aurevoir" | "ailettes" | "chat"
-  >("aucune");
+  // Fermeture simple : fade out global via `fermetureEnCours` passé
+  // à ModalOverlay (transition opacity 1000ms sur toute la fenêtre).
 
   function handleClotureConfirmee(optInRecontact: boolean) {
     // 1. Note l'opt-in dans l'historique pour l'équipe
@@ -702,13 +696,10 @@ export function ChatWidget() {
         ? "[Clôture confirmée. Opt-in Ataraxis : OUI.]"
         : "[Clôture confirmée. Opt-in Ataraxis : NON.]",
     );
-    // 2. Déclenche la phase 'aurevoir' tout de suite (mascotte visible)
-    setFermetureEnCours(true);
-    setPhaseFermeture("aurevoir");
 
-    // Fonction qui attend que la lecture audio en cours ET la queue
-    // soient vides (= AxiSolver a fini de parler) avant de déclencher
-    // la vraie fermeture. Timeout de sécurité à 20 secondes au cas où.
+    // 2. Attend que la voix finisse de parler, puis fade out global
+    // du modal sur 1000ms, puis fermeture effective. Pas de mascotte
+    // au revoir ni de chorégraphie d'ailettes — simple, pro.
     const attendreFinVoix = (callback: () => void, debutMs = Date.now()) => {
       const audioEnCours = !!audioRef.current && !audioRef.current.ended;
       const queueActive =
@@ -722,25 +713,21 @@ export function ChatWidget() {
       }
     };
 
-    // On laisse d'abord 4 secondes minimum pour que le visiteur lise la
-    // bulle au revoir, PUIS on attend la fin de la voix si elle parle encore
-    setTimeout(() => {
-      attendreFinVoix(() => {
-        // Les ailettes se replient
-        setPhaseFermeture("ailettes");
-        // Le chat central fade-out après la fin des ailettes (1900ms)
-        setTimeout(() => setPhaseFermeture("chat"), 1900);
-        // On referme vraiment après le fade-out du chat (900ms)
+    attendreFinVoix(() => {
+      // Petit délai pour laisser le visiteur lire le dernier message
+      setTimeout(() => {
+        setFermetureEnCours(true);
+        // Durée synchronisée avec `transition-opacity duration-1000`
+        // posée sur l'overlay — après le fade on referme vraiment.
         setTimeout(() => {
           setWidgetOuvert(false);
           setFermetureEnCours(false);
-          setPhaseFermeture("aucune");
           setMessages([]);
           setEtatPanneau(ETAT_PANNEAU_INITIAL);
           setConversationDemarree(false);
-        }, 2800);
-      });
-    }, 4000);
+        }, 1000);
+      }, 1500);
+    });
   }
 
   function envoyer() {
@@ -819,24 +806,28 @@ export function ChatWidget() {
 
   if (!conversationDemarree) {
     return (
-      <ModalOverlay onFermer={() => setWidgetOuvert(false)}>
+      <ModalOverlay
+        onFermer={() => setWidgetOuvert(false)}
+        fermetureEnCours={fermetureEnCours}
+      >
         <EcranDemarrage onDemarrer={demarrerConversation} />
       </ModalOverlay>
     );
   }
 
   return (
-    <ModalOverlay onFermer={() => setWidgetOuvert(false)}>
+    <ModalOverlay
+      onFermer={() => setWidgetOuvert(false)}
+      fermetureEnCours={fermetureEnCours}
+    >
     <div className="flex h-full items-stretch gap-3 md:h-full">
       {/* === AILETTE GAUCHE — Actions (desktop) — titre centré au
           dessus du panneau, pattern symétrique à l'ailette droite === */}
       <aside
         className={`${
-          phaseFermeture === "ailettes" || phaseFermeture === "chat"
-            ? "animate-slideBackLeft"
-            : phaseOuverture === "complet"
-              ? "animate-slideOutLeft"
-              : "pointer-events-none opacity-0"
+          phaseOuverture === "complet"
+            ? "animate-slideOutLeft"
+            : "pointer-events-none opacity-0"
         } flex-1 overflow-hidden ${vueMobile === "actions" ? "flex flex-col" : "hidden md:flex md:flex-col"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
@@ -881,11 +872,9 @@ export function ChatWidget() {
       {/* === CHAT CENTRAL — unique colonne sur l'aurore === */}
       <section
         className={`relative ${
-          phaseFermeture === "chat"
-            ? "animate-chatFadeOut"
-            : phaseOuverture === "chat" || phaseOuverture === "complet"
-              ? "animate-chatFadeIn"
-              : ""
+          phaseOuverture === "chat" || phaseOuverture === "complet"
+            ? "animate-chatFadeIn"
+            : ""
         } overflow-hidden ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
       >
         <div className="flex w-full flex-col">
@@ -982,12 +971,6 @@ export function ChatWidget() {
             </div>
           </div>
 
-          {/* Mascotte au revoir — superposée en bas pendant la fermeture */}
-          {(phaseFermeture === "aurevoir" ||
-            phaseFermeture === "ailettes") && (
-            <MascotteAuRevoir prenom={etatPanneau.fiche.prenom} />
-          )}
-
           {/* Bandeau d'alerte si l'autoplay audio est bloqué par le navigateur */}
           {autoplayBloque && (
             <button
@@ -1025,11 +1008,7 @@ export function ChatWidget() {
           {/* Fil de messages — directement sur l'aurore, pas de fond */}
           <div
             ref={scrollRef}
-            className={`flex-1 space-y-3 overflow-y-auto px-4 py-5 transition-opacity duration-500 ${
-              phaseFermeture === "aurevoir" || phaseFermeture === "ailettes"
-                ? "opacity-0"
-                : "opacity-100"
-            }`}
+            className="flex-1 space-y-3 overflow-y-auto px-4 py-5"
           >
             {messages
               .filter((m) => !m.content.startsWith("["))
@@ -1100,11 +1079,9 @@ export function ChatWidget() {
       {/* === AILETTE DROITE — Infos visiteur (desktop) === */}
       <aside
         className={`${
-          phaseFermeture === "ailettes" || phaseFermeture === "chat"
-            ? "animate-slideBackRight"
-            : phaseOuverture === "complet"
-              ? "animate-slideOutRight"
-              : "pointer-events-none opacity-0"
+          phaseOuverture === "complet"
+            ? "animate-slideOutRight"
+            : "pointer-events-none opacity-0"
         } flex-1 overflow-hidden ${vueMobile === "fiche" ? "flex flex-col" : "hidden md:flex md:flex-col"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Infos visiteur"
       >
@@ -1212,13 +1189,17 @@ function BoutonFlottant({ onOuvrir }: { onOuvrir: () => void }) {
 function ModalOverlay({
   children,
   onFermer,
+  fermetureEnCours = false,
 }: {
   children: React.ReactNode;
   onFermer: () => void;
+  fermetureEnCours?: boolean;
 }) {
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-stretch justify-center md:items-center md:p-6"
+      className={`fixed inset-0 z-[9999] flex items-stretch justify-center transition-opacity duration-1000 md:items-center md:p-6 ${
+        fermetureEnCours ? "opacity-0" : "opacity-100"
+      }`}
       role="dialog"
       aria-modal="true"
     >
@@ -1266,38 +1247,6 @@ function ModalOverlay({
             passer au-dessus des blobs). */}
         <div className="relative z-10 flex-1 overflow-hidden p-3 md:p-5">
           {children}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ================================================================== //
-// Mascotte "au revoir" — à l'écran central avant fermeture           //
-// ================================================================== //
-
-function MascotteAuRevoir({ prenom }: { prenom?: string }) {
-  return (
-    <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex flex-col items-center px-5">
-      <div className="animate-mascotteAuRevoir mb-3 w-full max-w-sm rounded-2xl rounded-br-sm border border-slate-200 bg-white px-5 py-4 shadow-md">
-        <p className="text-sm leading-relaxed text-slate-900">
-          Merci {prenom ? `${prenom} ` : ""}d&apos;être passé par ici.{" "}
-          <span className="font-semibold text-blue-600">
-            À très bientôt
-          </span>{" "}
-          — et n&apos;oubliez pas, vous allez recevoir votre compte-rendu
-          par email dès que notre canal sera activé. 👋
-        </p>
-      </div>
-      <div className="animate-mascotteAuRevoir relative w-full">
-        <div className="mx-auto flex justify-center">
-          <Image
-            src="/axi-mascotte-aurevoir.png"
-            alt="AxiSolver vous salue"
-            width={520}
-            height={520}
-            className="h-auto w-44 md:w-48 lg:w-52"
-          />
         </div>
       </div>
     </div>
