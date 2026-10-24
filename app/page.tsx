@@ -224,23 +224,15 @@ export default function Page() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       {/* === Hero — image en background, contenu centré par-dessus === */}
-      <section className="relative overflow-hidden">
-        {/* Image de fond — mascotte AXI pointant une démo du produit */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/hero-mascotte-demo.png"
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover object-center"
-          />
-          {/* Voile sombre pour garantir la lisibilité du texte par-dessus */}
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-gradient-to-b from-zinc-950/85 via-zinc-950/70 to-zinc-950"
-          />
-        </div>
+      <section
+        className="relative overflow-hidden bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/hero-mascotte-demo.png)" }}
+      >
+        {/* Voile sombre dégradé pour garantir la lisibilité du texte */}
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/55 to-zinc-950"
+        />
 
         <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col items-center justify-center px-4 py-16 md:min-h-[760px] md:px-6 md:py-24">
           <div className="mx-auto max-w-4xl text-center">
