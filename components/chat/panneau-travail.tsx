@@ -16,7 +16,6 @@
  *     des actions, lisible du début à la fin
  */
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import type { ChampFiche, EtatPanneauTravail } from "@/lib/axi-solver/tools";
 
@@ -324,32 +323,14 @@ export function PanneauActions({
       return <ClotureConversation onConfirme={onClotureConfirmee} />;
     case "aucun":
     default:
-      return <AccueilAxiSolver />;
+      // Pattern AxiHub : rien d'affiché par défaut dans l'ailette.
+      // Le contenu se découvre à mesure qu'AXI pousse des éléments
+      // via tool_use (demande_email, choix, carte pack, etc.).
+      return null;
   }
 }
 
 // --- Composants individuels ---------------------------------------- //
-
-function AccueilAxiSolver() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50/30 p-6 text-center">
-      <Image
-        src="/logo-axisolver.png"
-        alt="AxiSolver"
-        width={200}
-        height={200}
-        className="h-auto w-20 opacity-90 md:w-24"
-      />
-      <div className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-blue-600">
-        AxiSolver est à votre écoute
-      </div>
-      <p className="mt-3 max-w-xs text-xs leading-relaxed text-slate-500">
-        Je vais afficher ici tout ce dont nous aurons besoin au fil de notre
-        conversation — formulaires, aperçus, propositions.
-      </p>
-    </div>
-  );
-}
 
 function ChampEmail({
   raison,
