@@ -35,7 +35,7 @@ type ChatMessage = { id: string; role: Role; content: string };
 type VueMobile = "actions" | "chat" | "fiche";
 
 const CONTENU_ACCUEIL =
-  "Bonjour, bienvenue ! Je suis AxiSolver, et je n'en ai peut-être pas l'air comme ça 😄 mais d'ici peu, vous n'allez plus pouvoir vous passer de moi. On fait connaissance ?";
+  "Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez m'écrire, me parler ou encore choisir l'une des options suivantes.";
 
 export function ChatWidget() {
   const [widgetOuvert, setWidgetOuvert] = useState(false);
@@ -45,9 +45,10 @@ export function ChatWidget() {
   const [phaseOuverture, setPhaseOuverture] = useState<"chat" | "complet">(
     "chat",
   );
-  // Pas de message d'accueil dans le chat au démarrage — il est affiché
-  // dans la mascotte à gauche, et ne passera dans le chat qu'après la
-  // première réponse du visiteur.
+  // Le visiteur doit cliquer sur « Démarrer la conversation » avant qu'AXI
+  // ne prenne la parole. Évite les premiers mots muets si l'autoplay est
+  // bloqué et donne un ancrage pro à l'ouverture du widget.
+  const [conversationDemarree, setConversationDemarree] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -85,25 +86,15 @@ export function ChatWidget() {
     const idAssistant = crypto.randomUUID();
     const userMsg: ChatMessage = { id: idUser, role: "user", content: texte };
 
-    // Au premier échange, on injecte le message d'accueil dans le chat
-    // juste avant la réponse visiteur pour conserver le fil narratif.
-    const estPremierEchange = !messages.some((m) => m.role === "user");
-    const messageAccueilInjecte: ChatMessage | null = estPremierEchange
-      ? { id: "accueil-injecte", role: "assistant", content: CONTENU_ACCUEIL }
-      : null;
-
-    // On transmet TOUT à Claude, y compris les messages système [Email saisi : ...]
-    // car ce sont des informations essentielles. Le filtre d'affichage est fait
-    // uniquement au rendu du fil de messages (pas ici).
-    const historiquePourAPI = [
-      ...messages,
-      ...(messageAccueilInjecte ? [messageAccueilInjecte] : []),
-      userMsg,
-    ].map((m) => ({ role: m.role, content: m.content }));
+    // Le message d'accueil est déjà présent dans `messages` depuis le
+    // clic sur « Démarrer la conversation » — plus d'injection ici.
+    const historiquePourAPI = [...messages, userMsg].map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
 
     setMessages((prev) => [
       ...prev,
-      ...(messageAccueilInjecte ? [messageAccueilInjecte] : []),
       userMsg,
       { id: idAssistant, role: "assistant", content: "" },
     ]);
@@ -742,6 +733,7 @@ export function ChatWidget() {
           setPhaseFermeture("aucune");
           setMessages([]);
           setEtatPanneau(ETAT_PANNEAU_INITIAL);
+          setConversationDemarree(false);
         }, 2800);
       });
     }, 4000);
@@ -752,6 +744,17 @@ export function ChatWidget() {
     if (!texte || thinking) return;
     setInput("");
     envoyerTexte(texte);
+  }
+
+  // Déclenché par le bouton « Démarrer la conversation » : injecte le
+  // message d'accueil dans le fil et lance la lecture TTS. Le clic
+  // compte comme interaction utilisateur → l'autoplay audio est
+  // autorisé par le navigateur.
+  function demarrerConversation() {
+    setConversationDemarree(true);
+    const idAccueil = crypto.randomUUID();
+    setMessages([{ id: idAccueil, role: "assistant", content: CONTENU_ACCUEIL }]);
+    envoyerPhraseTTS(CONTENU_ACCUEIL);
   }
 
   // Pour le badge de notification mobile sur les ailettes
@@ -797,6 +800,14 @@ export function ChatWidget() {
           setTimeout(() => setPhaseOuverture("complet"), 900);
         }}
       />
+    );
+  }
+
+  if (!conversationDemarree) {
+    return (
+      <ModalOverlay onFermer={() => setWidgetOuvert(false)}>
+        <EcranDemarrage onDemarrer={demarrerConversation} />
+      </ModalOverlay>
     );
   }
 
@@ -1273,40 +1284,42 @@ function MascotteAuRevoir({ prenom }: { prenom?: string }) {
 }
 
 // ================================================================== //
-// Mascotte d'accueil — à gauche au premier contact                   //
+// Écran de démarrage — bouton central avant la 1re prise de parole    //
 // ================================================================== //
 
-function MascotteAccueil() {
+function EcranDemarrage({ onDemarrer }: { onDemarrer: () => void }) {
   return (
-    <div className="flex h-full flex-col items-center justify-end bg-gradient-to-br from-slate-50 to-blue-50/40 px-5 pt-5">
-      {/* Bulle de dialogue, posée au-dessus de la mascotte */}
-      <div className="animate-bulle relative mb-3 w-full max-w-xs rounded-2xl rounded-bl-sm border border-slate-200 bg-white px-5 py-4 shadow-md">
-        <p className="text-sm leading-relaxed text-slate-900">
-          Bonjour, bienvenue !{" "}
-          <span className="font-semibold text-blue-600">
-            Je suis AxiSolver,
-          </span>{" "}
-          et je n&apos;en ai peut-être pas l&apos;air comme ça 😄 mais
-          d&apos;ici peu, vous n&apos;allez plus pouvoir vous passer de
-          moi. On fait connaissance ?
-        </p>
-        {/* Petite flèche vers la mascotte */}
-        <div className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 border-b border-r border-slate-200 bg-white" />
+    <div className="flex h-full flex-col items-center justify-center gap-10 px-6 text-center">
+      <div className="animate-mascotte flex flex-col items-center gap-4">
+        <Image
+          src="/axi-mascotte-accueil.png"
+          alt="AxiSolver"
+          width={420}
+          height={420}
+          priority
+          className="h-auto w-40 md:w-48"
+        />
+        <h2 className="text-2xl font-semibold tracking-tight text-white md:text-3xl">
+          AxiSolver
+        </h2>
       </div>
 
-      {/* Mascotte — bras derrière le dos (image dédiée accueil) */}
-      <div className="relative w-full">
-        <div className="animate-mascotte mx-auto flex justify-center">
-          <Image
-            src="/axi-mascotte-accueil.png"
-            alt="AxiSolver vous accueille"
-            width={420}
-            height={420}
-            priority
-            className="h-auto w-44 md:w-48 lg:w-52"
-          />
-        </div>
-      </div>
+      <button
+        type="button"
+        onClick={onDemarrer}
+        className="relative inline-flex items-center gap-3 rounded-full bg-[#0068FC] px-10 py-4 text-base font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-[#0051C7] md:text-lg"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="h-5 w-5"
+          aria-hidden
+        >
+          <path d="M8 5v14l11-7z" />
+        </svg>
+        Démarrer la conversation
+      </button>
     </div>
   );
 }
