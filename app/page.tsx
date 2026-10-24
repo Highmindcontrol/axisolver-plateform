@@ -116,10 +116,10 @@ export default function Page() {
           <Image
             src="/logo-axisolver.png"
             alt="AxiSolver"
-            width={520}
-            height={520}
+            width={2172}
+            height={724}
             priority
-            className="mx-auto h-auto w-32 md:w-40 lg:w-48"
+            className="mx-auto h-auto w-56 md:w-72 lg:w-80"
           />
 
           <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-5xl lg:text-6xl">

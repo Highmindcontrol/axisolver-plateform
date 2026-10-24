@@ -1123,6 +1123,16 @@ export function ChatWidget() {
         <div className="flex-1 overflow-auto">
           <PanneauFiche etat={etatPanneau} />
         </div>
+        {/* Signature AxiSolver — logo doré en bas de l'ailette droite */}
+        <div className="pointer-events-none flex justify-center px-5 pb-5 pt-3">
+          <Image
+            src="/logo-axisolver.png"
+            alt="AxiSolver"
+            width={2172}
+            height={724}
+            className="h-auto w-36 opacity-90"
+          />
+        </div>
       </aside>
     </div>
     </ModalOverlay>
