@@ -539,10 +539,11 @@ export function ChatWidget() {
   const lectureEnCoursRef = useRef<boolean>(false);
   // Pour détecter un nouveau message et vider le buffer
   const idMessageEnCoursRef = useRef<string | null>(null);
-  // Voix TTS actuelle — par défaut echo (voix d'homme neutre, moins grave qu'onyx)
-  const [voix, setVoix] = useState<
-    "onyx" | "echo" | "nova" | "shimmer" | "alloy" | "fable"
-  >("echo");
+  // Voix TTS verrouillée — doctrine AxiHub « on parle de la voix,
+  // point » (21 oct 2026). Pas de sélecteur visible côté visiteur.
+  // Reste sur `echo` (homme neutre) tant qu'on ne branche pas Azure
+  // fr-FR comme AxiHub.
+  const voix = "echo" as const;
 
   // Ref synchronisée avec l'état panneau — pour éviter les stale closures
   // dans appliquerToolUse quand plusieurs tools arrivent coup sur coup
@@ -851,26 +852,10 @@ export function ChatWidget() {
         } overflow-hidden ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
       >
         <div className="flex w-full flex-col">
-          {/* Boutons utilitaires discrets en haut à droite (voix TTS +
-              bascule mobile). Pas de header plein, le chat vit sur
+          {/* Boutons utilitaires discrets en haut à droite (toggle voix
+              + bascule mobile). Pas de header plein, le chat vit sur
               l'aurore à la façon AxiHub. */}
           <div className="flex items-center justify-end gap-1 px-2 py-1">
-            {lectureVocaleActive && (
-              <select
-                value={voix}
-                onChange={(e) => setVoix(e.target.value as typeof voix)}
-                className="hidden rounded-full border border-white/15 bg-white/5 px-2 py-1 text-xs font-medium text-white outline-none backdrop-blur-sm transition-colors hover:bg-white/10 md:inline-flex [&>option]:text-slate-900"
-                title="Choisir la voix d'AxiSolver"
-                aria-label="Choisir la voix"
-              >
-                <option value="onyx">Henri (homme posé)</option>
-                <option value="echo">Jérôme (homme dynamique)</option>
-                <option value="fable">Alain (homme informatif)</option>
-                <option value="nova">Denise (femme naturelle)</option>
-                <option value="shimmer">Céleste (femme douce)</option>
-                <option value="alloy">Rémy (moderne multilingue)</option>
-              </select>
-            )}
             <button
               onClick={basculerLectureVocale}
               className="hidden rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10 md:inline-flex"
