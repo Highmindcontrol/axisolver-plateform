@@ -84,7 +84,7 @@ export function PanneauFiche({ etat }: { etat: EtatPanneauTravail }) {
 function FicheEnAttente() {
   return (
     <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -93,7 +93,7 @@ function FicheEnAttente() {
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="h-6 w-6 text-slate-400"
+          className="h-6 w-6 text-white/60"
           aria-hidden
         >
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -116,9 +116,9 @@ function ChampLigne({
   valide?: boolean;
 }) {
   return (
-    <div className="animate-fadeIn flex items-start justify-between gap-3 border-b border-slate-100 pb-2 last:border-0 last:pb-0">
-      <dt className="text-xs font-medium text-slate-500">{libelle}</dt>
-      <dd className="flex items-center gap-1.5 text-right text-sm text-slate-900">
+    <div className="animate-fadeIn flex items-start justify-between gap-3 border-b border-white/15 pb-2 last:border-0 last:pb-0">
+      <dt className="text-xs font-medium text-white/60">{libelle}</dt>
+      <dd className="flex items-center gap-1.5 text-right text-sm text-white">
         {valide && (
           <svg
             xmlns="http://www.w3.org/2000/svg"
