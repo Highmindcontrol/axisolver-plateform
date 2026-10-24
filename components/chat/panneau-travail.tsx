@@ -102,9 +102,6 @@ function FicheEnAttente() {
           <path d="M16 17H8" />
         </svg>
       </div>
-      <p className="mt-3 max-w-xs text-xs leading-relaxed text-slate-400">
-        Vos informations apparaîtront ici au fil de la conversation.
-      </p>
     </div>
   );
 }
