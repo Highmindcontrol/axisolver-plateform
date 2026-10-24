@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   // `AXI_VOICE` partagée avec axihub.live. Fallback technique si
   // la var n'est pas posée côté Vercel.
   const VOIX_PAR_DEFAUT =
-    process.env.AXI_VOICE ?? "fr-FR-RemyMultilingualNeural";
+    process.env.AXI_VOICE ?? "fr-FR-HenriNeural";
   // Si l'appelant envoie directement un nom de voix Azure
   // (fr-FR-*Neural), on la respecte ; sinon on utilise la voix
   // doctrine AXI. Toute voix OpenAI historique (onyx/echo/…) est
