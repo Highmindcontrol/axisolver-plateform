@@ -191,6 +191,14 @@ function nettoyerPourVocal(texte: string): string {
       )
       .replace(/\*\*(.+?)\*\*/g, "$1")
       .replace(/\*(.+?)\*/g, "$1")
+      // Filet de sécurité : astérisques résiduels (markdown mal formé,
+      // ** orphelin, séquences ***, puces, etc.) → ne doivent JAMAIS
+      // atteindre Azure TTS qui les prononcerait « astérisque ».
+      .replace(/\*/g, "")
+      // Abréviations pénibles à l'oral — Azure prononce « 24/7 »
+      // comme « 24 juillet ». On déplie en toutes lettres.
+      .replace(/\b24\s*\/\s*7\b/g, "24 heures sur 24 et 7 jours sur 7")
+      .replace(/\b7\s*\/\s*7\b/g, "7 jours sur 7")
       .replace(/^[-—•]\s+/gm, "")
       .replace(/«\s?/g, "")
       .replace(/\s?»/g, "")
