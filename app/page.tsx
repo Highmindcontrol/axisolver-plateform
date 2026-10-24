@@ -246,6 +246,20 @@ export default function Page() {
             Travaille à côté de vous. Et sait aussi s&apos;amuser.
           </p>
         </div>
+
+        {/* Visuel hero — mascotte AXI pointant une démo du produit */}
+        <div className="mx-auto mt-12 max-w-5xl md:mt-16">
+          <div className="relative overflow-hidden rounded-3xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-amber-400/5">
+            <Image
+              src="/hero-mascotte-demo.png"
+              alt="La mascotte AXI présente AxiSolver en action — chat vocal, panneau d'actions et fiche visiteur en temps réel"
+              width={1672}
+              height={941}
+              priority
+              className="h-auto w-full"
+            />
+          </div>
+        </div>
       </section>
 
       {/* === Les 6 missions === */}
