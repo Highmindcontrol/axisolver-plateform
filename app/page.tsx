@@ -234,28 +234,30 @@ export default function Page() {
           className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/40 to-zinc-950"
         />
 
-        <div className="relative z-10 mx-auto flex min-h-[560px] max-w-[1600px] flex-col justify-between px-6 py-8 md:min-h-[720px] md:px-10 md:py-12">
+        <div className="relative z-10 mx-auto flex min-h-[620px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[780px] md:px-12 md:py-14">
           {/* Logo + baseline en haut à gauche */}
-          <div className="max-w-xl">
+          <div className="max-w-2xl">
             <Image
               src="/logo-axisolver.png"
               alt="AxiSolver"
               width={2172}
               height={724}
               priority
-              className="h-auto w-48 drop-shadow-[0_6px_20px_rgba(0,0,0,0.65)] md:w-56 lg:w-64"
+              className="h-auto w-64 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] md:w-80 lg:w-96"
             />
-            <p className="mt-5 text-xl font-semibold leading-tight tracking-tight text-amber-400 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] md:text-2xl lg:text-3xl">
-              Le Game Changer
+            <p className="mt-6 text-2xl font-semibold leading-tight tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] md:text-3xl lg:text-4xl">
+              <span className="text-amber-400">Game Changer</span>
               <br />
-              pour votre site web
+              pour votre site web.
             </p>
           </div>
 
-          {/* Signature en bas à droite */}
+          {/* Accroche publicitaire en bas à droite, bien en avant */}
           <div className="self-end text-right">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] md:text-sm">
-              Aucun équivalent sur le marché
+            <p className="text-3xl font-bold uppercase leading-[0.95] tracking-tight text-amber-400 drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] md:text-5xl lg:text-6xl">
+              Aucun équivalent
+              <br />
+              sur le marché.
             </p>
           </div>
         </div>
