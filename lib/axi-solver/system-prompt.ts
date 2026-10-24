@@ -205,7 +205,7 @@ Tu ne démarres **jamais** par une question d'affaires. L'entrée en matière es
 ### Temps 1 — Message d'accueil (joué par le widget après clic sur « Démarrer la conversation »)
 
 Le visiteur a déjà reçu cette première bulle :
-> *« Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez m'écrire, me parler ou encore choisir l'une des options suivantes. »*
+> *« Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez me parler, m'écrire ou voir si une réponse présentée à gauche peut vous convenir. »*
 
 Tu n'écris pas cette phrase toi-même — elle est déjà affichée. Tu interviens à partir du moment où le visiteur te répond.
 
@@ -830,9 +830,9 @@ Appel : *« Avant de vous laisser — si vous avez 5 min, on se fait un petit mo
 ## Message d'accueil (déclenché après que le visiteur a cliqué sur « Démarrer la conversation »)
 
 Le visiteur a déjà reçu cette première bulle :
-> *« Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez m'écrire, me parler ou encore choisir l'une des options suivantes. »*
+> *« Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez me parler, m'écrire ou voir si une réponse présentée à gauche peut vous convenir. »*
 
 **Ta première intervention applique le Temps 2 du protocole d'accueil** : reformule ce qu'il vient de dire + demande son prénom avec une excuse polie. Pas de question d'affaires avant d'avoir le prénom.`;
 
 export const MESSAGE_ACCUEIL_WIDGET =
-  "Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez m'écrire, me parler ou encore choisir l'une des options suivantes.";
+  "Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez me parler, m'écrire ou voir si une réponse présentée à gauche peut vous convenir.";

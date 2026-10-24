@@ -26,6 +26,10 @@ import { AuroreBoreale } from "./aurore-boreale";
 import { BoutonMicro } from "./bouton-micro";
 import { PanneauActions, PanneauFiche } from "./panneau-travail";
 import {
+  OPTIONS_ACCUEIL_DEFAUT,
+  type OptionAccueil,
+} from "@/lib/axi-solver/options-accueil";
+import {
   ETAT_PANNEAU_INITIAL,
   type EtatPanneauTravail,
 } from "@/lib/axi-solver/tools";
@@ -35,7 +39,7 @@ type ChatMessage = { id: string; role: Role; content: string };
 type VueMobile = "actions" | "chat" | "fiche";
 
 const CONTENU_ACCUEIL =
-  "Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez m'écrire, me parler ou encore choisir l'une des options suivantes.";
+  "Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez me parler, m'écrire ou voir si une réponse présentée à gauche peut vous convenir.";
 
 export function ChatWidget() {
   const [widgetOuvert, setWidgetOuvert] = useState(false);
@@ -765,6 +769,16 @@ export function ChatWidget() {
     !!etatPanneau.telephoneValide ||
     !!etatPanneau.reference;
 
+  // Les options d'accueil cliquables apparaissent dans l'ailette gauche
+  // dès que la conversation démarre et tant que le visiteur n'a pas
+  // encore parlé — sauf si AXI a déjà ouvert un formulaire ou un choix
+  // dans le panneau (dans ce cas, le formulaire a la priorité).
+  const visiteurNaPasEncoreParle = !messages.some((m) => m.role === "user");
+  const afficherOptionsAccueil =
+    conversationDemarree &&
+    visiteurNaPasEncoreParle &&
+    etatPanneau.elementActif.kind === "aucun";
+
   // Fermeture par touche Escape quand le modal est ouvert.
   useEffect(() => {
     if (!widgetOuvert) return;
@@ -832,21 +846,28 @@ export function ChatWidget() {
           </h3>
         </div>
         <div className="flex-1 overflow-auto">
-          <PanneauActions
-            etat={etatPanneau}
-            onEmailValide={handleEmailValide}
-            onEmailRefuse={handleEmailRefuse}
-            onTelephoneValide={handleTelephoneValide}
-            onTelephoneRefuse={handleTelephoneRefuse}
-            onUrlSiteValide={handleUrlSiteValide}
-            onUrlSiteRefuse={handleUrlSiteRefuse}
-            onChoixClique={handleChoixClique}
-            onChoixMultipleValide={handleChoixMultipleValide}
-            onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
-            onMorpionMessage={handleMorpionMessage}
-            onMorpionTermine={handleMorpionTermine}
-            onClotureConfirmee={handleClotureConfirmee}
-          />
+          {afficherOptionsAccueil ? (
+            <OptionsAccueil
+              options={OPTIONS_ACCUEIL_DEFAUT}
+              onClique={(libelle) => envoyerTexte(libelle)}
+            />
+          ) : (
+            <PanneauActions
+              etat={etatPanneau}
+              onEmailValide={handleEmailValide}
+              onEmailRefuse={handleEmailRefuse}
+              onTelephoneValide={handleTelephoneValide}
+              onTelephoneRefuse={handleTelephoneRefuse}
+              onUrlSiteValide={handleUrlSiteValide}
+              onUrlSiteRefuse={handleUrlSiteRefuse}
+              onChoixClique={handleChoixClique}
+              onChoixMultipleValide={handleChoixMultipleValide}
+              onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
+              onMorpionMessage={handleMorpionMessage}
+              onMorpionTermine={handleMorpionTermine}
+              onClotureConfirmee={handleClotureConfirmee}
+            />
+          )}
         </div>
       </aside>
 
@@ -1279,6 +1300,33 @@ function MascotteAuRevoir({ prenom }: { prenom?: string }) {
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+// ================================================================== //
+// Options d'accueil cliquables — ailette gauche, avant 1er message    //
+// ================================================================== //
+
+function OptionsAccueil({
+  options,
+  onClique,
+}: {
+  options: OptionAccueil[];
+  onClique: (libelle: string) => void;
+}) {
+  return (
+    <div className="flex h-full flex-col gap-3 px-4 pb-4">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          onClick={() => onClique(o.libelle)}
+          className="animate-fadeIn w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm leading-relaxed text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15"
+        >
+          {o.libelle}
+        </button>
+      ))}
     </div>
   );
 }
