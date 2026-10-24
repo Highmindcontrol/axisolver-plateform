@@ -833,6 +833,13 @@ export function ChatWidget() {
         </div>
       </aside>
 
+      {/* Liseré vertical gauche — fine ligne qui sépare l'ailette
+          du chat central sans refermer l'espace. */}
+      <div
+        aria-hidden
+        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-white/25 to-transparent md:block"
+      />
+
       {/* === CHAT CENTRAL — unique colonne sur l'aurore === */}
       <section
         className={`relative ${
@@ -1061,6 +1068,12 @@ export function ChatWidget() {
           </form>
         </div>
       </section>
+
+      {/* Liseré vertical droit — symétrique du gauche. */}
+      <div
+        aria-hidden
+        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-white/25 to-transparent md:block"
+      />
 
       {/* === AILETTE DROITE — Fiche (desktop) === */}
       <aside
