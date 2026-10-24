@@ -146,9 +146,19 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Triptyque pleine largeur */}
-        <div className="mt-10 md:mt-14">
-          <ChatWidget />
+        {/* Call-to-action vers le bouton flottant — le vrai widget vit
+            désormais en overlay (pastille mascotte en bas à droite). */}
+        <div className="mt-12 flex justify-center md:mt-16">
+          <div className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 shadow-sm">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+            </span>
+            AxiSolver vous attend —&nbsp;
+            <span className="font-medium text-slate-900">
+              cliquez sur la pastille en bas à droite
+            </span>
+          </div>
         </div>
       </section>
 
@@ -341,6 +351,10 @@ export default function Page() {
           </div>
         </div>
       </footer>
+
+      {/* Widget AxiSolver — pastille flottante + modal centré au clic.
+          Monté en bout de page, se positionne via `fixed` partout. */}
+      <ChatWidget />
     </main>
   );
 }

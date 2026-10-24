@@ -764,10 +764,34 @@ export function ChatWidget() {
     !!etatPanneau.telephoneValide ||
     !!etatPanneau.reference;
 
-  // Si le widget n'est pas encore ouvert, on affiche le bouton d'invitation
+  // Fermeture par touche Escape quand le modal est ouvert.
+  useEffect(() => {
+    if (!widgetOuvert) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setWidgetOuvert(false);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [widgetOuvert]);
+
+  // Blocage du scroll du site hôte quand le modal est ouvert — standard
+  // pour tout overlay plein écran.
+  useEffect(() => {
+    if (!widgetOuvert) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [widgetOuvert]);
+
+  // Si le widget n'est pas encore ouvert, on affiche uniquement la
+  // pastille flottante en bas à droite.
   if (!widgetOuvert) {
     return (
-      <BoutonOuverture
+      <BoutonFlottant
         onOuvrir={() => {
           setWidgetOuvert(true);
           setPhaseOuverture("chat");
@@ -779,7 +803,8 @@ export function ChatWidget() {
   }
 
   return (
-    <div className="flex h-[640px] items-stretch gap-3 md:h-[680px]">
+    <ModalOverlay onFermer={() => setWidgetOuvert(false)}>
+    <div className="flex h-full items-stretch gap-3 md:h-full">
       {/* === AILETTE GAUCHE — Actions (desktop) === */}
       <aside
         className={`${
@@ -1135,6 +1160,7 @@ export function ChatWidget() {
         </div>
       </aside>
     </div>
+    </ModalOverlay>
   );
 }
 
@@ -1178,40 +1204,101 @@ function IndicateurFrappe() {
 }
 
 // ================================================================== //
-// Bouton d'ouverture — invite à démarrer la conversation             //
+// Bouton flottant — pastille mascotte permanente en bas à droite     //
 // ================================================================== //
 
-function BoutonOuverture({ onOuvrir }: { onOuvrir: () => void }) {
+function BoutonFlottant({ onOuvrir }: { onOuvrir: () => void }) {
   return (
-    <div className="flex min-h-[480px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50/50 p-10 text-center md:min-h-[560px]">
-      <h2 className="text-2xl font-semibold tracking-tight text-slate-900 md:text-3xl">
-        AxiSolver vous attend
-      </h2>
-      <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-600 md:text-base">
-        Il va vous accueillir en direct, écouter votre contexte,
-        regarder votre site, et vous dire ce qu&apos;il peut faire pour
-        vous. Deux à trois minutes maximum.
-      </p>
-
-      {/* Gros bouton rond noir avec la mascotte AxiSolver — pulsation permanente */}
-      <button
-        onClick={onOuvrir}
-        aria-label="Démarrer la conversation avec AxiSolver"
-        className="animate-pulseAxi group mt-10 flex h-44 w-44 items-center justify-center overflow-hidden rounded-full bg-slate-900 shadow-xl transition-transform hover:scale-105 md:h-52 md:w-52"
-      >
-        <Image
-          src="/axi-mascotte-bouton.png"
-          alt="AxiSolver"
-          width={400}
-          height={400}
-          priority
-          className="h-auto w-36 translate-y-1 transition-transform group-hover:scale-110 md:w-40"
+    <div className="fixed bottom-5 right-5 z-[9998] md:bottom-6 md:right-6">
+      <div className="group relative">
+        {/* Halo pulsé derrière la pastille */}
+        <span
+          aria-hidden
+          className="absolute inset-0 -z-10 animate-pulseAxi rounded-full bg-slate-900/30"
         />
-      </button>
+        {/* Pastille noire avec la mascotte AxiSolver */}
+        <button
+          onClick={onOuvrir}
+          aria-label="Parler à AxiSolver"
+          className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-slate-900 shadow-lg ring-1 ring-slate-900/10 transition-all hover:scale-105 hover:shadow-xl md:h-20 md:w-20"
+        >
+          <Image
+            src="/axi-mascotte-bouton.png"
+            alt="AxiSolver"
+            width={400}
+            height={400}
+            priority
+            className="h-auto w-14 translate-y-0.5 md:w-16"
+          />
+        </button>
+        {/* Tooltip au survol */}
+        <span className="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+          Parlez à AxiSolver
+          <span
+            aria-hidden
+            className="absolute -bottom-1 right-6 h-2 w-2 rotate-45 bg-slate-900"
+          />
+        </span>
+      </div>
+    </div>
+  );
+}
 
-      <p className="mt-8 text-xs text-slate-400">
-        Cliquez sur AxiSolver pour démarrer la conversation.
-      </p>
+// ================================================================== //
+// ModalOverlay — card centrée + backdrop flouté du site hôte         //
+// ================================================================== //
+
+function ModalOverlay({
+  children,
+  onFermer,
+}: {
+  children: React.ReactNode;
+  onFermer: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-stretch justify-center md:items-center md:p-6"
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* Backdrop flouté qui laisse voir le site hôte derrière */}
+      <button
+        type="button"
+        aria-label="Fermer AxiSolver"
+        onClick={onFermer}
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+      />
+
+      {/* Card centrée desktop · plein écran mobile */}
+      <div
+        className="relative flex w-full flex-col overflow-hidden bg-slate-50 shadow-2xl md:h-[720px] md:max-h-[90vh] md:w-full md:max-w-[1200px] md:rounded-3xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Bouton de fermeture — toujours visible en haut à droite */}
+        <button
+          type="button"
+          onClick={onFermer}
+          aria-label="Fermer AxiSolver"
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-md ring-1 ring-slate-200 backdrop-blur-sm transition hover:bg-white hover:text-slate-900"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+
+        {/* Zone de contenu avec padding interne pour les 3 écrans */}
+        <div className="flex-1 overflow-hidden p-3 md:p-4">{children}</div>
+      </div>
     </div>
   );
 }
