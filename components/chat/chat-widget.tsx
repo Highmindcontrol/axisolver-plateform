@@ -802,7 +802,8 @@ export function ChatWidget() {
   return (
     <ModalOverlay onFermer={() => setWidgetOuvert(false)}>
     <div className="flex h-full items-stretch gap-3 md:h-full">
-      {/* === AILETTE GAUCHE — Actions (desktop) === */}
+      {/* === AILETTE GAUCHE — Actions (desktop) — contenu direct sur
+          l'aurore, pas de header, pattern AxiHub strict === */}
       <aside
         className={`${
           phaseFermeture === "ailettes" || phaseFermeture === "chat"
@@ -813,53 +814,26 @@ export function ChatWidget() {
         } flex-1 overflow-hidden ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
-        <div className="flex w-full flex-col">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
-            <button
-              onClick={() => setVueMobile("chat")}
-              className="rounded-full p-1 text-white/60 transition-colors hover:bg-white/10 md:hidden"
-              aria-label="Retour chat"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="m12 19-7-7 7-7" />
-                <path d="M19 12H5" />
-              </svg>
-            </button>
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
-              Zone d&apos;action
-            </h3>
-            <div className="w-5 md:hidden" />
-          </div>
-          <div className="flex-1 overflow-auto">
-            <PanneauActions
-              etat={etatPanneau}
-              onEmailValide={handleEmailValide}
-              onEmailRefuse={handleEmailRefuse}
-              onTelephoneValide={handleTelephoneValide}
-              onTelephoneRefuse={handleTelephoneRefuse}
-              onUrlSiteValide={handleUrlSiteValide}
-              onUrlSiteRefuse={handleUrlSiteRefuse}
-              onChoixClique={handleChoixClique}
-              onChoixMultipleValide={handleChoixMultipleValide}
-              onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
-              onMorpionMessage={handleMorpionMessage}
-              onMorpionTermine={handleMorpionTermine}
-              onClotureConfirmee={handleClotureConfirmee}
-            />
-          </div>
+        <div className="flex-1 overflow-auto">
+          <PanneauActions
+            etat={etatPanneau}
+            onEmailValide={handleEmailValide}
+            onEmailRefuse={handleEmailRefuse}
+            onTelephoneValide={handleTelephoneValide}
+            onTelephoneRefuse={handleTelephoneRefuse}
+            onUrlSiteValide={handleUrlSiteValide}
+            onUrlSiteRefuse={handleUrlSiteRefuse}
+            onChoixClique={handleChoixClique}
+            onChoixMultipleValide={handleChoixMultipleValide}
+            onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
+            onMorpionMessage={handleMorpionMessage}
+            onMorpionTermine={handleMorpionTermine}
+            onClotureConfirmee={handleClotureConfirmee}
+          />
         </div>
       </aside>
 
-      {/* === COLONNE CENTRALE — Chat (dominante, flottant sur l'aurore) === */}
+      {/* === CHAT CENTRAL — unique colonne sur l'aurore === */}
       <section
         className={`relative ${
           phaseFermeture === "chat"
@@ -1099,35 +1073,8 @@ export function ChatWidget() {
         } flex-1 overflow-hidden ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Fiche visiteur"
       >
-        <div className="flex w-full flex-col">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
-            <button
-              onClick={() => setVueMobile("chat")}
-              className="rounded-full p-1 text-white/60 transition-colors hover:bg-white/10 md:hidden"
-              aria-label="Retour chat"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="m12 19-7-7 7-7" />
-                <path d="M19 12H5" />
-              </svg>
-            </button>
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
-              Récap conversation
-            </h3>
-            <div className="w-5 md:hidden" />
-          </div>
-          <div className="flex-1 overflow-auto">
-            <PanneauFiche etat={etatPanneau} />
-          </div>
+        <div className="flex-1 overflow-auto">
+          <PanneauFiche etat={etatPanneau} />
         </div>
       </aside>
     </div>
