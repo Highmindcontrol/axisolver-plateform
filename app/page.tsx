@@ -1,5 +1,10 @@
 import Image from "next/image";
+import { Caveat } from "next/font/google";
 import { ChatWidget } from "@/components/chat/chat-widget";
+
+// Font « manuelle » pour les signatures (accroches, baselines) —
+// Caveat est lisible, moderne et chaleureuse.
+const caveat = Caveat({ subsets: ["latin"], weight: ["500", "700"] });
 
 type IconProps = { className?: string };
 
@@ -235,8 +240,8 @@ export default function Page() {
         />
 
         <div className="relative z-10 mx-auto flex min-h-[620px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[780px] md:px-12 md:py-14">
-          {/* Logo + baseline en haut à gauche */}
-          <div className="max-w-2xl">
+          {/* Logo + baseline — légèrement décalé de la gauche et descendu */}
+          <div className="max-w-2xl pl-4 pt-6 md:pl-10 md:pt-10">
             <Image
               src="/logo-axisolver.png"
               alt="AxiSolver"
@@ -245,16 +250,27 @@ export default function Page() {
               priority
               className="h-auto w-64 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] md:w-80 lg:w-96"
             />
-            <p className="mt-6 text-2xl font-semibold leading-tight tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] md:text-3xl lg:text-4xl">
-              <span className="text-amber-400">Game Changer</span>
-              <br />
-              pour votre site web.
-            </p>
+            {/* Baseline tendue sous le logo — « Game Changer » doré, le
+                reste en blanc, filet or à gauche qui prolonge le logo */}
+            <div className="mt-5 flex items-center gap-3 md:mt-7">
+              <span
+                aria-hidden
+                className="h-px w-10 bg-amber-400/70 md:w-14"
+              />
+              <p className="text-base font-medium uppercase leading-tight tracking-[0.22em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] md:text-lg">
+                <span className="text-amber-400">Game Changer</span>
+                <span className="mx-2 text-white/50">·</span>
+                pour votre site web
+              </p>
+            </div>
           </div>
 
-          {/* Accroche publicitaire en bas à droite, bien en avant */}
+          {/* Signature manuelle en bas à droite — comme une annotation
+              dessinée à la main sur l'image */}
           <div className="self-end text-right">
-            <p className="text-3xl font-bold uppercase leading-[0.95] tracking-tight text-amber-400 drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] md:text-5xl lg:text-6xl">
+            <p
+              className={`${caveat.className} text-4xl font-bold leading-none text-amber-300 drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)] md:text-6xl lg:text-7xl`}
+            >
               Aucun équivalent
               <br />
               sur le marché.
