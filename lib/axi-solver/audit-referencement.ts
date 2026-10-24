@@ -109,15 +109,28 @@ async function chercherSerper(
 
     const organic = data.organic ?? [];
 
-    // Position du site hôte dans les résultats organiques
-    const indexSite = organic.findIndex((r) =>
-      r.link?.toLowerCase().includes(hostname.toLowerCase()),
-    );
+    // Position du site hôte dans les résultats organiques — on parse
+    // le hostname du résultat pour éviter les faux positifs (ex. un
+    // article tiers qui MENTIONNE le domaine dans son URL ou qui
+    // partage un sous-mot). Match strict sur `hostname === cible` ou
+    // sous-domaine direct (`*.cible`).
+    const estSiteHote = (link: string | undefined): boolean => {
+      if (!link) return false;
+      try {
+        const h = new URL(link).hostname.replace(/^www\./, "").toLowerCase();
+        const cible = hostname.toLowerCase();
+        return h === cible || h.endsWith(`.${cible}`);
+      } catch {
+        return false;
+      }
+    };
+
+    const indexSite = organic.findIndex((r) => estSiteHote(r.link));
     const position = indexSite >= 0 ? indexSite + 1 : null;
 
     // Top 3 concurrents visibles (hors site hôte)
     const concurrents = organic
-      .filter((r) => !r.link?.toLowerCase().includes(hostname.toLowerCase()))
+      .filter((r) => !estSiteHote(r.link))
       .slice(0, 3)
       .map((r) => ({
         titre: r.title,
@@ -193,7 +206,22 @@ function construireResumePourClaude(
 
   lignes.push("");
   lignes.push(
-    "INSTRUCTION : Commente avec 2-3 observations frappantes tirées de ces résultats. Jamais alarmiste. Mets le visiteur devant les faits avec calme et pédagogie. Si le site n'est pas visible ou mal placé, explique l'impact commercial concret (perte de trafic qualifié) sans dramatiser. Termine en rappelant que vous enverrez le compte-rendu complet par email à la fin.",
+    "INSTRUCTION OBLIGATOIRE — honnêteté absolue :",
+  );
+  lignes.push(
+    "1. Tu CITES uniquement les positions ci-dessus telles quelles. Pas de #2 inventé, pas de #4 arrondi, pas d'enjolivement. Si une requête renvoie null (non classé top 20), tu dis « non classé dans les 20 premiers » SANS adoucir.",
+  );
+  lignes.push(
+    "2. Si TOUTES les requêtes renvoient null, tu l'annonces honnêtement : « Je n'ai trouvé votre site sur aucune des requêtes testées. » Puis tu demandes au visiteur quelles autres requêtes testaient mieux son métier.",
+  );
+  lignes.push(
+    "3. Interdiction formelle d'inventer un chiffre, une position, un concurrent ou un volume de recherche qui n'est pas dans le bloc de données ci-dessus.",
+  );
+  lignes.push(
+    "4. Si le visiteur conteste un résultat (« je ne vois pas mon site »), tu NE MINIMISES PAS. Tu reconnais que les mots-clés testés étaient peut-être mal calibrés, et tu PROPOSES immédiatement de refaire l'audit avec de meilleurs mots-clés — pas « cette démo suffit ». L'audit SEO est le cœur du produit vendu : l'approximation est inacceptable.",
+  );
+  lignes.push(
+    "5. Jamais alarmiste. Pédagogue, factuel, honnête. Termine en rappelant que le compte-rendu complet avec les positions exactes partira par email.",
   );
 
   return lignes.join("\n");

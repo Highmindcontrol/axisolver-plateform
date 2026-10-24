@@ -234,6 +234,19 @@ export async function POST(request: Request) {
                       input.url,
                       input.mots_cles,
                     );
+                    // Trace observable des positions renvoyées à Claude,
+                    // pour recouper côté logs si Claude invente ou enjolive
+                    // dans sa réponse texte au visiteur.
+                    console.log(
+                      `[audit_referencement] url=${resultat.url} hostname=${resultat.hostname} mots_cles=${JSON.stringify(
+                        input.mots_cles ?? [],
+                      )} positions=${JSON.stringify(
+                        resultat.findings.map((f) => ({
+                          requete: f.requete,
+                          position: f.position,
+                        })),
+                      )}`,
+                    );
                     emit({
                       type: "audit_termine",
                       url: resultat.url,
