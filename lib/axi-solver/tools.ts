@@ -22,6 +22,7 @@ export type ChaleurTicket = "froid" | "tiede" | "chaud" | "urgent";
 /** Entrée possible du panneau de travail (ce que Claude peut déclencher). */
 export type EvenementPanneau =
   | { type: "ajouter_note_fiche"; champ: ChampFiche; valeur: string }
+  | { type: "demander_prenom"; raison?: string }
   | { type: "demander_email"; raison?: string }
   | { type: "demander_telephone"; raison?: string }
   | {
@@ -79,6 +80,7 @@ export type EtatPanneauTravail = {
   fiche: Partial<Record<ChampFiche, string>>;
   elementActif:
     | { kind: "aucun" }
+    | { kind: "demande_prenom"; raison?: string }
     | { kind: "demande_email"; raison?: string }
     | { kind: "demande_telephone"; raison?: string }
     | { kind: "demande_url_site"; raison?: string }
@@ -159,6 +161,22 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
         },
       },
       required: ["champ", "valeur"],
+    },
+  },
+  {
+    name: "demander_prenom",
+    description:
+      "Affiche dans le panneau de travail à gauche un champ texte que le visiteur doit remplir avec son prénom. Utilise ce tool au Temps 2 du protocole d'accueil (après avoir reformulé la demande du visiteur) PLUTÔT que de laisser le visiteur dicter son prénom à l'oral : la voix écorche souvent les prénoms (François → « Franswah », Léo → « L. O. », etc.). Toujours annoncer avant l'appel : « Un instant, confirmez-moi votre prénom dans le petit champ qui apparaît à gauche. »",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        raison: {
+          type: "string",
+          description:
+            "Phrase courte, optionnelle, pour expliquer la demande (ex: « pour qu'on se connaisse mieux »).",
+        },
+      },
+      required: [],
     },
   },
   {

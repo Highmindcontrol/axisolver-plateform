@@ -176,6 +176,8 @@ function ReferenceAxi({ reference }: { reference: string }) {
 
 type PropsActions = {
   etat: EtatPanneauTravail;
+  onPrenomValide: (prenom: string) => void;
+  onPrenomRefuse: () => void;
   onEmailValide: (email: string) => void;
   onEmailRefuse: () => void;
   onTelephoneValide: (telephone: string) => void;
@@ -192,6 +194,8 @@ type PropsActions = {
 
 export function PanneauActions({
   etat,
+  onPrenomValide,
+  onPrenomRefuse,
   onEmailValide,
   onEmailRefuse,
   onTelephoneValide,
@@ -206,6 +210,14 @@ export function PanneauActions({
   onClotureConfirmee,
 }: PropsActions) {
   switch (etat.elementActif.kind) {
+    case "demande_prenom":
+      return (
+        <ChampPrenom
+          raison={etat.elementActif.raison}
+          onValide={onPrenomValide}
+          onRefuse={onPrenomRefuse}
+        />
+      );
     case "demande_email":
       return (
         <ChampEmail
@@ -316,6 +328,87 @@ export function PanneauActions({
 }
 
 // --- Composants individuels ---------------------------------------- //
+
+function ChampPrenom({
+  raison,
+  onValide,
+  onRefuse,
+}: {
+  raison?: string;
+  onValide: (prenom: string) => void;
+  onRefuse: () => void;
+}) {
+  const [val, setVal] = useState("");
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  function soumettre(e: React.FormEvent) {
+    e.preventDefault();
+    const v = val.trim();
+    if (v.length < 2) {
+      setErreur("Un prénom contient au moins 2 lettres.");
+      return;
+    }
+    setErreur(null);
+    onValide(v);
+  }
+
+  return (
+    <div className="flex h-full flex-col justify-center p-5">
+      <form
+        onSubmit={soumettre}
+        className="animate-fadeIn rounded-xl border border-blue-200 bg-white p-5 shadow-sm"
+      >
+        <div className="flex items-center gap-2">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-4 w-4 text-blue-600"
+            aria-hidden
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <h3 className="text-sm font-semibold text-slate-900">Votre prénom</h3>
+        </div>
+        {raison && <p className="mt-1 text-xs text-slate-600">{raison}</p>}
+        <div className="mt-3 flex flex-col gap-2">
+          <input
+            type="text"
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            placeholder="François"
+            autoComplete="given-name"
+            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          >
+            Valider
+          </button>
+          <button
+            type="button"
+            onClick={onRefuse}
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-xs text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+          >
+            Je préfère ne pas le donner
+          </button>
+          {erreur && (
+            <p className="text-xs text-rose-600" role="alert">
+              {erreur}
+            </p>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+}
 
 function ChampEmail({
   raison,

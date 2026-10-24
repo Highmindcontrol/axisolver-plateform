@@ -264,6 +264,15 @@ export function ChatWidget() {
         }));
         break;
       }
+      case "demander_prenom":
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: {
+            kind: "demande_prenom",
+            raison: input.raison as string | undefined,
+          },
+        }));
+        break;
       case "demander_email":
         setEtatPanneau((e) => ({
           ...e,
@@ -442,6 +451,22 @@ export function ChatWidget() {
         }));
         break;
     }
+  }
+
+  function handlePrenomValide(prenom: string) {
+    setEtatPanneau((e) => ({
+      ...e,
+      fiche: { ...e.fiche, prenom },
+      elementActif: { kind: "aucun" },
+    }));
+    envoyerTexte(`[Prénom saisi : ${prenom}]`);
+  }
+
+  function handlePrenomRefuse() {
+    setEtatPanneau((e) => ({ ...e, elementActif: { kind: "aucun" } }));
+    envoyerTexte(
+      "[Prénom : visiteur préfère ne pas le donner pour l'instant.]",
+    );
   }
 
   function handleEmailValide(email: string) {
@@ -845,6 +870,8 @@ export function ChatWidget() {
           ) : (
             <PanneauActions
               etat={etatPanneau}
+              onPrenomValide={handlePrenomValide}
+              onPrenomRefuse={handlePrenomRefuse}
               onEmailValide={handleEmailValide}
               onEmailRefuse={handleEmailRefuse}
               onTelephoneValide={handleTelephoneValide}
