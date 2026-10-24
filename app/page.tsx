@@ -1,19 +1,29 @@
 import Image from "next/image";
+import { Fraunces } from "next/font/google";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
+
+// Font display pour les titres éditoriaux — Fraunces donne une
+// présence sérif premium, moderne, bien équilibrée avec le sans-serif
+// système utilisé pour le body.
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+});
 
 type IconProps = { className?: string };
 
 function IconChat({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
     </svg>
   );
 }
 function IconSearch({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.3-4.3" />
     </svg>
@@ -21,14 +31,14 @@ function IconSearch({ className }: IconProps) {
 }
 function IconShield({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
     </svg>
   );
 }
 function IconBarChart({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <line x1="12" x2="12" y1="20" y2="10" />
       <line x1="18" x2="18" y1="20" y2="4" />
       <line x1="6" x2="6" y1="20" y2="16" />
@@ -37,7 +47,7 @@ function IconBarChart({ className }: IconProps) {
 }
 function IconTarget({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <circle cx="12" cy="12" r="10" />
       <circle cx="12" cy="12" r="6" />
       <circle cx="12" cy="12" r="2" />
@@ -46,7 +56,7 @@ function IconTarget({ className }: IconProps) {
 }
 function IconShieldCheck({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
       <path d="m9 12 2 2 4-4" />
     </svg>
@@ -54,7 +64,7 @@ function IconShieldCheck({ className }: IconProps) {
 }
 function IconMonitor({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <rect width="20" height="14" x="2" y="3" rx="2" />
       <line x1="8" x2="16" y1="21" y2="21" />
       <line x1="12" x2="12" y1="17" y2="21" />
@@ -63,7 +73,7 @@ function IconMonitor({ className }: IconProps) {
 }
 function IconClipboard({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
       <path d="M9 12h6" />
@@ -73,7 +83,7 @@ function IconClipboard({ className }: IconProps) {
 }
 function IconLayers({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z" />
       <path d="m22 12.08-9.17 4.18a2 2 0 0 1-1.66 0L2 12.08" />
       <path d="m22 17.08-9.17 4.18a2 2 0 0 1-1.66 0L2 17.08" />
@@ -82,7 +92,7 @@ function IconLayers({ className }: IconProps) {
 }
 function IconSparkles({ className }: IconProps) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
       <path d="m12 3-1.9 5.8-5.8 1.9 5.8 1.9L12 18l1.9-5.4 5.8-1.9-5.8-1.9z" />
       <path d="M5 3v4" />
       <path d="M19 17v4" />
@@ -92,61 +102,56 @@ function IconSparkles({ className }: IconProps) {
   );
 }
 
-const MISSIONS: Array<{
+// ─── Données ────────────────────────────────────────────────────── //
+
+const CAPACITES: Array<{
   numero: string;
   titre: string;
-  description: string;
-  mode: string;
+  resume: string;
   Icon: (p: IconProps) => React.JSX.Element;
   avenir?: boolean;
 }> = [
   {
     numero: "01",
-    titre: "Accueille vos visiteurs",
-    description:
-      "24 heures sur 24 et 7 jours sur 7, en voix et à l'écrit, dans toutes les langues européennes. Comprend, résout, qualifie, transmet un dossier chaud à votre équipe. Pas un chatbot — un AXI éduqué sur votre métier.",
-    mode: "En continu",
+    titre: "Accueil visiteur",
+    resume:
+      "24 heures sur 24 et 7 jours sur 7, voix et écrit, toutes langues. Comprend, résout, qualifie, transmet.",
     Icon: IconChat,
   },
   {
     numero: "02",
-    titre: "Veille sur votre SEO",
-    description:
-      "À l'installation, audit on-page complet. Chaque semaine, re-check des indicateurs clés. Chaque mois, rapport narratif de ce qui marche et de ce qui coince.",
-    mode: "Initial + hebdomadaire",
+    titre: "Veille SEO",
+    resume:
+      "Audit à l'installation, re-check hebdomadaire, rapport mensuel narratif.",
     Icon: IconSearch,
   },
   {
     numero: "03",
-    titre: "Veille sur votre sécurité",
-    description:
-      "Audit sécurité à l'installation : failles, CVE actives, plugins obsolètes, headers manquants. Monitoring continu. Alerte immédiate si régression détectée.",
-    mode: "Initial + continu",
+    titre: "Veille sécurité",
+    resume:
+      "Failles, plugins obsolètes, CVE actives, headers manquants. Alerte immédiate.",
     Icon: IconShield,
   },
   {
     numero: "04",
-    titre: "Lit vos métriques pour vous",
-    description:
-      "Connecté à votre Analytics, AxiSolver lit vos chiffres chaque mois et vous les raconte en langage humain. Pages de fuite, parcours brisés, moments de bascule.",
-    mode: "Mensuel",
+    titre: "Veille Analytics",
+    resume:
+      "Chaque mois, votre trafic raconté en langage humain. Pages de fuite, parcours brisés.",
     Icon: IconBarChart,
   },
   {
     numero: "05",
-    titre: "SEO et Ads intelligents",
-    description:
-      "Suit les mots-clés les plus tapés, repère les requêtes à faible concurrence, produit des recommandations concrètes et prépare vos campagnes AdWords et AdSense sur votre compte Google Ads. Vous validez d'un clic — AxiSolver ne touche jamais à votre budget sans votre feu vert explicite.",
-    mode: "En déploiement",
+    titre: "SEO + Ads intelligents",
+    resume:
+      "Préparation complète de vos campagnes AdWords et AdSense. Vous validez d'un clic.",
     Icon: IconTarget,
     avenir: true,
   },
   {
     numero: "06",
-    titre: "Protège votre site activement",
-    description:
-      "Comme un antivirus qui veille en permanence. Bloque en temps réel les patterns malveillants, les bots agressifs, les tentatives d'injection. Côté serveur, détecte les intrusions et alerte en langage humain, avec validation avant chaque règle de blocage.",
-    mode: "En déploiement",
+    titre: "Bouclier défensif",
+    resume:
+      "Comme un antivirus actif. Blocage temps réel des bots, injections et intrusions.",
     Icon: IconShieldCheck,
     avenir: true,
   },
@@ -171,7 +176,7 @@ const COMPARATIF: Array<{ dimension: string; chatbot: string; solver: string }> 
   {
     dimension: "Visibilité du travail",
     chatbot: "Bulle fermée, boîte noire.",
-    solver: "Interface vivante — vos visiteurs voient leur fiche se remplir.",
+    solver: "Interface vivante — la fiche visiteur se remplit en direct.",
   },
   {
     dimension: "Veille technique",
@@ -199,19 +204,19 @@ const FEATURES_SIGNATURE: Array<{
     Icon: IconMonitor,
     titre: "Interface vivante",
     description:
-      "Vos visiteurs ne parlent plus à une boîte noire. Pendant la conversation, ils voient leur fiche se remplir, tapent leur email de leur main, confirment leur demande. Fin du « allô, vous m'avez noté ? ».",
+      "Vos visiteurs ne parlent plus à une boîte noire. Ils voient leur fiche se remplir, tapent leur email de leur main, confirment leur demande.",
   },
   {
     Icon: IconClipboard,
     titre: "Rapport triple-voie",
     description:
-      "Chaque faille détectée vient avec trois solutions : « faire par une agence » (avec partenaire recommandé), « faire vous-même » (si vous avez un dev), ou méthode pas-à-pas détaillée pour la faire soi-même en 15 minutes.",
+      "Chaque faille vient avec trois issues : agence partenaire, voie dev interne, ou méthode pas-à-pas en 15 minutes.",
   },
   {
     Icon: IconLayers,
     titre: "Six missions, un tarif",
     description:
-      "Accueil, SEO, Sécurité, Analytics, Ads intelligents et Bouclier défensif dans un seul produit. Vos concurrents paient six prestataires différents. Vous, un seul.",
+      "Vos concurrents paient six prestataires. Vous, un seul produit indivisible.",
   },
   {
     Icon: IconSparkles,
@@ -221,223 +226,196 @@ const FEATURES_SIGNATURE: Array<{
   },
 ];
 
+// ─── Composant ──────────────────────────────────────────────────── //
+
 export default function Page() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* === Hero — image en background, logo + baselines en overlay === */}
+      {/* ─────────── HERO épuré ─────────── */}
       <section
         className="relative overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url(/hero-mascotte-demo.png)" }}
       >
-        {/* Voile sombre dégradé pour garantir la lisibilité du texte */}
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/40 to-zinc-950"
+          className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/35 to-zinc-950"
         />
 
-        <div className="relative z-10 mx-auto flex min-h-[620px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[780px] md:px-16 md:py-14 lg:px-20">
-          {/* Logo + baseline — décalé vers la droite et descendu */}
-          <div className="max-w-2xl pl-8 pt-10 md:pl-20 md:pt-14">
+        <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[820px] md:px-16 md:py-16 lg:px-24">
+          {/* Logo + baseline — en haut, légèrement décalé de la gauche */}
+          <div className="max-w-2xl pl-6 pt-6 md:pl-20 md:pt-12">
             <Image
               src="/logo-axisolver.png"
               alt="AxiSolver"
               width={2172}
               height={724}
               priority
-              className="h-auto w-72 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] md:w-96 lg:w-[28rem]"
+              className="h-auto w-72 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] md:w-[26rem] lg:w-[32rem]"
             />
-            {/* Baseline tendue sous le logo */}
-            <div className="mt-5 flex items-center gap-3 md:mt-7">
+            <div className="mt-6 flex items-center gap-4 md:mt-8">
               <span
                 aria-hidden
-                className="h-px w-10 bg-amber-400/70 md:w-14"
+                className="h-px w-12 bg-amber-400/70 md:w-16"
               />
-              <p className="text-base font-medium uppercase leading-tight tracking-[0.22em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] md:text-lg">
+              <p className="text-sm font-medium uppercase leading-tight tracking-[0.24em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] md:text-base">
                 <span className="text-amber-400">Game Changer</span>
-                <span className="mx-2 text-white/50">·</span>
+                <span className="mx-3 text-white/40">·</span>
                 pour votre site web
               </p>
             </div>
           </div>
 
-          {/* Zone basse — 6 pictos à gauche + signature publicitaire à droite */}
-          <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
-            {/* 6 pictos AxiSolver avec libellés */}
-            <div className="max-w-xl rounded-2xl border border-white/10 bg-zinc-950/60 p-5 backdrop-blur-sm md:p-6">
-              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Ce qu&apos;AxiSolver fait pour vous
-              </p>
-              <div className="grid grid-cols-3 gap-x-4 gap-y-4 md:grid-cols-6">
-                {[
-                  { Icon: IconChat, libelle: "Accueil" },
-                  { Icon: IconSearch, libelle: "SEO" },
-                  { Icon: IconShield, libelle: "Sécurité" },
-                  { Icon: IconBarChart, libelle: "Analytics" },
-                  { Icon: IconTarget, libelle: "Ads" },
-                  { Icon: IconShieldCheck, libelle: "Bouclier" },
-                ].map((p) => (
-                  <div
-                    key={p.libelle}
-                    className="flex flex-col items-center gap-1.5"
-                  >
-                    <p.Icon className="h-6 w-6 text-amber-400 md:h-7 md:w-7" />
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-white/80 md:text-xs">
-                      {p.libelle}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Signature publicitaire en caractères normaux */}
-            <div className="text-right">
-              <p className="text-2xl font-bold uppercase leading-tight tracking-tight text-amber-400 drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)] md:text-4xl lg:text-5xl">
-                Aucun équivalent
-                <br />
-                sur le marché.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* === Zone narrative sous l'image — AXI présenté + CTA === */}
-      <section className="bg-zinc-950 px-6 py-14 md:px-10 md:py-20">
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 md:grid-cols-5 md:gap-14">
-          {/* Texte à gauche (3/5) */}
-          <div className="md:col-span-3">
-            <p className="text-base leading-relaxed text-zinc-200 md:text-lg">
-              <span className="font-semibold text-amber-400">AXI</span> est une
-              intelligence artificielle qui fait de votre site web son
-              territoire. Dès qu&apos;il s&apos;installe, il déploie ses
-              compétences{" "}
-              <span className="font-semibold text-white">
-                24 heures sur 24 et 7 jours sur 7
-              </span>
-              , en toute autonomie.
-            </p>
-            <p className="mt-5 text-base leading-relaxed text-zinc-300 md:text-lg">
-              Il accueille et gère les demandes de vos visiteurs, puis les
-              transforme en contacts qualifiés pour vos équipes de vente. Il
-              travaille aussi votre référencement pour vous faire monter dans
-              les résultats de recherche, et vous remet des comptes-rendus
-              réguliers sur ses performances.
-            </p>
-            <p className="mt-5 text-base leading-relaxed text-zinc-300 md:text-lg">
-              Et ce n&apos;est pas tout : il se comporte en{" "}
-              <span className="font-semibold text-white">
-                gardien actif de votre site
-              </span>
-              , en surveillant en permanence tout ce qui pourrait le menacer.
-            </p>
-            <p className="mt-6 text-lg font-medium italic leading-snug text-amber-300 md:text-xl">
-              Et si vous le laissiez vous expliquer tout ça lui-même ?
-            </p>
-          </div>
-
-          {/* Bouton à droite (2/5) */}
-          <div className="flex flex-col items-start gap-4 md:col-span-2 md:items-center md:justify-center">
-            <BoutonLancerAxiSolver libelle="Parlez à AxiSolver" />
-            <p className="text-xs text-zinc-500">
-              Vocal ou écrit, dans votre langue.
+          {/* Signature publicitaire en bas à droite */}
+          <div className="self-end text-right">
+            <p
+              className={`${fraunces.className} text-3xl font-semibold italic leading-[0.95] tracking-tight text-amber-400 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] md:text-5xl lg:text-6xl`}
+            >
+              Aucun équivalent
+              <br />
+              sur le marché.
             </p>
           </div>
         </div>
       </section>
 
-      {/* === Les 6 missions === */}
-      <section className="bg-zinc-900 px-6 py-16 md:py-24">
+      {/* ─────────── MUR DES SIX CAPACITÉS ─────────── */}
+      <section className="relative bg-zinc-950 px-6 py-20 md:px-10 md:py-32">
         <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-950">
-              Les six missions
-            </div>
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-5xl">
-              Un seul AxiSolver,
-              <br className="hidden md:block" />
-              <span className="text-amber-400"> six services simultanés</span>
+          <div className="mb-14 max-w-3xl md:mb-20">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Les six capacités
+            </p>
+            <h2
+              className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl`}
+            >
+              Un seul AxiSolver.{" "}
+              <span className="italic text-amber-400">
+                Six territoires simultanés.
+              </span>
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-zinc-300">
-              La métamorphose de votre présence en ligne, dans un seul produit
-              indivisible. Pas de version Lite. Pas de pack à composer. Juste
-              AxiSolver, qui fait tout.
+            <p className="mt-7 max-w-2xl text-base leading-relaxed text-zinc-400 md:text-lg">
+              La métamorphose de votre présence en ligne, dans un seul
+              produit indivisible. Pas de version Lite. Pas de pack à
+              composer. Juste AxiSolver, qui fait tout.
             </p>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 gap-5 md:grid-cols-2">
-            {MISSIONS.map((m) => (
-              <article
-                key={m.numero}
-                className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/60 p-7 transition-all hover:border-amber-400/40 hover:bg-zinc-950 hover:shadow-lg hover:shadow-amber-400/5"
-              >
+          <div className="grid grid-cols-1 gap-x-10 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+            {CAPACITES.map((c) => (
+              <article key={c.numero} className="group">
                 <div className="flex items-start gap-5">
-                  <div className="flex flex-col items-center gap-2">
-                    <m.Icon className="h-7 w-7 text-amber-400" />
-                    <div className="font-mono text-xs tracking-wider text-zinc-500 group-hover:text-amber-300">
-                      {m.numero}
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <h3 className="text-xl font-semibold text-white">
-                        {m.titre}
-                      </h3>
-                      <span
-                        className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${
-                          m.avenir
-                            ? "border-amber-400/50 bg-amber-400/10 text-amber-300"
-                            : "border-zinc-700 bg-zinc-900 text-zinc-400"
-                        }`}
-                      >
-                        {m.mode}
+                  <c.Icon className="h-10 w-10 flex-shrink-0 text-amber-400 transition-transform group-hover:scale-110" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline gap-3">
+                      <span className="font-mono text-[11px] font-medium tracking-widest text-zinc-500">
+                        {c.numero}
                       </span>
+                      <h3 className="text-xl font-semibold tracking-tight text-white">
+                        {c.titre}
+                      </h3>
+                      {c.avenir && (
+                        <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-300">
+                          À venir
+                        </span>
+                      )}
                     </div>
-                    <p className="mt-3 text-sm leading-relaxed text-zinc-300">
-                      {m.description}
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-400">
+                      {c.resume}
                     </p>
                   </div>
                 </div>
               </article>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="mx-auto mt-10 max-w-3xl text-center text-sm italic leading-relaxed text-zinc-400">
-            «&nbsp;AxiSolver, c&apos;est la caissière, le vigile, le consultant
-            SEO, l&apos;analyste trafic, le média buyer et le garde du
-            corps numérique. Un seul produit, six missions, un seul
-            tarif.&nbsp;»
+      {/* ─────────── AXI PREND LA PAROLE — moment éditorial ─────────── */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-950 px-6 py-24 md:px-10 md:py-40">
+        {/* Halo doré subtil derrière la citation */}
+        <div
+          aria-hidden
+          className="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/5 blur-3xl"
+        />
+
+        <div className="relative mx-auto max-w-4xl">
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+            La voix d&apos;AXI
+          </p>
+
+          <blockquote
+            className={`${fraunces.className} mt-10 text-balance text-2xl font-normal leading-[1.4] text-white md:text-3xl lg:text-4xl`}
+          >
+            <span className="text-amber-400">«</span>{" "}
+            Je suis une intelligence artificielle qui fait de votre site
+            web son territoire. Dès que je m&apos;installe, je déploie
+            mes compétences 24 heures sur 24 et 7 jours sur 7, en toute
+            autonomie.{" "}
+            <span className="text-amber-400">»</span>
+          </blockquote>
+
+          <div className="mx-auto mt-14 max-w-2xl space-y-6 text-base leading-relaxed text-zinc-300 md:text-lg">
+            <p>
+              J&apos;accueille et je gère les demandes de vos visiteurs.
+              Je les transforme en contacts qualifiés pour vos équipes
+              de vente.
+            </p>
+            <p>
+              Je travaille aussi votre référencement pour vous faire
+              monter dans les résultats de recherche, et je vous remets
+              des comptes-rendus réguliers sur mes performances.
+            </p>
+            <p>
+              Et ce n&apos;est pas tout : je me comporte en gardien
+              actif de votre site, en surveillant en permanence tout
+              ce qui pourrait le menacer.
+            </p>
+          </div>
+
+          {/* Pivot émotionnel : question d'invite + CTA central */}
+          <div className="mt-20 flex flex-col items-center gap-10 text-center">
+            <p
+              className={`${fraunces.className} max-w-2xl text-balance text-2xl font-medium italic leading-snug text-amber-300 md:text-3xl lg:text-4xl`}
+            >
+              Et si vous me laissiez vous expliquer tout ça
+              moi-même&nbsp;?
+            </p>
+            <BoutonLancerAxiSolver libelle="Parlez à AxiSolver" />
+            <p className="text-xs uppercase tracking-widest text-zinc-500">
+              Vocal ou écrit · Toutes langues · Zéro engagement
+            </p>
           </div>
         </div>
       </section>
 
-      {/* === Features signature === */}
-      <section className="bg-zinc-950 px-6 py-16 md:py-24">
+      {/* ─────────── FEATURES SIGNATURE ─────────── */}
+      <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-32">
         <div className="mx-auto max-w-6xl">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-950">
-              Features signature
-            </div>
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-5xl">
-              Ce qui n&apos;existe
-              <span className="text-amber-400"> nulle part ailleurs</span>
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-zinc-300">
-              Quatre singularités qui placent AxiSolver dans une catégorie à
-              part. Pas une version améliorée du chatbot. Un produit nouveau.
+          <div className="mb-14 max-w-3xl md:mb-20">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Signatures
             </p>
+            <h2
+              className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl`}
+            >
+              Ce qui n&apos;existe{" "}
+              <span className="italic text-amber-400">
+                nulle part ailleurs.
+              </span>
+            </h2>
           </div>
 
-          <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-x-10 gap-y-14 md:grid-cols-2">
             {FEATURES_SIGNATURE.map((f) => (
               <article
                 key={f.titre}
-                className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-7 transition-all hover:border-amber-400/40 hover:bg-zinc-900 hover:shadow-lg hover:shadow-amber-400/5"
+                className="group border-t border-zinc-800 pt-8"
               >
-                <f.Icon className="h-8 w-8 text-amber-400" />
-                <h3 className="mt-4 text-xl font-semibold text-white">
+                <f.Icon className="h-9 w-9 text-amber-400 transition-transform group-hover:scale-110" />
+                <h3 className="mt-5 text-2xl font-semibold tracking-tight text-white">
                   {f.titre}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-zinc-300">
+                <p className="mt-3 text-base leading-relaxed text-zinc-400">
                   {f.description}
                 </p>
               </article>
@@ -446,24 +424,27 @@ export default function Page() {
         </div>
       </section>
 
-      {/* === Comparatif chatbot vs AxiSolver === */}
-      <section className="bg-zinc-900 px-6 py-16 md:py-24">
+      {/* ─────────── COMPARATIF ─────────── */}
+      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-32">
         <div className="mx-auto max-w-5xl">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-950">
+          <div className="mb-14 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
               Comparaison
-            </div>
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-4xl">
-              Chatbot classique vs AxiSolver
+            </p>
+            <h2
+              className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-5xl`}
+            >
+              Chatbot classique{" "}
+              <span className="italic text-amber-400">vs</span> AxiSolver
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-zinc-300">
-              Les chatbots filtrent et bloquent. AxiSolver résout, veille et
-              transforme.
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-400">
+              Les chatbots filtrent et bloquent. AxiSolver résout, veille
+              et transforme.
             </p>
           </div>
 
-          <div className="mt-12 overflow-hidden rounded-sm border border-zinc-800">
-            <div className="grid grid-cols-12 bg-zinc-950 px-6 py-4 text-xs font-semibold uppercase tracking-[0.14em] text-amber-300">
+          <div className="overflow-hidden rounded-sm border border-zinc-800">
+            <div className="grid grid-cols-12 bg-zinc-950 px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-300">
               <div className="col-span-4">Dimension</div>
               <div className="col-span-4">Chatbot classique</div>
               <div className="col-span-4">AxiSolver</div>
@@ -475,7 +456,7 @@ export default function Page() {
                   i !== 0 ? "border-t border-zinc-800" : ""
                 }`}
               >
-                <div className="font-semibold text-amber-300 md:col-span-4">
+                <div className="font-semibold tracking-tight text-amber-300 md:col-span-4">
                   {row.dimension}
                 </div>
                 <div className="text-sm text-zinc-500 line-through decoration-zinc-700 md:col-span-4">
@@ -490,35 +471,34 @@ export default function Page() {
         </div>
       </section>
 
-      {/* === CTA final === */}
-      <section className="bg-zinc-950 px-6 py-16 md:py-24">
+      {/* ─────────── CTA FINAL ─────────── */}
+      <section className="bg-zinc-950 px-6 py-24 md:px-10 md:py-40">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
-            Prêt à transformer
-            <br />
-            votre présence en ligne ?
+          <h2
+            className={`${fraunces.className} text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl`}
+          >
+            Prêt à transformer{" "}
+            <span className="italic text-amber-400">
+              votre présence en ligne&nbsp;?
+            </span>
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-zinc-300">
-            Rencontrez AXI sur AxiHub. Il décompose les packs, répond à vos
-            questions, prend votre souscription en direct.
+          <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-zinc-300 md:text-lg">
+            Rencontrez AXI sur AxiHub. Il décompose les packs, répond à
+            vos questions, prend votre souscription en direct.
           </p>
-          <div className="mt-10">
+          <div className="mt-12">
             <a
               href="https://axihub.live"
-              className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-zinc-950 shadow-lg shadow-amber-400/20 transition-all hover:bg-amber-300 hover:shadow-amber-400/40"
+              className="inline-flex items-center gap-3 rounded-full bg-amber-400 px-8 py-4 text-base font-semibold uppercase tracking-[0.14em] text-zinc-950 shadow-lg shadow-amber-400/20 transition-all hover:bg-amber-300 hover:shadow-amber-400/50 md:text-lg"
             >
               Composez votre équipe sur AxiHub
               <span aria-hidden>→</span>
             </a>
           </div>
-          <p className="mt-10 text-xs italic text-zinc-400">
-            « AxiSolver parle avec vos visiteurs. Veille sur votre site.
-            Travaille à côté de vous. Et sait aussi s&apos;amuser. »
-          </p>
         </div>
       </section>
 
-      {/* === Footer === */}
+      {/* ─────────── FOOTER ─────────── */}
       <footer className="border-t border-zinc-800 bg-zinc-950 px-6 py-10">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-sm text-zinc-400 md:flex-row">
           <div>
