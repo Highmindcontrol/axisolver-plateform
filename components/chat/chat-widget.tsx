@@ -22,6 +22,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { AuroreBoreale } from "./aurore-boreale";
 import { BoutonMicro } from "./bouton-micro";
 import { PanneauActions, PanneauFiche } from "./panneau-travail";
 import {
@@ -813,14 +814,14 @@ export function ChatWidget() {
             : phaseOuverture === "complet"
               ? "animate-slideOutLeft"
               : "pointer-events-none opacity-0"
-        } flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        } flex-1 overflow-hidden ${vueMobile === "actions" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Panneau actions"
       >
         <div className="flex w-full flex-col">
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2.5">
+          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
             <button
               onClick={() => setVueMobile("chat")}
-              className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 md:hidden"
+              className="rounded-full p-1 text-white/60 transition-colors hover:bg-white/10 md:hidden"
               aria-label="Retour chat"
             >
               <svg
@@ -837,7 +838,7 @@ export function ChatWidget() {
                 <path d="M19 12H5" />
               </svg>
             </button>
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
               Zone d&apos;action
             </h3>
             <div className="w-5 md:hidden" />
@@ -1125,14 +1126,14 @@ export function ChatWidget() {
             : phaseOuverture === "complet"
               ? "animate-slideOutRight"
               : "pointer-events-none opacity-0"
-        } flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        } flex-1 overflow-hidden ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
         aria-label="Fiche visiteur"
       >
         <div className="flex w-full flex-col">
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2.5">
+          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
             <button
               onClick={() => setVueMobile("chat")}
-              className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 md:hidden"
+              className="rounded-full p-1 text-white/60 transition-colors hover:bg-white/10 md:hidden"
               aria-label="Retour chat"
             >
               <svg
@@ -1149,7 +1150,7 @@ export function ChatWidget() {
                 <path d="M19 12H5" />
               </svg>
             </button>
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
               Récap conversation
             </h3>
             <div className="w-5 md:hidden" />
@@ -1266,20 +1267,25 @@ function ModalOverlay({
         type="button"
         aria-label="Fermer AxiSolver"
         onClick={onFermer}
-        className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
       />
 
-      {/* Card centrée desktop · plein écran mobile */}
+      {/* Card centrée — fond aurore boréale (pattern AxiHub /axi).
+          Desktop : card centrée 1200×720 rounded. Mobile : plein écran. */}
       <div
-        className="relative flex w-full flex-col overflow-hidden bg-slate-50 shadow-2xl md:h-[720px] md:max-h-[90vh] md:w-full md:max-w-[1200px] md:rounded-3xl"
+        className="relative flex w-full flex-col overflow-hidden shadow-2xl md:h-[720px] md:max-h-[90vh] md:w-full md:max-w-[1200px] md:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Fond aurore boréale sous tout le contenu — slate-950 avec
+            voiles cyan/émeraude/violet qui glissent très lentement. */}
+        <AuroreBoreale />
+
         {/* Bouton de fermeture — toujours visible en haut à droite */}
         <button
           type="button"
           onClick={onFermer}
           aria-label="Fermer AxiSolver"
-          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-500 shadow-md ring-1 ring-slate-200 backdrop-blur-sm transition hover:bg-white hover:text-slate-900"
+          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/20"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1296,8 +1302,11 @@ function ModalOverlay({
           </svg>
         </button>
 
-        {/* Zone de contenu avec padding interne pour les 3 écrans */}
-        <div className="flex-1 overflow-hidden p-3 md:p-4">{children}</div>
+        {/* Zone de contenu — 3 écrans sur l'aurore (relative z-10 pour
+            passer au-dessus des blobs). */}
+        <div className="relative z-10 flex-1 overflow-hidden p-3 md:p-5">
+          {children}
+        </div>
       </div>
     </div>
   );
