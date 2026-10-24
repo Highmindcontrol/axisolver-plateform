@@ -226,7 +226,7 @@ export default function Page() {
       {/* === Hero — image en background, contenu centré par-dessus === */}
       <section className="relative overflow-hidden">
         {/* Image de fond — mascotte AXI pointant une démo du produit */}
-        <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 z-0">
           <Image
             src="/hero-mascotte-demo.png"
             alt=""
@@ -242,7 +242,7 @@ export default function Page() {
           />
         </div>
 
-        <div className="mx-auto flex min-h-[640px] max-w-[1600px] flex-col items-center justify-center px-4 py-16 md:min-h-[760px] md:px-6 md:py-24">
+        <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col items-center justify-center px-4 py-16 md:min-h-[760px] md:px-6 md:py-24">
           <div className="mx-auto max-w-4xl text-center">
             <Image
               src="/logo-axisolver.png"
