@@ -108,10 +108,9 @@ const FEATURES_SIGNATURE: Array<{
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      {/* === Hero : identité centrée en haut + triptyque pleine largeur en dessous === */}
+    <main className="min-h-screen bg-slate-950 text-slate-100">
+      {/* === Hero : logo doré sur fond noir + sous-titre or === */}
       <section className="mx-auto max-w-[1600px] px-4 py-8 md:px-6 md:py-12">
-        {/* Identité (en haut) */}
         <div className="mx-auto max-w-4xl text-center">
           <Image
             src="/logo-axisolver.png"
@@ -122,22 +121,22 @@ export default function Page() {
             className="mx-auto h-auto w-56 md:w-72 lg:w-80"
           />
 
-          <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-5xl lg:text-6xl">
+          <h1 className="mt-6 text-3xl font-semibold tracking-tight text-white md:text-5xl lg:text-6xl">
             Un seul produit.{" "}
-            <span className="text-blue-600">Quatre missions.</span>{" "}
+            <span className="text-amber-400">Quatre missions.</span>{" "}
             Zéro équivalent au monde.
           </h1>
 
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 md:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-300 md:text-lg">
             AxiSolver parle avec vos visiteurs. Veille sur votre site.
             Travaille à côté de vous. Et sait aussi s&apos;amuser.
           </p>
 
           <div className="mt-6 flex justify-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-sm text-emerald-700">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-sm text-emerald-300">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
               </span>
               <span className="font-medium">
                 AxiSolver vous attend — parlez-lui maintenant
@@ -146,16 +145,15 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Call-to-action vers le bouton flottant — le vrai widget vit
-            désormais en overlay (pastille mascotte en bas à droite). */}
+        {/* Indicateur vers le bouton flottant */}
         <div className="mt-12 flex justify-center md:mt-16">
-          <div className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-600 shadow-sm">
+          <div className="inline-flex items-center gap-3 rounded-full border border-amber-400/30 bg-slate-900 px-5 py-3 text-sm text-slate-300 shadow-sm">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-400" />
             </span>
             AxiSolver vous attend —&nbsp;
-            <span className="font-medium text-slate-900">
+            <span className="font-medium text-amber-300">
               cliquez sur la pastille en bas à droite
             </span>
           </div>
@@ -163,18 +161,18 @@ export default function Page() {
       </section>
 
       {/* === Les 4 missions === */}
-      <section className="bg-white px-6 py-16 md:py-24">
+      <section className="bg-slate-900 px-6 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-blue-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-900">
               Les quatre missions
             </div>
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight md:text-5xl">
+            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-5xl">
               Un seul AxiSolver,
               <br className="hidden md:block" />
-              <span className="text-blue-600"> quatre services simultanés</span>
+              <span className="text-amber-400"> quatre services simultanés</span>
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-slate-600">
+            <p className="mx-auto mt-5 max-w-2xl text-slate-300">
               La métamorphose de votre présence en ligne, dans un seul produit
               indivisible. Pas de version Lite. Pas de pack à composer. Juste
               AxiSolver, qui fait tout.
@@ -185,22 +183,22 @@ export default function Page() {
             {MISSIONS.map((m) => (
               <article
                 key={m.numero}
-                className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-7 transition-all hover:border-blue-200 hover:bg-white hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60 p-7 transition-all hover:border-amber-400/40 hover:bg-slate-950 hover:shadow-lg hover:shadow-amber-400/5"
               >
                 <div className="flex items-start gap-5">
-                  <div className="font-mono text-5xl font-light text-blue-600/80 group-hover:text-blue-600">
+                  <div className="font-mono text-5xl font-light text-amber-400/70 group-hover:text-amber-400">
                     {m.numero}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-xl font-semibold text-slate-900">
+                      <h3 className="text-xl font-semibold text-white">
                         {m.titre}
                       </h3>
-                      <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-medium text-slate-500 ring-1 ring-slate-200">
+                      <span className="rounded-full border border-amber-400/30 bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-amber-300">
                         {m.mode}
                       </span>
                     </div>
-                    <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                    <p className="mt-3 text-sm leading-relaxed text-slate-300">
                       {m.description}
                     </p>
                   </div>
@@ -209,7 +207,7 @@ export default function Page() {
             ))}
           </div>
 
-          <div className="mx-auto mt-10 max-w-3xl text-center text-sm italic leading-relaxed text-slate-500">
+          <div className="mx-auto mt-10 max-w-3xl text-center text-sm italic leading-relaxed text-slate-400">
             «&nbsp;AxiSolver, c&apos;est la caissière, le vigile, le consultant
             SEO et l&apos;analyste trafic. Un seul produit, quatre missions, un
             seul tarif.&nbsp;»
@@ -218,17 +216,17 @@ export default function Page() {
       </section>
 
       {/* === Features signature === */}
-      <section className="bg-slate-50 px-6 py-16 md:py-24">
+      <section className="bg-slate-950 px-6 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-blue-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-900">
               Features signature
             </div>
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight md:text-5xl">
+            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-5xl">
               Ce qui n&apos;existe
-              <span className="text-blue-600"> nulle part ailleurs</span>
+              <span className="text-amber-400"> nulle part ailleurs</span>
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-slate-600">
+            <p className="mx-auto mt-5 max-w-2xl text-slate-300">
               Quatre singularités qui placent AxiSolver dans une catégorie à
               part. Pas une version améliorée du chatbot. Un produit nouveau.
             </p>
@@ -238,13 +236,13 @@ export default function Page() {
             {FEATURES_SIGNATURE.map((f) => (
               <article
                 key={f.titre}
-                className="rounded-2xl border border-slate-200 bg-white p-7 transition-all hover:border-blue-200 hover:shadow-md"
+                className="rounded-2xl border border-slate-800 bg-slate-900/60 p-7 transition-all hover:border-amber-400/40 hover:bg-slate-900 hover:shadow-lg hover:shadow-amber-400/5"
               >
                 <div className="text-3xl">{f.emoji}</div>
-                <h3 className="mt-4 text-xl font-semibold text-slate-900">
+                <h3 className="mt-4 text-xl font-semibold text-white">
                   {f.titre}
                 </h3>
-                <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                <p className="mt-3 text-sm leading-relaxed text-slate-300">
                   {f.description}
                 </p>
               </article>
@@ -254,23 +252,23 @@ export default function Page() {
       </section>
 
       {/* === Comparatif chatbot vs AxiSolver === */}
-      <section className="bg-white px-6 py-16 md:py-24">
+      <section className="bg-slate-900 px-6 py-16 md:py-24">
         <div className="mx-auto max-w-5xl">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-blue-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-slate-900">
               Comparaison
             </div>
-            <h2 className="mt-5 text-3xl font-semibold tracking-tight md:text-4xl">
+            <h2 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-4xl">
               Chatbot classique vs AxiSolver
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-slate-600">
+            <p className="mx-auto mt-4 max-w-2xl text-slate-300">
               Les chatbots filtrent et bloquent. AxiSolver résout, veille et
               transforme.
             </p>
           </div>
 
-          <div className="mt-12 overflow-hidden rounded-sm border border-slate-200">
-            <div className="grid grid-cols-12 bg-slate-50 px-6 py-4 text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
+          <div className="mt-12 overflow-hidden rounded-sm border border-slate-800">
+            <div className="grid grid-cols-12 bg-slate-950 px-6 py-4 text-xs font-semibold uppercase tracking-[0.14em] text-amber-300">
               <div className="col-span-4">Dimension</div>
               <div className="col-span-4">Chatbot classique</div>
               <div className="col-span-4">AxiSolver</div>
@@ -278,17 +276,17 @@ export default function Page() {
             {COMPARATIF.map((row, i) => (
               <div
                 key={row.dimension}
-                className={`grid grid-cols-1 gap-4 bg-white px-6 py-5 md:grid-cols-12 md:gap-6 ${
-                  i !== 0 ? "border-t border-slate-100" : ""
+                className={`grid grid-cols-1 gap-4 bg-slate-900 px-6 py-5 md:grid-cols-12 md:gap-6 ${
+                  i !== 0 ? "border-t border-slate-800" : ""
                 }`}
               >
-                <div className="font-medium text-slate-900 md:col-span-4">
+                <div className="font-semibold text-amber-300 md:col-span-4">
                   {row.dimension}
                 </div>
-                <div className="text-sm text-slate-500 md:col-span-4">
+                <div className="text-sm text-slate-500 line-through decoration-slate-700 md:col-span-4">
                   {row.chatbot}
                 </div>
-                <div className="text-sm text-slate-900 md:col-span-4">
+                <div className="text-sm font-medium text-white md:col-span-4">
                   {row.solver}
                 </div>
               </div>
@@ -298,7 +296,7 @@ export default function Page() {
       </section>
 
       {/* === CTA final === */}
-      <section className="bg-slate-900 px-6 py-16 md:py-24">
+      <section className="bg-slate-950 px-6 py-16 md:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
             Prêt à transformer
@@ -312,13 +310,13 @@ export default function Page() {
           <div className="mt-10">
             <a
               href="https://axihub.live"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-medium uppercase tracking-[0.14em] text-slate-900 transition-all hover:bg-blue-50"
+              className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-slate-900 shadow-lg shadow-amber-400/20 transition-all hover:bg-amber-300 hover:shadow-amber-400/40"
             >
               Composez votre équipe sur AxiHub
               <span aria-hidden>→</span>
             </a>
           </div>
-          <p className="mt-10 text-xs italic text-slate-500">
+          <p className="mt-10 text-xs italic text-slate-400">
             « AxiSolver parle avec vos visiteurs. Veille sur votre site.
             Travaille à côté de vous. Et sait aussi s&apos;amuser. »
           </p>
@@ -326,25 +324,28 @@ export default function Page() {
       </section>
 
       {/* === Footer === */}
-      <footer className="border-t border-slate-200 bg-white px-6 py-10">
-        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-sm text-slate-500 md:flex-row">
+      <footer className="border-t border-slate-800 bg-slate-950 px-6 py-10">
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 text-sm text-slate-400 md:flex-row">
           <div>
             Édité par{" "}
             <a
               href="https://ataraxis.group"
-              className="font-medium text-slate-900 hover:text-blue-600"
+              className="font-medium text-amber-300 hover:text-amber-200"
             >
               Ataraxis Studio
             </a>
             {" — groupe Ataraxis"}
           </div>
           <div className="flex gap-6">
-            <a href="https://axihub.live" className="hover:text-blue-600">
+            <a
+              href="https://axihub.live"
+              className="hover:text-amber-300"
+            >
               AxiHub
             </a>
             <a
               href="https://ataraxis.group/mentions-legales"
-              className="hover:text-blue-600"
+              className="hover:text-amber-300"
             >
               Mentions légales
             </a>
