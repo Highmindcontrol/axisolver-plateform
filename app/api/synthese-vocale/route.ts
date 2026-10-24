@@ -23,18 +23,6 @@ export const dynamic = "force-dynamic";
  * voix anciennes vers des équivalents français.
  */
 
-// Mapping voix OpenAI → voix françaises Azure équivalentes
-const MAPPING_VOIX: Record<string, string> = {
-  // Voix masculines
-  onyx: "fr-FR-HenriNeural", // homme grave posé
-  echo: "fr-FR-JeromeNeural", // homme neutre dynamique
-  fable: "fr-FR-AlainNeural", // homme ton informatif
-  // Voix féminines
-  nova: "fr-FR-DeniseNeural", // femme naturelle
-  shimmer: "fr-FR-CelesteNeural", // femme douce
-  alloy: "fr-FR-RemyMultilingualNeural", // neutre moderne
-};
-
 export async function POST(request: Request) {
   let body: { texte?: string; voix?: string };
   try {
@@ -56,8 +44,21 @@ export async function POST(request: Request) {
     );
   }
 
-  const voixDemandee = body?.voix ?? "onyx";
-  const voixAzure = MAPPING_VOIX[voixDemandee] ?? "fr-FR-HenriNeural";
+  // Doctrine AxiHub (21 oct 2026) : UNE SEULE voix pour tout
+  // l'écosystème AXI, pilotée par la variable d'environnement
+  // `AXI_VOICE` partagée avec axihub.live. Fallback technique si
+  // la var n'est pas posée côté Vercel.
+  const VOIX_PAR_DEFAUT =
+    process.env.AXI_VOICE ?? "fr-FR-RemyMultilingualNeural";
+  // Si l'appelant envoie directement un nom de voix Azure
+  // (fr-FR-*Neural), on la respecte ; sinon on utilise la voix
+  // doctrine AXI. Toute voix OpenAI historique (onyx/echo/…) est
+  // ignorée au profit de la voix unique de l'écosystème.
+  const voixDemandee = body?.voix;
+  const voixAzure =
+    voixDemandee && voixDemandee.startsWith("fr-FR-")
+      ? voixDemandee
+      : VOIX_PAR_DEFAUT;
 
   // === Tentative Azure TTS (voix françaises natives) === //
   const cleAzure = process.env.AZURE_SPEECH_KEY;
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
   }
 
   // === Fallback OpenAI TTS === //
-  return fallbackOpenAI(texteNettoye, voixDemandee);
+  return fallbackOpenAI(texteNettoye, voixDemandee ?? "onyx");
 }
 
 /**
