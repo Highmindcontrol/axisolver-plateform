@@ -56,15 +56,6 @@ export function PanneauFiche({ etat }: { etat: EtatPanneauTravail }) {
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto p-5">
-      <div className="relative mb-1 flex items-center justify-center">
-        <span className="absolute left-0 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-blue-700">
-          en direct
-        </span>
-        <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-          Fiche visiteur
-        </h3>
-      </div>
-
       <dl className="space-y-2">
         {champsRemplis.map((champ) => (
           <ChampLigne
@@ -111,10 +102,7 @@ function FicheEnAttente() {
           <path d="M16 17H8" />
         </svg>
       </div>
-      <div className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-slate-500">
-        Fiche visiteur
-      </div>
-      <p className="mt-2 max-w-xs text-xs leading-relaxed text-slate-400">
+      <p className="mt-3 max-w-xs text-xs leading-relaxed text-slate-400">
         Vos informations apparaîtront ici au fil de la conversation.
       </p>
     </div>

@@ -928,7 +928,7 @@ export function ChatWidget() {
               <button
                 onClick={() => setVueMobile("fiche")}
                 className="relative rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10"
-                aria-label="Voir la fiche visiteur"
+                aria-label="Voir les infos visiteur"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -1065,7 +1065,7 @@ export function ChatWidget() {
         className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-white/25 to-transparent md:block"
       />
 
-      {/* === AILETTE DROITE — Fiche (desktop) === */}
+      {/* === AILETTE DROITE — Infos visiteur (desktop) === */}
       <aside
         className={`${
           phaseFermeture === "ailettes" || phaseFermeture === "chat"
@@ -1073,9 +1073,17 @@ export function ChatWidget() {
             : phaseOuverture === "complet"
               ? "animate-slideOutRight"
               : "pointer-events-none opacity-0"
-        } flex-1 overflow-hidden ${vueMobile === "fiche" ? "flex" : "hidden md:flex"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
-        aria-label="Fiche visiteur"
+        } flex-1 overflow-hidden ${vueMobile === "fiche" ? "flex flex-col" : "hidden md:flex md:flex-col"} my-5 md:basis-[32%] md:flex-grow-0 md:flex-shrink-0`}
+        aria-label="Infos visiteur"
       >
+        <div className="relative px-5 pt-5 pb-1">
+          <span className="absolute left-5 top-5 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-blue-700">
+            en direct
+          </span>
+          <h3 className="text-center text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
+            Infos visiteur
+          </h3>
+        </div>
         <div className="flex-1 overflow-auto">
           <PanneauFiche etat={etatPanneau} />
         </div>
