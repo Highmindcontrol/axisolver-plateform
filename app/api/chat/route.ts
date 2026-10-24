@@ -192,6 +192,18 @@ export async function POST(request: Request) {
                       input.url,
                       volet,
                     );
+                    // Trace observable des findings bruts renvoyés au LLM.
+                    // Permet de recouper si Claude invente une faille ou un
+                    // problème SEO qui n'est pas dans le résultat du tool.
+                    console.log(
+                      `[auditer_${volet}] url=${resultat.url} hostname=${resultat.hostname} findings=${JSON.stringify(
+                        resultat.findings.map((f) => ({
+                          titre: f.titre,
+                          severite: f.severite,
+                          detail: f.detail?.slice(0, 160),
+                        })),
+                      )}`,
+                    );
                     emit({
                       type: "audit_termine",
                       url: resultat.url,
@@ -234,9 +246,9 @@ export async function POST(request: Request) {
                       input.url,
                       input.mots_cles,
                     );
-                    // Trace observable des positions renvoyées à Claude,
-                    // pour recouper côté logs si Claude invente ou enjolive
-                    // dans sa réponse texte au visiteur.
+                    // Trace observable des positions ET des concurrents
+                    // renvoyés à Claude, pour recouper côté logs si Claude
+                    // invente ou enjolive dans sa réponse texte au visiteur.
                     console.log(
                       `[audit_referencement] url=${resultat.url} hostname=${resultat.hostname} mots_cles=${JSON.stringify(
                         input.mots_cles ?? [],
@@ -244,6 +256,7 @@ export async function POST(request: Request) {
                         resultat.findings.map((f) => ({
                           requete: f.requete,
                           position: f.position,
+                          concurrents: f.concurrents.map((c) => c.url),
                         })),
                       )}`,
                     );
