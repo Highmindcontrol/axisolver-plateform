@@ -1123,10 +1123,11 @@ export function ChatWidget() {
         <div className="flex-1 overflow-auto">
           <PanneauFiche etat={etatPanneau} />
         </div>
-        {/* Signature AxiSolver — logo doré en bas de l'ailette droite */}
+        {/* Signature AxiSolver — logo blanc argenté avec touche dorée,
+            adapté au fond sombre aurore boréale de l'ailette. */}
         <div className="pointer-events-none flex justify-center px-5 pb-5 pt-3">
           <Image
-            src="/logo-axisolver.png"
+            src="/logo-axisolver-signature.png"
             alt="AxiSolver"
             width={2172}
             height={724}
