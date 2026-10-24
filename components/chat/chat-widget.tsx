@@ -58,10 +58,6 @@ export function ChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // La mascotte d'accueil est affichée tant que le visiteur n'a pas répondu.
-  const mascotteVisible =
-    widgetOuvert && !messages.some((m) => m.role === "user");
-
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -844,30 +840,26 @@ export function ChatWidget() {
             <div className="w-5 md:hidden" />
           </div>
           <div className="flex-1 overflow-auto">
-            {mascotteVisible ? (
-              <MascotteAccueil />
-            ) : (
-              <PanneauActions
-                etat={etatPanneau}
-                onEmailValide={handleEmailValide}
-                onEmailRefuse={handleEmailRefuse}
-                onTelephoneValide={handleTelephoneValide}
-                onTelephoneRefuse={handleTelephoneRefuse}
-                onUrlSiteValide={handleUrlSiteValide}
-                onUrlSiteRefuse={handleUrlSiteRefuse}
-                onChoixClique={handleChoixClique}
-                onChoixMultipleValide={handleChoixMultipleValide}
-                onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
-                onMorpionMessage={handleMorpionMessage}
-                onMorpionTermine={handleMorpionTermine}
-                onClotureConfirmee={handleClotureConfirmee}
-              />
-            )}
+            <PanneauActions
+              etat={etatPanneau}
+              onEmailValide={handleEmailValide}
+              onEmailRefuse={handleEmailRefuse}
+              onTelephoneValide={handleTelephoneValide}
+              onTelephoneRefuse={handleTelephoneRefuse}
+              onUrlSiteValide={handleUrlSiteValide}
+              onUrlSiteRefuse={handleUrlSiteRefuse}
+              onChoixClique={handleChoixClique}
+              onChoixMultipleValide={handleChoixMultipleValide}
+              onEnvoiFicheConfirme={handleEnvoiFicheConfirme}
+              onMorpionMessage={handleMorpionMessage}
+              onMorpionTermine={handleMorpionTermine}
+              onClotureConfirmee={handleClotureConfirmee}
+            />
           </div>
         </div>
       </aside>
 
-      {/* === COLONNE CENTRALE — Chat (dominante) === */}
+      {/* === COLONNE CENTRALE — Chat (dominante, flottant sur l'aurore) === */}
       <section
         className={`relative ${
           phaseFermeture === "chat"
@@ -875,32 +867,18 @@ export function ChatWidget() {
             : phaseOuverture === "chat" || phaseOuverture === "complet"
               ? "animate-chatFadeIn"
               : ""
-        } overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
+        } overflow-hidden ${vueMobile === "chat" ? "flex flex-1" : "hidden md:flex md:basis-[36%] md:flex-grow md:flex-shrink"}`}
       >
         <div className="flex w-full flex-col">
-          {/* Header chat */}
-          <div className="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-br from-blue-600 to-blue-700 px-5 py-4 text-white">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-sm font-semibold">
-              A
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-blue-700" />
-              </span>
-            </div>
-            <div className="flex-1">
-              <div className="font-semibold leading-tight">AxiSolver</div>
-              <div className="text-xs font-medium text-blue-100">
-                En ligne — répond maintenant
-              </div>
-            </div>
-            {/* Sélecteur de voix TTS — menu caché affiché au clic */}
+          {/* Boutons utilitaires discrets en haut à droite (voix TTS +
+              bascule mobile). Pas de header plein, le chat vit sur
+              l'aurore à la façon AxiHub. */}
+          <div className="flex items-center justify-end gap-1 px-2 py-1">
             {lectureVocaleActive && (
               <select
                 value={voix}
-                onChange={(e) =>
-                  setVoix(e.target.value as typeof voix)
-                }
-                className="hidden rounded-full bg-white/15 px-2 py-1 text-xs font-medium text-white outline-none transition-colors hover:bg-white/25 md:inline-flex [&>option]:text-slate-900"
+                onChange={(e) => setVoix(e.target.value as typeof voix)}
+                className="hidden rounded-full border border-white/15 bg-white/5 px-2 py-1 text-xs font-medium text-white outline-none backdrop-blur-sm transition-colors hover:bg-white/10 md:inline-flex [&>option]:text-slate-900"
                 title="Choisir la voix d'AxiSolver"
                 aria-label="Choisir la voix"
               >
@@ -912,19 +890,13 @@ export function ChatWidget() {
                 <option value="alloy">Rémy (moderne multilingue)</option>
               </select>
             )}
-            {/* Toggle lecture vocale */}
             <button
               onClick={basculerLectureVocale}
-              className="hidden rounded-full bg-white/15 p-2 text-white transition-colors hover:bg-white/25 md:inline-flex"
+              className="hidden rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10 md:inline-flex"
               aria-label={
                 lectureVocaleActive
                   ? "Désactiver la lecture vocale"
                   : "Activer la lecture vocale"
-              }
-              title={
-                lectureVocaleActive
-                  ? "Lecture vocale activée — cliquer pour la couper"
-                  : "Lecture vocale coupée — cliquer pour l'activer"
               }
             >
               {lectureVocaleActive ? (
@@ -959,11 +931,10 @@ export function ChatWidget() {
                 </svg>
               )}
             </button>
-            {/* Boutons de bascule mobile */}
             <div className="flex gap-1 md:hidden">
               <button
                 onClick={() => setVueMobile("actions")}
-                className="relative rounded-full bg-white/15 p-2 text-white transition-colors hover:bg-white/25"
+                className="relative rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10"
                 aria-label="Voir la zone d'action"
               >
                 <svg
@@ -985,7 +956,7 @@ export function ChatWidget() {
               </button>
               <button
                 onClick={() => setVueMobile("fiche")}
-                className="relative rounded-full bg-white/15 p-2 text-white transition-colors hover:bg-white/25"
+                className="relative rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10"
                 aria-label="Voir la fiche visiteur"
               >
                 <svg
@@ -1025,7 +996,7 @@ export function ChatWidget() {
                     .catch(() => setAutoplayBloque(true));
                 }
               }}
-              className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-900 transition-colors hover:bg-amber-100"
+              className="flex items-center gap-2 rounded-md border border-amber-400/30 bg-amber-400/10 px-3 py-2 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-400/20"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -1048,11 +1019,10 @@ export function ChatWidget() {
             </button>
           )}
 
-          {/* Fil de messages — masqué pendant la fermeture pour éviter
-              l'effet palimpseste (texte visible derrière la mascotte) */}
+          {/* Fil de messages — directement sur l'aurore, pas de fond */}
           <div
             ref={scrollRef}
-            className={`flex-1 space-y-3 overflow-y-auto bg-slate-50 px-4 py-5 transition-opacity duration-500 ${
+            className={`flex-1 space-y-3 overflow-y-auto px-4 py-5 transition-opacity duration-500 ${
               phaseFermeture === "aurevoir" || phaseFermeture === "ailettes"
                 ? "opacity-0"
                 : "opacity-100"
@@ -1071,9 +1041,9 @@ export function ChatWidget() {
               !messages[messages.length - 1]?.content && <IndicateurFrappe />}
           </div>
 
-          {/* Input */}
+          {/* Input — style AxiHub sombre */}
           <form
-            className="border-t border-slate-100 bg-white px-3 py-3"
+            className="px-3 pb-3 pt-2"
             onSubmit={(e) => {
               e.preventDefault();
               envoyer();
@@ -1091,12 +1061,12 @@ export function ChatWidget() {
                 disabled={thinking}
                 autoFocus
                 placeholder="Répondez à AxiSolver (texte ou micro)…"
-                className="flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:opacity-50"
+                className="flex-1 rounded-2xl border border-white/15 bg-slate-900/70 px-4 py-2.5 text-sm text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white/40 focus:bg-slate-900/85 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || thinking}
-                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#0068FC] text-white shadow-sm transition-all hover:bg-[#0051C7] disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Envoyer"
               >
                 <svg
@@ -1169,18 +1139,18 @@ function MessageBulle({ role, content }: { role: Role; content: string }) {
   if (role === "assistant") {
     return (
       <div className="flex gap-2">
-        <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-semibold text-white">
+        <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#0068FC] text-[10px] font-semibold text-white">
           A
         </div>
-        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-sm bg-white px-4 py-2.5 text-sm leading-relaxed text-slate-900 shadow-sm">
-          {content || <span className="text-slate-300">…</span>}
+        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tl-md bg-slate-100 px-4 py-2.5 text-sm leading-relaxed text-slate-800 shadow-sm">
+          {content || <span className="text-slate-400">…</span>}
         </div>
       </div>
     );
   }
   return (
     <div className="flex justify-end">
-      <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
+      <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-md bg-[#0068FC] px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm">
         {content}
       </div>
     </div>
@@ -1190,14 +1160,14 @@ function MessageBulle({ role, content }: { role: Role; content: string }) {
 function IndicateurFrappe() {
   return (
     <div className="flex gap-2">
-      <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-blue-600 text-[10px] font-semibold text-white">
+      <div className="mt-1 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#0068FC] text-[10px] font-semibold text-white">
         A
       </div>
-      <div className="rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-sm">
+      <div className="rounded-2xl rounded-tl-md bg-slate-100 px-4 py-3 shadow-sm">
         <div className="flex gap-1">
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-400" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:-0.3s]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500 [animation-delay:-0.15s]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-slate-500" />
         </div>
       </div>
     </div>
