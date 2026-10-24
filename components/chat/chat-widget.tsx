@@ -803,6 +803,19 @@ export function ChatWidget() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [widgetOuvert]);
 
+  // Ouverture externe via CustomEvent — permet à n'importe quel bouton
+  // de la page (hero, CTA narratif, footer) de lancer le widget via
+  // `window.dispatchEvent(new CustomEvent("axi:ouvrir"))`.
+  useEffect(() => {
+    function onOuvrir() {
+      setWidgetOuvert(true);
+      setPhaseOuverture("chat");
+      setTimeout(() => setPhaseOuverture("complet"), 900);
+    }
+    window.addEventListener("axi:ouvrir", onOuvrir);
+    return () => window.removeEventListener("axi:ouvrir", onOuvrir);
+  }, []);
+
   // Blocage du scroll du site hôte quand le modal est ouvert — standard
   // pour tout overlay plein écran.
   useEffect(() => {

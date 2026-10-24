@@ -1,10 +1,6 @@
 import Image from "next/image";
-import { Caveat } from "next/font/google";
 import { ChatWidget } from "@/components/chat/chat-widget";
-
-// Font « manuelle » pour les signatures (accroches, baselines) —
-// Caveat est lisible, moderne et chaleureuse.
-const caveat = Caveat({ subsets: ["latin"], weight: ["500", "700"] });
+import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
 
 type IconProps = { className?: string };
 
@@ -239,19 +235,18 @@ export default function Page() {
           className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/40 to-zinc-950"
         />
 
-        <div className="relative z-10 mx-auto flex min-h-[620px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[780px] md:px-12 md:py-14">
-          {/* Logo + baseline — légèrement décalé de la gauche et descendu */}
-          <div className="max-w-2xl pl-4 pt-6 md:pl-10 md:pt-10">
+        <div className="relative z-10 mx-auto flex min-h-[620px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[780px] md:px-16 md:py-14 lg:px-20">
+          {/* Logo + baseline — décalé vers la droite et descendu */}
+          <div className="max-w-2xl pl-8 pt-10 md:pl-20 md:pt-14">
             <Image
               src="/logo-axisolver.png"
               alt="AxiSolver"
               width={2172}
               height={724}
               priority
-              className="h-auto w-64 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] md:w-80 lg:w-96"
+              className="h-auto w-72 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] md:w-96 lg:w-[28rem]"
             />
-            {/* Baseline tendue sous le logo — « Game Changer » doré, le
-                reste en blanc, filet or à gauche qui prolonge le logo */}
+            {/* Baseline tendue sous le logo */}
             <div className="mt-5 flex items-center gap-3 md:mt-7">
               <span
                 aria-hidden
@@ -265,15 +260,86 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Signature manuelle en bas à droite — comme une annotation
-              dessinée à la main sur l'image */}
-          <div className="self-end text-right">
-            <p
-              className={`${caveat.className} text-4xl font-bold leading-none text-amber-300 drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)] md:text-6xl lg:text-7xl`}
-            >
-              Aucun équivalent
-              <br />
-              sur le marché.
+          {/* Zone basse — 6 pictos à gauche + signature publicitaire à droite */}
+          <div className="flex flex-col items-start justify-between gap-8 md:flex-row md:items-end">
+            {/* 6 pictos AxiSolver avec libellés */}
+            <div className="max-w-xl rounded-2xl border border-white/10 bg-zinc-950/60 p-5 backdrop-blur-sm md:p-6">
+              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Ce qu&apos;AxiSolver fait pour vous
+              </p>
+              <div className="grid grid-cols-3 gap-x-4 gap-y-4 md:grid-cols-6">
+                {[
+                  { Icon: IconChat, libelle: "Accueil" },
+                  { Icon: IconSearch, libelle: "SEO" },
+                  { Icon: IconShield, libelle: "Sécurité" },
+                  { Icon: IconBarChart, libelle: "Analytics" },
+                  { Icon: IconTarget, libelle: "Ads" },
+                  { Icon: IconShieldCheck, libelle: "Bouclier" },
+                ].map((p) => (
+                  <div
+                    key={p.libelle}
+                    className="flex flex-col items-center gap-1.5"
+                  >
+                    <p.Icon className="h-6 w-6 text-amber-400 md:h-7 md:w-7" />
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-white/80 md:text-xs">
+                      {p.libelle}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Signature publicitaire en caractères normaux */}
+            <div className="text-right">
+              <p className="text-2xl font-bold uppercase leading-tight tracking-tight text-amber-400 drop-shadow-[0_4px_14px_rgba(0,0,0,0.95)] md:text-4xl lg:text-5xl">
+                Aucun équivalent
+                <br />
+                sur le marché.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* === Zone narrative sous l'image — AXI présenté + CTA === */}
+      <section className="bg-zinc-950 px-6 py-14 md:px-10 md:py-20">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-10 md:grid-cols-5 md:gap-14">
+          {/* Texte à gauche (3/5) */}
+          <div className="md:col-span-3">
+            <p className="text-base leading-relaxed text-zinc-200 md:text-lg">
+              <span className="font-semibold text-amber-400">AXI</span> est une
+              intelligence artificielle qui fait de votre site web son
+              territoire. Dès qu&apos;il s&apos;installe, il déploie ses
+              compétences{" "}
+              <span className="font-semibold text-white">
+                24 heures sur 24 et 7 jours sur 7
+              </span>
+              , en toute autonomie.
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-zinc-300 md:text-lg">
+              Il accueille et gère les demandes de vos visiteurs, puis les
+              transforme en contacts qualifiés pour vos équipes de vente. Il
+              travaille aussi votre référencement pour vous faire monter dans
+              les résultats de recherche, et vous remet des comptes-rendus
+              réguliers sur ses performances.
+            </p>
+            <p className="mt-5 text-base leading-relaxed text-zinc-300 md:text-lg">
+              Et ce n&apos;est pas tout : il se comporte en{" "}
+              <span className="font-semibold text-white">
+                gardien actif de votre site
+              </span>
+              , en surveillant en permanence tout ce qui pourrait le menacer.
+            </p>
+            <p className="mt-6 text-lg font-medium italic leading-snug text-amber-300 md:text-xl">
+              Et si vous le laissiez vous expliquer tout ça lui-même ?
+            </p>
+          </div>
+
+          {/* Bouton à droite (2/5) */}
+          <div className="flex flex-col items-start gap-4 md:col-span-2 md:items-center md:justify-center">
+            <BoutonLancerAxiSolver libelle="Parlez à AxiSolver" />
+            <p className="text-xs text-zinc-500">
+              Vocal ou écrit, dans votre langue.
             </p>
           </div>
         </div>
