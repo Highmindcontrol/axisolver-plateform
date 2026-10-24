@@ -223,7 +223,7 @@ const FEATURES_SIGNATURE: Array<{
 export default function Page() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* === Hero — image en background, contenu centré par-dessus === */}
+      {/* === Hero — image en background, logo + baselines en overlay === */}
       <section
         className="relative overflow-hidden bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url(/hero-mascotte-demo.png)" }}
@@ -231,29 +231,31 @@ export default function Page() {
         {/* Voile sombre dégradé pour garantir la lisibilité du texte */}
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/55 to-zinc-950"
+          className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/40 to-zinc-950"
         />
 
-        <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col items-center justify-center px-4 py-16 md:min-h-[760px] md:px-6 md:py-24">
-          <div className="mx-auto max-w-4xl text-center">
+        <div className="relative z-10 mx-auto flex min-h-[560px] max-w-[1600px] flex-col justify-between px-6 py-8 md:min-h-[720px] md:px-10 md:py-12">
+          {/* Logo + baseline en haut à gauche */}
+          <div className="max-w-xl">
             <Image
               src="/logo-axisolver.png"
               alt="AxiSolver"
               width={2172}
               height={724}
               priority
-              className="mx-auto h-auto w-64 md:w-80 lg:w-96 drop-shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+              className="h-auto w-48 drop-shadow-[0_6px_20px_rgba(0,0,0,0.65)] md:w-56 lg:w-64"
             />
+            <p className="mt-5 text-xl font-semibold leading-tight tracking-tight text-amber-400 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] md:text-2xl lg:text-3xl">
+              Le Game Changer
+              <br />
+              pour votre site web
+            </p>
+          </div>
 
-            <h1 className="mt-10 text-3xl font-semibold tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] md:text-5xl lg:text-6xl">
-              Un seul produit.{" "}
-              <span className="text-amber-400">Six missions.</span>{" "}
-              Zéro équivalent au monde.
-            </h1>
-
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-200 drop-shadow-[0_1px_4px_rgba(0,0,0,0.75)] md:text-lg">
-              AxiSolver parle avec vos visiteurs. Veille sur votre site.
-              Travaille à côté de vous. Et sait aussi s&apos;amuser.
+          {/* Signature en bas à droite */}
+          <div className="self-end text-right">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] md:text-sm">
+              Aucun équivalent sur le marché
             </p>
           </div>
         </div>
