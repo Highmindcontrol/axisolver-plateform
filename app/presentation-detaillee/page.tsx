@@ -330,6 +330,18 @@ export default function Page() {
               Quand un visiteur ouvre AxiSolver, il entre dans un
               véritable espace de dialogue — centré, calme, cadré.
             </p>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+              Et cette interface est{" "}
+              <span className="font-semibold text-white">
+                entièrement paramétrable
+              </span>{" "}
+              à votre identité : votre logo, vos couleurs, vos
+              questions d&apos;accueil, le ton de voix. Un vrai
+              habillage sur-mesure, posé avec vous{" "}
+              <span className="font-semibold text-amber-300">
+                pendant la session de réglage avant mise en ligne.
+              </span>
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-2">
@@ -436,6 +448,38 @@ export default function Page() {
                 de relance, pas de « êtes-vous sûr », pas de newsletter
                 à cocher. Si le visiteur veut recevoir le compte-rendu
                 par email, il le dit — AxiSolver le lui envoie.
+              </p>
+            </article>
+
+            <article className="border-t border-amber-400/40 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Votre logo, vos couleurs, vos questions d&apos;accueil
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                L&apos;interface se pare de votre identité visuelle :
+                logo posé dans l&apos;en-tête, teinte dominante de
+                marque sur les éléments actifs, questions
+                d&apos;ouverture rédigées pour votre métier. Chaque
+                visiteur reconnaît votre maison dès la première
+                seconde — AxiSolver est{" "}
+                <span className="text-white">votre</span> accueil, pas
+                un chatbot générique posé à côté.
+              </p>
+            </article>
+
+            <article className="border-t border-amber-400/40 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Session de réglage dédiée avant mise en ligne
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Avant la pose du script sur votre site, nous passons
+                une session ensemble — logo, couleurs, questions
+                d&apos;accueil, choix de voix, personnalité
+                conversationnelle, lignes rouges métier. AxiSolver est
+                nourri avec vos documents, vos pages produits, vos
+                procédures internes. Il n&apos;est jamais déployé
+                brut — il arrive sur votre site{" "}
+                <span className="text-white">déjà réglé pour vous.</span>
               </p>
             </article>
           </div>
