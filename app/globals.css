@@ -170,19 +170,20 @@ body {
 }
 
 /* Pulsation permanente plus marquée pour le gros bouton rond noir
-   d'ouverture d'AxiSolver sur axisolver.app — triple anneau concentrique */
+   d'ouverture d'AxiSolver sur axisolver.app — triple anneau concentrique
+   doré (amber-400 : rgb(251, 191, 36)) cohérent avec la palette site */
 @keyframes pulseAxi {
   0% {
     box-shadow:
-      0 0 0 0 rgba(37, 99, 235, 0.5),
-      0 0 0 0 rgba(37, 99, 235, 0.3),
-      0 0 0 0 rgba(37, 99, 235, 0.15);
+      0 0 0 0 rgba(251, 191, 36, 0.6),
+      0 0 0 0 rgba(251, 191, 36, 0.35),
+      0 0 0 0 rgba(251, 191, 36, 0.18);
   }
   100% {
     box-shadow:
-      0 0 0 24px rgba(37, 99, 235, 0),
-      0 0 0 42px rgba(37, 99, 235, 0),
-      0 0 0 60px rgba(37, 99, 235, 0);
+      0 0 0 24px rgba(251, 191, 36, 0),
+      0 0 0 42px rgba(251, 191, 36, 0),
+      0 0 0 60px rgba(251, 191, 36, 0);
   }
 }
 .animate-pulseAxi {

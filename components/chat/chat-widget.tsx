@@ -1232,16 +1232,16 @@ function BoutonFlottant({ onOuvrir }: { onOuvrir: () => void }) {
   return (
     <div className="fixed bottom-5 right-5 z-[9998] md:bottom-6 md:right-6">
       <div className="group relative">
-        {/* Halo pulsé derrière la pastille */}
+        {/* Halo pulsé doré derrière la pastille (palette site amber-400) */}
         <span
           aria-hidden
-          className="absolute inset-0 -z-10 animate-pulseAxi rounded-full bg-slate-900/30"
+          className="absolute inset-0 -z-10 animate-pulseAxi rounded-full bg-amber-400/35"
         />
-        {/* Pastille noire avec la mascotte AxiSolver */}
+        {/* Pastille anthracite avec la mascotte AxiSolver — ring doré subtil */}
         <button
           onClick={onOuvrir}
           aria-label="Parler à AxiSolver"
-          className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-slate-900 shadow-lg ring-1 ring-slate-900/10 transition-all hover:scale-105 hover:shadow-xl md:h-20 md:w-20"
+          className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-zinc-950 shadow-lg ring-1 ring-amber-400/40 transition-all hover:scale-105 hover:ring-amber-400/60 hover:shadow-xl md:h-20 md:w-20"
         >
           <Image
             src="/axi-mascotte-bouton.png"
