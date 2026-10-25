@@ -818,13 +818,17 @@ function EtapeResultat({
         </div>
       </div>
 
-      {/* Les 2 autres formules en comparatif */}
+      {/* Montée en gamme : les 2 autres formules AVEC voix (Classique
+          ou Premium selon ce qui n'a pas été recommandé). Même poids
+          visuel que la recommandée, c'est une invitation à monter. */}
       <div className="mt-10">
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-          Les autres formules
+          Vous préférez autre chose ?
         </p>
         <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-          {FORMULES.filter((f) => f.slug !== recommandeeSlug).map((f) => (
+          {FORMULES.filter(
+            (f) => f.slug !== recommandeeSlug && f.slug !== "text",
+          ).map((f) => (
             <div
               key={f.slug}
               className="rounded-xl border border-zinc-800 bg-zinc-950/40 p-5"
@@ -849,6 +853,33 @@ function EtapeResultat({
           ))}
         </div>
       </div>
+
+      {/* Option budget serré : Text Only reléguée en bas, format
+          compact et discret. On ne la propose pas de notre bouche —
+          mais si le visiteur veut économiser 20 €, il peut la choisir. */}
+      {recommandeeSlug !== "text" && (
+        <div className="mt-10 rounded-lg border border-zinc-900 bg-zinc-950/40 px-5 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+                Option budget serré
+              </p>
+              <p className="mt-1 text-sm text-zinc-300">
+                <span className="font-semibold text-zinc-100">
+                  AxiSolver Text Only
+                </span>{" "}
+                — même intelligence,{" "}
+                <span className="text-zinc-400">sans voix synthétique</span>.
+                Réponses écrites uniquement.
+              </p>
+            </div>
+            <p className="font-mono text-base text-zinc-400">
+              {formaterEuros(prix.text)}{" "}
+              <span className="text-[11px] text-zinc-600">HT / mois</span>
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

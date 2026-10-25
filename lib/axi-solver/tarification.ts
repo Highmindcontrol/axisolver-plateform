@@ -153,13 +153,20 @@ export function calculerPrix(
 /**
  * Formule recommandée selon le profil complet.
  *
- * Heuristique :
- *   - Pas d'équipe + volume suffisant → voix (Classique au minimum)
- *     car le visiteur va s'adresser à AXI sans alternative humaine
- *   - Support client fort → Premium (voix ultra-réaliste = confiance)
- *   - E-commerce premium / médical / juridique → Premium (image de marque)
- *   - Petit volume (< 500 conv/mois) → Text Only suffit
- *   - Vitrine passive → Text Only (coût minimal)
+ * DOCTRINE COMMERCIALE 25 oct 2026 (François) :
+ *   La puissance d'AxiSolver, c'est la voix. On ne propose JAMAIS
+ *   Text Only d'office. L'utilisateur qui veut Text Only doit le
+ *   signaler explicitement (budget serré, allergie à la voix).
+ *   Défaut quasi-systématique : AxiSolver Classique.
+ *
+ * Heuristique nouvelle :
+ *   - Gros volume (> 1 000 conv/mois) ET secteur premium
+ *     (e-commerce premium, médical-juridique, immobilier) → Premium
+ *   - Support client fort ET gros volume → Premium
+ *   - Tous les autres cas → Classique (défaut doctrinal)
+ *   - Text Only n'est jamais renvoyé par cette fonction. L'utilisateur
+ *     qui le choisit explicitement le fera via l'UI (badge « option
+ *     budget serré ») ou via AXI en conversation sur signal explicite.
  */
 export function recommanderFormule(profil: ProfilProspect): SlugFormule {
   const taux = tauxEffectif(profil.secteurSlug, profil.usagePrincipal);
@@ -171,11 +178,18 @@ export function recommanderFormule(profil: ProfilProspect): SlugFormule {
     "immobilier",
   ];
 
-  if (profil.usagePrincipal === "support" && conv > 200) return "premium";
-  if (premiumSecteurs.includes(profil.secteurSlug) && conv > 100) return "premium";
-  if (profil.usagePrincipal === "vitrine" && conv < 300) return "text";
-  if (conv < 150) return "text";
-  if (profil.tailleEquipe === "aucune" && conv > 50) return "classique";
+  // Premium : grosses PME avec vrai volume ET contexte à forte valeur
+  if (profil.usagePrincipal === "support" && conv > 1000) return "premium";
+  if (premiumSecteurs.includes(profil.secteurSlug) && conv > 500) return "premium";
+  if (profil.visiteursMois > 30000 && premiumSecteurs.includes(profil.secteurSlug)) {
+    return "premium";
+  }
+
+  // Défaut doctrinal : Classique dans tous les autres cas.
+  // Même pour les petits volumes ou les vitrines passives, on
+  // propose Classique à l'écran — les 20 € de différence vs Text
+  // Only sont facilement justifiables, et c'est au client de
+  // demander Text Only s'il préfère économiser.
   return "classique";
 }
 
