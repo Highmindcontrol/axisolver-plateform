@@ -34,6 +34,78 @@ export default function Page() {
             au volume de visiteurs de votre site. Pas de palier caché,
             pas de surprise.
           </p>
+
+          {/* Encadré pédagogique « Pour bien comprendre nos tarifs » */}
+          <aside className="mt-12 rounded-2xl border-l-4 border-amber-400 border-y border-r border-zinc-800 bg-zinc-900/60 p-6 md:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+              Pour bien comprendre nos tarifs
+            </p>
+            <div className="mt-5 space-y-4 text-base leading-relaxed text-zinc-200 md:text-lg">
+              <p>
+                Dans le domaine de l&apos;intelligence artificielle,
+                ce qui compte et qui{" "}
+                <span className="font-semibold text-white">
+                  coûte le plus
+                </span>
+                , c&apos;est la{" "}
+                <span className="font-semibold text-white">
+                  diffusion vocale
+                </span>{" "}
+                — en particulier lorsqu&apos;on utilise des voix de
+                haute qualité.
+              </p>
+              <p>
+                C&apos;est pour cette raison que, afin
+                qu&apos;AxiSolver soit accessible à{" "}
+                <span className="font-semibold text-white">
+                  tous les budgets
+                </span>
+                , nous vous le proposons en{" "}
+                <span className="text-amber-300">trois versions</span>{" "}
+                :
+              </p>
+              <ul className="ml-1 space-y-2.5">
+                <li className="flex items-start gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                  <span>
+                    la version{" "}
+                    <span className="font-semibold text-white">
+                      sans voix
+                    </span>{" "}
+                    — tout l&apos;écrit, aucune diffusion vocale ;
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                  <span>
+                    la version avec une{" "}
+                    <span className="font-semibold text-white">
+                      voix de grande qualité
+                    </span>
+                    , mais encore légèrement robotisée ;
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                  <span>
+                    et les{" "}
+                    <span className="font-semibold text-white">
+                      voix précieuses de chez ElevenLabs
+                    </span>{" "}
+                    — ultra-réalistes, indiscernables d&apos;un
+                    humain.
+                  </span>
+                </li>
+              </ul>
+              <p>
+                Votre tarif sera{" "}
+                <span className="font-semibold text-white">
+                  directement lié à ce choix
+                </span>
+                .
+              </p>
+            </div>
+          </aside>
         </div>
       </section>
 
