@@ -1,16 +1,6 @@
 import Image from "next/image";
-import { Fraunces } from "next/font/google";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
-
-// Font display pour les titres éditoriaux — Fraunces donne une
-// présence sérif premium, moderne, bien équilibrée avec le sans-serif
-// système utilisé pour le body.
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  style: ["normal"],
-});
 
 type IconProps = { className?: string };
 
@@ -241,12 +231,12 @@ export default function Page() {
           className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/35 to-zinc-950"
         />
 
-        <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[820px] md:px-16 md:py-16 lg:px-24">
-          {/* Accroche en haut à gauche — à la place du logo */}
-          <div className="max-w-3xl pl-2 pt-2 md:pl-8 md:pt-6">
-            <h1 className="text-3xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)] md:text-5xl lg:text-6xl">
+        <div className="relative z-10 flex min-h-[640px] flex-col justify-between py-10 md:min-h-[820px] md:py-16">
+          {/* Accroche collée à gauche, pas de centrage, pas de max-w serré */}
+          <div className="max-w-3xl pl-4 pt-2 pr-6 md:pl-10 md:pt-6">
+            <h1 className="text-left text-3xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)] md:text-5xl lg:text-6xl">
               Votre site internet va prendre{" "}
-              <span className="text-amber-400">un coup de jeune</span>…
+              <span className="text-amber-400">un sacré coup de jeune</span>…
             </h1>
           </div>
 
@@ -262,7 +252,7 @@ export default function Page() {
               Les six capacités
             </p>
             <h2
-              className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl`}
+              className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl"
             >
               Un seul AxiSolver.{" "}
               <span className="text-amber-400">
@@ -320,7 +310,7 @@ export default function Page() {
           </p>
 
           <blockquote
-            className={`${fraunces.className} mt-10 text-balance text-2xl font-normal leading-[1.4] text-white md:text-3xl lg:text-4xl`}
+            className="mt-10 text-balance text-2xl font-medium leading-[1.4] text-white md:text-3xl lg:text-4xl"
           >
             <span className="text-amber-400">«</span>{" "}
             Je suis une intelligence artificielle qui fait de votre site
@@ -351,7 +341,7 @@ export default function Page() {
           {/* Pivot émotionnel : question d'invite + CTA central */}
           <div className="mt-20 flex flex-col items-center gap-10 text-center">
             <p
-              className={`${fraunces.className} max-w-2xl text-balance text-2xl font-medium leading-snug text-amber-300 md:text-3xl lg:text-4xl`}
+              className="max-w-2xl text-balance text-2xl font-medium leading-snug text-amber-300 md:text-3xl lg:text-4xl"
             >
               Et si vous me laissiez vous expliquer tout ça
               moi-même&nbsp;?
@@ -372,7 +362,7 @@ export default function Page() {
               Signatures
             </p>
             <h2
-              className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl`}
+              className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl"
             >
               Ce qui n&apos;existe{" "}
               <span className="text-amber-400">
@@ -408,7 +398,7 @@ export default function Page() {
               Comparaison
             </p>
             <h2
-              className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-5xl`}
+              className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl"
             >
               Chatbot classique{" "}
               <span className="text-amber-400">vs</span> AxiSolver
@@ -451,7 +441,7 @@ export default function Page() {
       <section className="bg-zinc-950 px-6 py-24 md:px-10 md:py-40">
         <div className="mx-auto max-w-3xl text-center">
           <h2
-            className={`${fraunces.className} text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl`}
+            className="text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl"
           >
             Prêt à transformer{" "}
             <span className="text-amber-400">
