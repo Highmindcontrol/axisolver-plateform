@@ -383,7 +383,7 @@ function ChampPrenom({
             onChange={(e) => setVal(e.target.value)}
             placeholder="François"
             autoComplete="given-name"
-            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
             autoFocus
           />
           <button
@@ -464,7 +464,7 @@ function ChampEmail({
             value={val}
             onChange={(e) => setVal(e.target.value)}
             placeholder="nom@entreprise.fr"
-            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
             autoFocus
           />
           <button
@@ -554,7 +554,7 @@ function ChampTelephone({
             value={val}
             onChange={(e) => setVal(format(e.target.value))}
             placeholder="+33 6 12 34 56 78"
-            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
             autoFocus
           />
           <button
@@ -633,7 +633,7 @@ function ChampUrlSite({
             value={val}
             onChange={(e) => setVal(e.target.value)}
             placeholder="monsite.com"
-            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
             autoFocus
           />
           <button
@@ -1301,7 +1301,7 @@ function EnvoiFicheEmail({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="nom@entreprise.fr"
-            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
+            className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-100"
           />
           <button
             onClick={() => email && onConfirme(email)}
