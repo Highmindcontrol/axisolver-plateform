@@ -9,7 +9,10 @@ html,
 body {
   background: var(--background);
   color: var(--foreground);
+  /* Test typo globale AxiSolver — Bricolage Grotesque (next/font/google).
+     Pour revenir au système, retirer var(--font-bricolage) de la liste. */
   font-family:
+    var(--font-bricolage),
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
