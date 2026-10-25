@@ -29,21 +29,18 @@ export function BoutonPastilleAxi({
 
   return (
     <div className={`relative inline-block ${className}`}>
-      {/* Halo pulsé doré derrière la pastille — anneaux étendus
-          `pulseAxiLarge` (48/80/120 px) proportionnels à la grosse
-          pastille centrale, cohérents avec la petite pastille du
-          BoutonFlottant qui utilise pulseAxi (24/42/60 px). */}
-      <span
-        aria-hidden
-        style={style}
-        className="pointer-events-none absolute inset-0 -z-10 animate-pulseAxiLarge rounded-full bg-amber-400/35"
-      />
+      {/* Pastille — l'animation pulseAxiLarge est posée DIRECTEMENT
+          sur le bouton (pas sur un span derrière) pour que le
+          box-shadow pulsé parte du contour visible de la pastille
+          et déborde vers l'extérieur. Sur une grosse pastille
+          (224px), un halo en z-index négatif derrière resterait
+          masqué par le bouton opaque. */}
       <button
         type="button"
         onClick={onClique}
         aria-label="Parler à AxiSolver"
         style={style}
-        className="relative flex items-center justify-center overflow-hidden rounded-full bg-zinc-950 shadow-xl shadow-amber-400/20 ring-2 ring-amber-400/50 transition-all hover:scale-105 hover:ring-amber-400/80 hover:shadow-amber-400/40"
+        className="animate-pulseAxiLarge relative flex items-center justify-center overflow-hidden rounded-full bg-zinc-950 ring-2 ring-amber-400/60 transition-all hover:scale-105 hover:ring-amber-400"
       >
         <Image
           src="/axi-mascotte-bouton.png"
