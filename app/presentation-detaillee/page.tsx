@@ -312,8 +312,138 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ─────────── LES 6 LIGNES ROUGES ─────────── */}
+      {/* ─────────── INTERFACE ─────────── */}
       <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-14 max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Interface
+            </p>
+            <h2 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
+              Une interface immersive et moderne,{" "}
+              <span className="text-amber-400">
+                pensée pour la concentration.
+              </span>
+            </h2>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+              Oubliez la petite bulle de chat perdue dans un coin.
+              Quand un visiteur ouvre AxiSolver, il entre dans un
+              véritable espace de dialogue — centré, calme, cadré.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-2">
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Un modal centré, pas une bulle de coin
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                AxiSolver s&apos;ouvre en plein cœur de la page, dans
+                un cadre généreux. Fini le petit chat tassé en bas à
+                droite que personne ne lit. Le visiteur est au centre
+                de l&apos;attention — comme face à un interlocuteur
+                qui prend le temps.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Trois écrans qui dialoguent entre eux
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                À gauche, le panneau d&apos;action. Au centre, la
+                conversation. À droite, la fiche visiteur qui se
+                remplit en direct. Trois territoires qui bougent
+                ensemble au rythme de l&apos;échange, sans jamais se
+                marcher dessus.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Fond aurore boréale apaisant
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Pas d&apos;autoplay vidéo, pas de bannière agressive,
+                pas d&apos;animation qui fatigue. Juste un fond qui
+                respire — des voiles de couleur qui glissent très
+                lentement, pensés pour ne pas distraire. Un
+                environnement sombre et doux qui met en avant les
+                mots et les visages.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Voix ou écrit, au choix du visiteur
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Un bouton micro pour parler, un clavier pour écrire.
+                AxiSolver bascule naturellement entre les deux. Il
+                lit ses réponses à voix haute si le visiteur le
+                souhaite, dans une voix neuronale française
+                professionnelle.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Des options cliquables pour démarrer
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                À l&apos;ouverture, quatre à six phrases
+                pré-rédigées sont proposées. Le visiteur hésitant
+                clique sur celle qui lui correspond et la
+                conversation démarre. Les options sont
+                paramétrables par vous — vos propres accroches, pour
+                votre propre métier.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Boutons de validation, pas de saisie forcée
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Pour chaque question fermée (oui ou non, choix d&apos;option,
+                validation d&apos;une proposition), AxiSolver affiche
+                des boutons cliquables. Le visiteur ne tape jamais ce
+                qui peut se dire d&apos;un clic. Email et téléphone
+                saisis dans des champs lisibles — jamais dictés à
+                voix haute pour éviter les erreurs.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                La fiche visiteur se remplit en direct
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Prénom, secteur, demande, contexte, urgence
+                apparaissent dans l&apos;ailette droite au fil de la
+                conversation. Le visiteur voit ce qu&apos;AxiSolver
+                retient, en toute transparence. Fin de la boîte noire.
+                Fin du « allô, vous m&apos;avez noté ? ».
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Clôture propre, sans spam
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                À la fin, la fenêtre se ferme en douceur. Pas de pop-up
+                de relance, pas de « êtes-vous sûr », pas de newsletter
+                à cocher. Si le visiteur veut recevoir le compte-rendu
+                par email, il le dit — AxiSolver le lui envoie.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* ─────────── LES 6 LIGNES ROUGES ─────────── */}
+      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="mb-14 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
@@ -354,7 +484,7 @@ export default function Page() {
       </section>
 
       {/* ─────────── DOCTRINE ─────────── */}
-      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-28">
+      <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="mb-14 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
@@ -384,7 +514,7 @@ export default function Page() {
       </section>
 
       {/* ─────────── INSTALLATION ─────────── */}
-      <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
+      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="mb-14 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
@@ -396,7 +526,7 @@ export default function Page() {
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-7">
+            <article className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
                 Chemin recommandé — 80 % des cas
               </p>
@@ -432,7 +562,7 @@ export default function Page() {
               </ol>
             </article>
 
-            <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-7">
+            <article className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
                 Chemin accompagné — projets complexes
               </p>
@@ -471,7 +601,7 @@ export default function Page() {
       </section>
 
       {/* ─────────── PROTOCOLE DUO ─────────── */}
-      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-28">
+      <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="mb-10 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
@@ -531,7 +661,7 @@ export default function Page() {
       </section>
 
       {/* ─────────── CTA FINAL ─────────── */}
-      <section className="bg-zinc-950 px-6 py-24 md:px-10 md:py-40">
+      <section className="bg-zinc-900 px-6 py-24 md:px-10 md:py-40">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
             Vous avez vu le détail.{" "}
