@@ -660,8 +660,144 @@ export default function Page() {
         </div>
       </section>
 
+      {/* ─────────── CÔTÉ BACK OFFICE ─────────── */}
+      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-14 max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Côté back office
+            </p>
+            <h2 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
+              Vous gardez la main.{" "}
+              <span className="text-amber-400">
+                Sans ligne de code.
+              </span>
+            </h2>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+              AxiSolver vit sur votre site, mais vous le pilotez
+              depuis un tableau de bord dédié. Paramétrage, routage
+              des alertes, consultation des conversations, rapports —
+              tout se fait à la souris, par vous ou par qui vous
+              désignez.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-2">
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Un tableau de bord unique pour toute l&apos;entreprise
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Vous accédez à votre back office AxiSolver depuis
+                n&apos;importe quel navigateur. Vue d&apos;ensemble
+                du mois en cours, visiteurs reçus, tickets ouverts,
+                tickets fermés, interlocuteurs sollicités. Un seul
+                endroit pour tout voir.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Paramétrage sans ligne de code
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Le ton, les options d&apos;accueil cliquables, les
+                sujets sensibles à éviter, la voix, les langues
+                acceptées — tout se règle depuis une interface
+                visuelle. Les modifications sont actives
+                immédiatement sur votre site, sans redéploiement.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Vous définissez votre équipe et leurs périmètres
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Ajoutez vos collaborateurs, précisez le périmètre de
+                chacun (commercial, support, SAV, direction,
+                comptabilité). AxiSolver connaît votre
+                organigramme et sait vers qui pousser chaque dossier.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Routage intelligent des alertes
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Chaque ticket est classé par thème (devis, SAV,
+                technique, administratif, carrière…), par urgence
+                (froid / tiède / chaud / urgent) et dirigé vers le
+                bon interlocuteur. Un visiteur furieux d&apos;un bug
+                de livraison ? Alerte immédiate à votre
+                responsable logistique. Un prospect chaud sur un gros
+                projet ? Mail au commercial dédié avec le dossier
+                complet.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Journal consultable de chaque conversation
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Toutes les conversations sont archivées, consultables
+                par mot-clé, par thème, par date ou par
+                interlocuteur. Vous pouvez relire une interaction
+                six mois après, voir ce qui a été dit et promis,
+                comprendre pourquoi un lead n&apos;a pas été
+                converti.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Modes de notification au choix
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Email, SMS, notification push, appel vocal — à vous
+                de dire comment chacun de vos collaborateurs
+                souhaite être alerté selon le niveau d&apos;urgence.
+                Un responsable commercial reçoit un SMS pour un lead
+                chaud, un mail pour un froid, une alerte
+                hebdomadaire pour les tièdes.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Rapports hebdomadaires et mensuels téléchargeables
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                Chaque semaine, chaque mois, votre rapport
+                d&apos;activité est généré automatiquement : volume
+                de conversations, taux de résolution autonome,
+                tickets transmis, résultats de la veille SEO, alertes
+                sécurité, lecture Analytics. Format PDF prêt à
+                partager en comité.
+              </p>
+            </article>
+
+            <article className="border-t border-zinc-800 pt-6">
+              <h3 className="text-xl font-semibold tracking-tight text-white">
+                Intégration avec vos outils existants
+              </h3>
+              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                CRM, logiciel de ticketing, boîte mail partagée,
+                calendrier — AxiSolver se branche sur ce qui existe
+                déjà chez vous. Pas besoin de migrer vos équipes
+                vers un nouvel outil. Les tickets qualifiés
+                atterrissent là où vos collaborateurs ont déjà
+                leurs habitudes de travail.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────── CTA FINAL ─────────── */}
-      <section className="bg-zinc-900 px-6 py-24 md:px-10 md:py-40">
+      <section className="bg-zinc-950 px-6 py-24 md:px-10 md:py-40">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
             Vous avez vu le détail.{" "}
