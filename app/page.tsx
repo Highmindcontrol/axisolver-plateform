@@ -449,15 +449,15 @@ export default function Page() {
             </span>
           </h2>
           <p className="mx-auto mt-8 max-w-xl text-base leading-relaxed text-zinc-300 md:text-lg">
-            Rencontrez AXI sur AxiHub. Il décompose les packs, répond à
-            vos questions, prend votre souscription en direct.
+            Choisissez votre formule, ajustez le volume de visiteurs
+            de votre site et obtenez votre tarif en direct.
           </p>
           <div className="mt-12">
             <a
-              href="https://axihub.live"
+              href="/parametrage-et-tarifs"
               className="inline-flex items-center gap-3 rounded-full bg-amber-400 px-8 py-4 text-base font-semibold uppercase tracking-[0.14em] text-zinc-950 shadow-lg shadow-amber-400/20 transition-all hover:bg-amber-300 hover:shadow-amber-400/50 md:text-lg"
             >
-              Composez votre équipe sur AxiHub
+              Paramétrer votre AxiSolver
               <span aria-hidden>→</span>
             </a>
           </div>
