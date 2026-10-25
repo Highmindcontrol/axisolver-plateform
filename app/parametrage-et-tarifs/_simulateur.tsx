@@ -2,13 +2,15 @@
 
 import { useMemo, useState } from "react";
 import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
+import { SECTEURS, type SlugSecteur } from "@/lib/axi-solver/secteurs";
 
 /**
  * Simulateur tarifaire AxiSolver — client component.
  *
- * Hypothèses modèle (à valider avec François) :
- *   - 2% des visiteurs engagent une conversation
- *   - 1 conversation ≈ 3 min d'échange
+ * Modèle :
+ *   - Taux d'utilisation (visiteurs qui engagent une conversation)
+ *     calibré selon le type d'activité du site (voir lib/secteurs.ts
+ *     pour les sources). Peut être ajusté manuellement.
  *   - Text Only : pas de TTS → coût technique faible
  *   - Classique : TTS Azure (voix neuronale) → coût moyen
  *   - Premium : TTS ElevenLabs (voix bluffante) → coût élevé
@@ -78,10 +80,12 @@ const FORMULES: Formule[] = [
   },
 ];
 
-const TAUX_CONVERSATION = 0.02; // 2% des visiteurs engagent une conversation
-
-function calculerPrix(formule: Formule, visiteursMois: number): number {
-  const conversationsMois = Math.ceil(visiteursMois * TAUX_CONVERSATION);
+function calculerPrix(
+  formule: Formule,
+  visiteursMois: number,
+  tauxPct: number,
+): number {
+  const conversationsMois = Math.ceil(visiteursMois * (tauxPct / 100));
   const sup = Math.max(0, conversationsMois - formule.conversationsIncluses);
   const prix = formule.abonnementBase + sup * formule.prixConversationSupp;
   return Math.round(prix);
@@ -103,18 +107,41 @@ function formaterVisiteurs(n: number): string {
 export function Simulateur() {
   const [visiteurs, setVisiteurs] = useState(5000);
   const [choix, setChoix] = useState<SlugFormule>("classique");
+  const [secteurSlug, setSecteurSlug] = useState<SlugSecteur>("ecommerce");
+
+  const secteur = useMemo(
+    () =>
+      SECTEURS.find((s) => s.slug === secteurSlug) ?? SECTEURS[0],
+    [secteurSlug],
+  );
+
+  // Taux ajustable manuellement, initialisé sur la valeur typique
+  // du secteur. Resynchronisé quand le secteur change.
+  const [tauxPct, setTauxPct] = useState(secteur.tauxUtilisation);
+  const [tauxManuel, setTauxManuel] = useState(false);
+
+  // Si l'utilisateur change de secteur, on remet le taux par défaut
+  // du secteur SAUF s'il a explicitement bougé le taux.
+  function changerSecteur(slug: SlugSecteur) {
+    setSecteurSlug(slug);
+    const sec = SECTEURS.find((s) => s.slug === slug);
+    if (sec) {
+      setTauxPct(sec.tauxUtilisation);
+      setTauxManuel(false);
+    }
+  }
 
   const conversationsEstimees = useMemo(
-    () => Math.ceil(visiteurs * TAUX_CONVERSATION),
-    [visiteurs],
+    () => Math.ceil(visiteurs * (tauxPct / 100)),
+    [visiteurs, tauxPct],
   );
 
   const prixParFormule = useMemo(
     () =>
       Object.fromEntries(
-        FORMULES.map((f) => [f.slug, calculerPrix(f, visiteurs)]),
+        FORMULES.map((f) => [f.slug, calculerPrix(f, visiteurs, tauxPct)]),
       ) as Record<SlugFormule, number>,
-    [visiteurs],
+    [visiteurs, tauxPct],
   );
 
   return (
@@ -135,17 +162,71 @@ export function Simulateur() {
           </p>
         </div>
 
-        {/* ─── Potard volumétrie ─── */}
+        {/* ─── Type d'activité ─── */}
         <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 md:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+            Votre type d&apos;activité
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400 md:max-w-xl">
+            Chaque activité a son propre taux d&apos;utilisation
+            typique. Choisissez celle qui correspond le mieux —
+            AxiSolver pré-remplira le taux moyen observé dans
+            l&apos;industrie pour ce secteur.
+          </p>
+
+          <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {SECTEURS.map((s) => {
+              const estSelectionne = secteurSlug === s.slug;
+              return (
+                <button
+                  key={s.slug}
+                  type="button"
+                  onClick={() => changerSecteur(s.slug)}
+                  className={`rounded-xl border px-4 py-3 text-left text-sm transition-all ${
+                    estSelectionne
+                      ? "border-amber-400 bg-amber-400/10 text-white"
+                      : "border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-amber-400/40 hover:bg-zinc-900"
+                  }`}
+                  aria-pressed={estSelectionne}
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="font-medium">{s.nom}</span>
+                    <span
+                      className={`font-mono text-xs ${
+                        estSelectionne ? "text-amber-300" : "text-zinc-500"
+                      }`}
+                    >
+                      ~{s.tauxUtilisation}%
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="mt-5 rounded-lg border border-zinc-800 bg-zinc-950/40 px-4 py-3 text-xs leading-relaxed text-zinc-400">
+            {secteur.description}{" "}
+            <span className="text-zinc-300">
+              Fourchette typique observée : {secteur.fourchette[0]}%
+              à {secteur.fourchette[1]}%.
+            </span>
+          </p>
+        </div>
+
+        {/* ─── Potard volumétrie ─── */}
+        <div className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 md:p-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
                 Volume de visiteurs
               </p>
               <p className="mt-2 text-sm leading-relaxed text-zinc-400 md:max-w-md">
-                Combien de visiteurs mensuels pour votre site ? On
-                estime qu&apos;environ 2 % engagent une conversation
-                avec AxiSolver.
+                Combien de visiteurs mensuels pour votre site ?
+                Avec le secteur{" "}
+                <span className="text-white">« {secteur.nom} »</span>,
+                on estime qu&apos;environ{" "}
+                <span className="text-white">{tauxPct}%</span>{" "}
+                engagent une conversation.
               </p>
             </div>
             <div className="text-left md:text-right">
@@ -172,6 +253,40 @@ export function Simulateur() {
             <div className="mt-2 flex justify-between text-[11px] uppercase tracking-widest text-zinc-500">
               <span>100</span>
               <span>50 000</span>
+            </div>
+          </div>
+
+          {/* Ajustement manuel du taux d'utilisation */}
+          <div className="mt-8 border-t border-zinc-800 pt-6">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Taux d&apos;utilisation{" "}
+                {tauxManuel && (
+                  <span className="normal-case tracking-normal text-zinc-500">
+                    (ajusté manuellement)
+                  </span>
+                )}
+              </p>
+              <p className="font-mono text-lg font-semibold text-white">
+                {tauxPct}%
+              </p>
+            </div>
+            <input
+              type="range"
+              min={0.1}
+              max={30}
+              step={0.1}
+              value={tauxPct}
+              onChange={(e) => {
+                setTauxPct(Number(e.target.value));
+                setTauxManuel(true);
+              }}
+              className="mt-3 w-full accent-amber-400"
+              aria-label="Taux d'utilisation en pourcentage"
+            />
+            <div className="mt-2 flex justify-between text-[11px] uppercase tracking-widest text-zinc-500">
+              <span>0,1%</span>
+              <span>30%</span>
             </div>
           </div>
 
@@ -284,6 +399,117 @@ export function Simulateur() {
             </div>
           </div>
         </div>
+
+        {/* ─── Sources des taux d'utilisation ─── */}
+        <aside className="mt-14 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 md:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+            D&apos;où viennent nos chiffres ?
+          </p>
+          <p className="mt-4 text-sm leading-relaxed text-zinc-300 md:text-base">
+            Les taux d&apos;utilisation proposés par activité sont
+            calibrés à partir de plusieurs études publiques et
+            rapports de benchmark sur l&apos;usage réel des chatbots
+            et widgets de chat sur les sites web :
+          </p>
+          <ul className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+            <li className="flex items-start gap-3">
+              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+              <span>
+                <a
+                  href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-amber-300 hover:text-amber-200"
+                >
+                  Smartsupp
+                </a>{" "}
+                — « Analysing 5 billion website visits : how ecommerce
+                customers use chat » (2024). Analyse de 5 milliards de
+                visites : 0,84 % des visiteurs engagent une
+                conversation avec un widget réactif typique, base
+                servant de plancher pour les sites éditoriaux et
+                vitrines.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+              <span>
+                <a
+                  href="https://wisepops.com/blog/state-of-visitor-engagement-on-shopify-stores"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-amber-300 hover:text-amber-200"
+                >
+                  Wisepops
+                </a>{" "}
+                — « The State of Visitor Engagement on Shopify Stores ».
+                54 % des boutiques Shopify sont équipées en 2026 (vs
+                24 % en 2018). Fourchette e-commerce 1,5 % à 5 %
+                d&apos;engagement selon le panier moyen et le type de
+                produit.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+              <span>
+                <a
+                  href="https://www.tidio.com/blog/live-chat-statistics/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-amber-300 hover:text-amber-200"
+                >
+                  Tidio
+                </a>{" "}
+                — « Live Chat Statistics » (2024-2025). Les visiteurs
+                qui engagent une conversation sont 2,8 × plus
+                susceptibles de convertir et dépensent 60 % de plus
+                que les non-utilisateurs. Lift de conversion moyen
+                : +20 %.
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+              <span>
+                <a
+                  href="https://www.chatbot.com/blog/chatbot-statistics/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-amber-300 hover:text-amber-200"
+                >
+                  chatbot.com
+                </a>{" "}
+                — « Key Chatbot Statistics » (2026). Widgets réactifs
+                classiques 2-5 % d&apos;engagement, widgets proactifs
+                triggered 8-15 %, pics à 35-40 % sur B2B SaaS avec
+                prompt pertinent (données Drift).
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+              <span>
+                <a
+                  href="https://www.zoom.com/en/blog/chatbot-statistics/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-amber-300 hover:text-amber-200"
+                >
+                  Zoom — 65+ chatbot statistics
+                </a>{" "}
+                (2025). Scénarios post-achat et support client :
+                15 % à 30 % des visiteurs engagent une conversation
+                car ils arrivent avec un besoin concret.
+              </span>
+            </li>
+          </ul>
+          <p className="mt-5 text-xs leading-relaxed text-zinc-500">
+            AxiSolver, par son modèle d&apos;ouverture modale
+            plein écran et sa promesse « AXI qui résout vraiment »,
+            se positionne en haut de fourchette vs un chatbot
+            classique. Les chiffres par défaut représentent une
+            estimation prudente — l&apos;usage réel se mesurera
+            avec les premiers mois de production.
+          </p>
+        </aside>
 
         <p className="mt-10 text-center text-xs text-zinc-500">
           Les tarifs présentés sont indicatifs et HT. Devis
