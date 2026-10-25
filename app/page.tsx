@@ -9,7 +9,7 @@ import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
 const fraunces = Fraunces({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+  style: ["normal"],
 });
 
 type IconProps = { className?: string };
@@ -242,39 +242,15 @@ export default function Page() {
         />
 
         <div className="relative z-10 mx-auto flex min-h-[640px] max-w-[1600px] flex-col justify-between px-6 py-10 md:min-h-[820px] md:px-16 md:py-16 lg:px-24">
-          {/* Logo + baseline — en haut, légèrement décalé de la gauche */}
-          <div className="max-w-2xl pl-6 pt-6 md:pl-20 md:pt-12">
-            <Image
-              src="/logo-axisolver.png"
-              alt="AxiSolver"
-              width={2172}
-              height={724}
-              priority
-              className="h-auto w-72 drop-shadow-[0_8px_24px_rgba(0,0,0,0.7)] md:w-[26rem] lg:w-[32rem]"
-            />
-            <div className="mt-6 flex items-center gap-4 md:mt-8">
-              <span
-                aria-hidden
-                className="h-px w-12 bg-amber-400/70 md:w-16"
-              />
-              <p className="text-sm font-medium uppercase leading-tight tracking-[0.24em] text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] md:text-base">
-                <span className="text-amber-400">Game Changer</span>
-                <span className="mx-3 text-white/40">·</span>
-                pour votre site web
-              </p>
-            </div>
+          {/* Accroche en haut à gauche — à la place du logo */}
+          <div className="max-w-3xl pl-2 pt-2 md:pl-8 md:pt-6">
+            <h1 className="text-3xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)] md:text-5xl lg:text-6xl">
+              Votre site internet va prendre{" "}
+              <span className="text-amber-400">un coup de jeune</span>…
+            </h1>
           </div>
 
-          {/* Signature publicitaire en bas à droite */}
-          <div className="self-end text-right">
-            <p
-              className={`${fraunces.className} text-3xl font-semibold italic leading-[0.95] tracking-tight text-amber-400 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] md:text-5xl lg:text-6xl`}
-            >
-              Aucun équivalent
-              <br />
-              sur le marché.
-            </p>
-          </div>
+          <div aria-hidden />
         </div>
       </section>
 
@@ -289,7 +265,7 @@ export default function Page() {
               className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl`}
             >
               Un seul AxiSolver.{" "}
-              <span className="italic text-amber-400">
+              <span className="text-amber-400">
                 Six territoires simultanés.
               </span>
             </h2>
@@ -375,7 +351,7 @@ export default function Page() {
           {/* Pivot émotionnel : question d'invite + CTA central */}
           <div className="mt-20 flex flex-col items-center gap-10 text-center">
             <p
-              className={`${fraunces.className} max-w-2xl text-balance text-2xl font-medium italic leading-snug text-amber-300 md:text-3xl lg:text-4xl`}
+              className={`${fraunces.className} max-w-2xl text-balance text-2xl font-medium leading-snug text-amber-300 md:text-3xl lg:text-4xl`}
             >
               Et si vous me laissiez vous expliquer tout ça
               moi-même&nbsp;?
@@ -399,7 +375,7 @@ export default function Page() {
               className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl`}
             >
               Ce qui n&apos;existe{" "}
-              <span className="italic text-amber-400">
+              <span className="text-amber-400">
                 nulle part ailleurs.
               </span>
             </h2>
@@ -435,7 +411,7 @@ export default function Page() {
               className={`${fraunces.className} mt-5 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-5xl`}
             >
               Chatbot classique{" "}
-              <span className="italic text-amber-400">vs</span> AxiSolver
+              <span className="text-amber-400">vs</span> AxiSolver
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-400">
               Les chatbots filtrent et bloquent. AxiSolver résout, veille
@@ -478,7 +454,7 @@ export default function Page() {
             className={`${fraunces.className} text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl`}
           >
             Prêt à transformer{" "}
-            <span className="italic text-amber-400">
+            <span className="text-amber-400">
               votre présence en ligne&nbsp;?
             </span>
           </h2>
