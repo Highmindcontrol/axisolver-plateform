@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Simulateur } from "./_simulateur";
 import { ChatWidget } from "@/components/chat/chat-widget";
+import { SiteHeader } from "@/components/site/header";
 
 export const metadata: Metadata = {
   title: "Paramétrer votre AxiSolver — Tarifs transparents",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
+      <SiteHeader />
       {/* ─────────── HERO ─────────── */}
       <section className="relative overflow-hidden border-b border-zinc-900 bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">

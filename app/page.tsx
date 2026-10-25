@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
+import { SiteHeader } from "@/components/site/header";
 
 type IconProps = { className?: string };
 
@@ -221,6 +222,7 @@ const FEATURES_SIGNATURE: Array<{
 export default function Page() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
+      <SiteHeader />
       {/* ─────────── HERO épuré ─────────── */}
       <section
         className="relative overflow-hidden bg-cover bg-center bg-no-repeat"
