@@ -531,12 +531,13 @@ export default function Page() {
                 Chemin recommandé — 80 % des cas
               </p>
               <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
-                Auto-déploiement via AxiHub
+                Souscription directe sur axisolver.app
               </h3>
               <ol className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-300 md:text-base">
                 <li>
                   <span className="font-mono text-amber-400">1.</span>{" "}
-                  Souscription en direct avec AXI sur AxiHub
+                  Choix de votre formule et volumétrie sur la page
+                  paramétrage et tarifs
                 </li>
                 <li>
                   <span className="font-mono text-amber-400">2.</span>{" "}
@@ -796,8 +797,42 @@ export default function Page() {
         </div>
       </section>
 
+      {/* ─────────── FAMILLE AXI ─────────── */}
+      <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-4xl">
+          <aside className="rounded-2xl border-l-4 border-amber-400 border-y border-r border-zinc-800 bg-zinc-900/60 p-8 md:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Famille AXI
+            </p>
+            <h2 className="mt-5 text-2xl font-semibold tracking-tight text-white md:text-3xl">
+              AxiSolver fait partie de la famille des applications{" "}
+              <span className="text-amber-400">AXI</span>.
+            </h2>
+            <p className="mt-5 text-base leading-relaxed text-zinc-200 md:text-lg">
+              AxiSolver se vend et se gère directement ici, sur son
+              propre site. Vous souscrivez, vous paramétrez, vous
+              pilotez. Point.
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-zinc-300 md:text-lg">
+              On le retrouve également sur{" "}
+              <a
+                href="https://axihub.live"
+                className="font-semibold text-amber-300 underline-offset-4 hover:underline"
+              >
+                AxiHub
+              </a>
+              , le hub de l&apos;écosystème AXI, pour les entreprises
+              qui veulent l&apos;écosystème complet — AxiSolver y
+              apparaît alors en Duo avec un AXI maison, un AXI
+              commercial, un AXI assistant, et toutes les autres
+              briques d&apos;intelligence disponibles à la carte.
+            </p>
+          </aside>
+        </div>
+      </section>
+
       {/* ─────────── CTA FINAL ─────────── */}
-      <section className="bg-zinc-950 px-6 py-24 md:px-10 md:py-40">
+      <section className="bg-zinc-900 px-6 py-24 md:px-10 md:py-40">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
             Vous avez vu le détail.{" "}
