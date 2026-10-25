@@ -27,6 +27,12 @@ export function SiteHeader() {
 
         <nav className="flex items-center gap-1 md:gap-2">
           <Link
+            href="/presentation-detaillee"
+            className="hidden rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:inline-block md:text-base"
+          >
+            Présentation détaillée
+          </Link>
+          <Link
             href="/parametrage-et-tarifs"
             className="rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:text-base"
           >
