@@ -538,7 +538,7 @@ export default function Page() {
       </footer>
 
       {/* Widget AxiSolver — pastille flottante + modal centré au clic. */}
-      <ChatWidget />
+      <ChatWidget masquerBoutonFlottant />
     </main>
   );
 }

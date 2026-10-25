@@ -29,11 +29,14 @@ export function BoutonPastilleAxi({
 
   return (
     <div className={`relative inline-block ${className}`}>
-      {/* Halo pulsé doré derrière la pastille — palette site amber-400 */}
+      {/* Halo pulsé doré derrière la pastille — anneaux étendus
+          `pulseAxiLarge` (48/80/120 px) proportionnels à la grosse
+          pastille centrale, cohérents avec la petite pastille du
+          BoutonFlottant qui utilise pulseAxi (24/42/60 px). */}
       <span
         aria-hidden
         style={style}
-        className="pointer-events-none absolute inset-0 -z-10 animate-pulseAxi rounded-full bg-amber-400/35"
+        className="pointer-events-none absolute inset-0 -z-10 animate-pulseAxiLarge rounded-full bg-amber-400/35"
       />
       <button
         type="button"

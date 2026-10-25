@@ -190,6 +190,28 @@ body {
   animation: pulseAxi 2.4s ease-out infinite;
 }
 
+/* Même pulsation mais avec des anneaux plus larges — pour la grosse
+   pastille centrale des sections éditoriales (home, pages produit),
+   diamètre 160px+ et scale 1.4. Les anneaux de 24/42/60 px passent
+   à 48/80/120 px pour rester proportionnellement visibles. */
+@keyframes pulseAxiLarge {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(251, 191, 36, 0.6),
+      0 0 0 0 rgba(251, 191, 36, 0.35),
+      0 0 0 0 rgba(251, 191, 36, 0.18);
+  }
+  100% {
+    box-shadow:
+      0 0 0 48px rgba(251, 191, 36, 0),
+      0 0 0 80px rgba(251, 191, 36, 0),
+      0 0 0 120px rgba(251, 191, 36, 0);
+  }
+}
+.animate-pulseAxiLarge {
+  animation: pulseAxiLarge 2.6s ease-out infinite;
+}
+
 /* Fade-in doux du chat central à l'ouverture (joué AVANT les ailettes) */
 @keyframes chatFadeIn {
   0% {

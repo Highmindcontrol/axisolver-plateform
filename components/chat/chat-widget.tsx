@@ -41,7 +41,15 @@ type VueMobile = "actions" | "chat" | "fiche";
 const CONTENU_ACCUEIL =
   "Bonjour, bienvenue. Que puis-je faire pour vous ? Vous pouvez me parler, m'écrire ou voir si une réponse présentée à gauche peut vous convenir.";
 
-export function ChatWidget() {
+export function ChatWidget({
+  masquerBoutonFlottant = false,
+}: {
+  /** Masque le bouton flottant en bas à droite — utile sur les pages
+   *  qui ont déjà un gros CTA pastille (ex. home), pour éviter le
+   *  doublon visuel. Le widget reste ouvrable via le CustomEvent
+   *  `axi:ouvrir` dispatché par la pastille. */
+  masquerBoutonFlottant?: boolean;
+} = {}) {
   const [widgetOuvert, setWidgetOuvert] = useState(false);
   // Phase d'ouverture séquencée :
   // 1. "chat" → chat central fade-in seul (0-900ms)
@@ -798,11 +806,20 @@ export function ChatWidget() {
   // message d'accueil dans le fil et lance la lecture TTS. Le clic
   // compte comme interaction utilisateur → l'autoplay audio est
   // autorisé par le navigateur.
-  function demarrerConversation() {
+  //
+  // Si une option pré-rédigée est cliquée (ex. « Je trouve le produit
+  // génial »), elle est passée en `premierMessage` et envoyée comme
+  // premier message utilisateur dans la foulée du greeting.
+  function demarrerConversation(premierMessage?: string) {
     setConversationDemarree(true);
     const idAccueil = crypto.randomUUID();
     setMessages([{ id: idAccueil, role: "assistant", content: CONTENU_ACCUEIL }]);
     envoyerPhraseTTS(CONTENU_ACCUEIL);
+    if (premierMessage && premierMessage.trim()) {
+      // Léger délai pour laisser le greeting s'afficher avant l'envoi
+      // du message utilisateur — fluidité conversationnelle.
+      setTimeout(() => envoyerTexte(premierMessage.trim()), 400);
+    }
   }
 
   // Pour le badge de notification mobile sur les ailettes
@@ -860,8 +877,12 @@ export function ChatWidget() {
   }, [widgetOuvert]);
 
   // Si le widget n'est pas encore ouvert, on affiche uniquement la
-  // pastille flottante en bas à droite.
+  // pastille flottante en bas à droite — sauf si la page a demandé
+  // à la masquer (ex. home avec grosse pastille centrale, pour éviter
+  // le doublon visuel). Le widget reste ouvrable via l'événement
+  // `axi:ouvrir` dispatché par n'importe quel autre bouton.
   if (!widgetOuvert) {
+    if (masquerBoutonFlottant) return null;
     return (
       <BoutonFlottant
         onOuvrir={() => {
@@ -1367,39 +1388,73 @@ function OptionsAccueil({
 // Écran de démarrage — bouton central avant la 1re prise de parole    //
 // ================================================================== //
 
-function EcranDemarrage({ onDemarrer }: { onDemarrer: () => void }) {
+const OPTIONS_DEMARRAGE: string[] = [
+  "Je trouve le produit génial, je veux en savoir plus",
+  "Ça paraît intéressant, pourquoi pas",
+  "J'aimerais des infos complémentaires",
+  "Je veux dynamiser mon site web",
+  "Je veux améliorer mon SEO",
+];
+
+function EcranDemarrage({
+  onDemarrer,
+}: {
+  onDemarrer: (premierMessage?: string) => void;
+}) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-10 px-6 text-center">
-      <div className="animate-mascotte flex flex-col items-center gap-4">
-        <Image
-          src="/axi-mascotte-accueil.png"
-          alt="AxiSolver"
-          width={420}
-          height={420}
-          priority
-          className="h-auto w-40 md:w-48"
-        />
-        <h2 className="text-2xl font-semibold tracking-tight text-white md:text-3xl">
-          AxiSolver
+    <div className="flex h-full flex-col items-center justify-center gap-10 overflow-y-auto px-6 py-10 text-center">
+      <div className="w-full max-w-xl">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+          Dites-moi ce qui vous amène
+        </p>
+        <h2 className="mt-4 text-2xl font-semibold leading-tight tracking-tight text-white md:text-3xl">
+          Choisissez votre entrée en matière,
+          <br />
+          <span className="text-amber-400">
+            ou démarrez une conversation libre.
+          </span>
         </h2>
       </div>
 
-      <button
-        type="button"
-        onClick={onDemarrer}
-        className="relative inline-flex items-center gap-3 rounded-full bg-[#0068FC] px-10 py-4 text-base font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:bg-[#0051C7] md:text-lg"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="h-5 w-5"
-          aria-hidden
+      {/* 5 options cliquables qui lancent la conversation avec un
+          premier message utilisateur pré-rédigé. */}
+      <div className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+        {OPTIONS_DEMARRAGE.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onDemarrer(option)}
+            className="rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm font-medium text-white transition-all hover:border-amber-400/60 hover:bg-amber-400/10"
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col items-center gap-3 md:flex-row md:gap-5">
+        <button
+          type="button"
+          onClick={() => onDemarrer()}
+          className="relative inline-flex items-center gap-3 rounded-full bg-amber-400 px-10 py-4 text-base font-semibold text-zinc-950 shadow-lg shadow-amber-400/30 transition-all hover:scale-[1.02] hover:bg-amber-300 md:text-lg"
         >
-          <path d="M8 5v14l11-7z" />
-        </svg>
-        Démarrer la conversation
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="h-5 w-5"
+            aria-hidden
+          >
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          Démarrer la conversation
+        </button>
+        <span className="flex items-center gap-2 text-xl text-amber-300 [font-family:var(--font-manuscrit),cursive] md:text-2xl">
+          <span aria-hidden className="hidden md:inline">
+            ←
+          </span>
+          ou alors cliquez ici
+        </span>
+      </div>
     </div>
   );
 }
