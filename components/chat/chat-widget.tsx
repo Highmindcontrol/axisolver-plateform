@@ -924,7 +924,7 @@ export function ChatWidget() {
           <div className="flex items-center justify-end gap-1 px-2 py-1">
             <button
               onClick={basculerLectureVocale}
-              className="hidden rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10 md:inline-flex"
+              className="hidden rounded-full border border-white/15 bg-white/10 p-2 text-white transition-colors hover:bg-white/20 md:inline-flex"
               aria-label={
                 lectureVocaleActive
                   ? "Désactiver la lecture vocale"
@@ -966,7 +966,7 @@ export function ChatWidget() {
             <div className="flex gap-1 md:hidden">
               <button
                 onClick={() => setVueMobile("actions")}
-                className="relative rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10"
+                className="relative rounded-full border border-white/15 bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
                 aria-label="Voir la zone d'action"
               >
                 <svg
@@ -988,7 +988,7 @@ export function ChatWidget() {
               </button>
               <button
                 onClick={() => setVueMobile("fiche")}
-                className="relative rounded-full border border-white/15 bg-white/5 p-2 text-white backdrop-blur-sm transition-colors hover:bg-white/10"
+                className="relative rounded-full border border-white/15 bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
                 aria-label="Voir les infos visiteur"
               >
                 <svg
@@ -1083,7 +1083,7 @@ export function ChatWidget() {
                 disabled={thinking}
                 autoFocus
                 placeholder="Répondez à AxiSolver (texte ou micro)…"
-                className="flex-1 rounded-2xl border border-white/15 bg-slate-900/70 px-4 py-2.5 text-sm text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white/40 focus:bg-slate-900/85 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
+                className="flex-1 rounded-2xl border border-white/15 bg-slate-900/85 px-4 py-2.5 text-sm text-white placeholder:text-white/50 focus:border-white/40 focus:bg-slate-900/95 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50"
               />
               <button
                 type="submit"
@@ -1259,7 +1259,7 @@ function ModalOverlay({
         type="button"
         aria-label="Fermer AxiSolver"
         onClick={onFermer}
-        className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/75"
       />
 
       {/* Card centrée — fond aurore boréale (pattern AxiHub /axi).
@@ -1277,7 +1277,7 @@ function ModalOverlay({
           type="button"
           onClick={onFermer}
           aria-label="Fermer AxiSolver"
-          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-sm transition hover:bg-white/20"
+          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/15 text-white transition hover:bg-white/25"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -1322,7 +1322,7 @@ function OptionsAccueil({
           key={o.id}
           type="button"
           onClick={() => onClique(o.libelle)}
-          className="animate-fadeIn w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-left text-sm leading-relaxed text-white backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/15"
+          className="animate-fadeIn w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-left text-sm leading-relaxed text-white transition-all hover:border-white/30 hover:bg-white/20"
         >
           {o.libelle}
         </button>
