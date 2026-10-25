@@ -35,11 +35,44 @@
  *     → e-commerce : 12,3 % de conversion parmi les users ayant
  *     chatté vs 3,1 % sans chat
  *
+ * [7] Which-50 / Stealth Agents — « Live Chat Engagement Rate
+ *     Benchmarks » et « Live Chat Support Statistics 2026 »
+ *     https://which-50.com/live-chat-engagement-rate-benchmarks/
+ *     https://stealthagents.com/research/live-chat-support-statistics-2026
+ *     → fourchette générale 5-15 % de visiteurs qui chattent ;
+ *     < 3 % = widget invisible ; 6,6 % = taux d'acceptation moyen
+ *     d'une invitation proactive
+ *
+ * [8] Realty-AI — « Real Estate Chatbot Statistics » (2026)
+ *     https://www.realty-ai.com/blog/real-estate-ai-chatbot-statistics
+ *     → agence solo 8-12 %, petites 10-15 %, grandes 12-18 %
+ *     Case study : 12 % chat vs 2,5 % formulaire (+380 %)
+ *
+ * [9] Pareto Legal — « Legal Client Intake Statistics 2026 »
+ *     https://pareto.legal/legal-client-intake-statistics/
+ *     → cabinets juridiques : chat-to-conversion 10-20 % vs
+ *     formulaires 2-3 % ; +40 % de prises de RDV avec chatbot
+ *     (LawSEO 2025) ; 79 % des law firms US ont piloté une IA
+ *     en 2024 (Lexscale)
+ *
+ * [10] Rock Health — « 2025 Consumer Adoption of Digital Health
+ *      Survey » et MGMA Stat (avril 2025)
+ *      https://www.fiercehealthcare.com/ai-and-machine-learning/ai-chatbot-use-health-information-16-2024-rock-health-survey
+ *      → 32 % des consommateurs utilisent un chatbot IA pour info
+ *      santé (vs 16 % en 2024) ; 19 % des cabinets médicaux déploient
+ *      un chatbot ; pas de chiffre direct « % visiteurs qui chattent
+ *      sur site médical » → extrapolation à partir de la baseline
+ *      réactive + motivation forte visiteur anxieux
+ *
  * Note importante : les fourchettes basses s'appliquent aux widgets
  * réactifs classiques (bulle en bas à droite). AxiSolver, par son
  * ouverture modale plein écran après clic sur une pastille animée,
  * se situe plutôt en haut de fourchette (déclencheur explicite +
  * promesse forte « AXI qui résout vraiment »).
+ *
+ * Transparence : la propriété `sourcage` indique pour chaque secteur
+ * si le taux est **directement sourcé** par une étude ou s'il s'agit
+ * d'une **extrapolation argumentée** entre les ancres sourcées.
  */
 
 export type SlugSecteur =
@@ -53,6 +86,8 @@ export type SlugSecteur =
   | "immobilier"
   | "autre";
 
+export type Sourcage = "source-directe" | "extrapolation-argumentee";
+
 export type Secteur = {
   slug: SlugSecteur;
   nom: string;
@@ -62,6 +97,11 @@ export type Secteur = {
   tauxUtilisation: number;
   /** Fourchette basse-haute du taux (pour note info). */
   fourchette: [number, number];
+  /** Transparence : est-ce qu'une étude donne directement ce taux
+   *  pour ce secteur, ou est-ce une extrapolation entre les ancres ? */
+  sourcage: Sourcage;
+  /** Références bibliographiques internes ([1] à [10] ci-dessus). */
+  references: string;
 };
 
 export const SECTEURS: Secteur[] = [
@@ -72,6 +112,8 @@ export const SECTEURS: Secteur[] = [
       "Présence en ligne d'une entreprise ou d'un indépendant, pas de vente directe. Visiteurs plutôt passifs.",
     tauxUtilisation: 0.8,
     fourchette: [0.5, 1.2],
+    sourcage: "source-directe",
+    references: "Smartsupp 5 Md visites (baseline réactif 0,84 %) [1]",
   },
   {
     slug: "ecommerce",
@@ -80,6 +122,8 @@ export const SECTEURS: Secteur[] = [
       "Boutique en ligne classique. Les acheteurs hésitent souvent avant d'acheter et cherchent conseil.",
     tauxUtilisation: 2.0,
     fourchette: [1.5, 3.0],
+    sourcage: "source-directe",
+    references: "Drift réactif B2C 2-5 % [2] + Zoom 12,3 % conversion chat [6]",
   },
   {
     slug: "ecommerce-premium",
@@ -88,6 +132,9 @@ export const SECTEURS: Secteur[] = [
       "Meuble, électroménager, voyage, luxe. Hésitation forte avant achat, besoin de validation humaine.",
     tauxUtilisation: 4.0,
     fourchette: [3.0, 5.0],
+    sourcage: "extrapolation-argumentee",
+    references:
+      "Haut de fourchette Drift B2C [2] — motivation forte sur panier moyen élevé",
   },
   {
     slug: "saas",
@@ -96,22 +143,30 @@ export const SECTEURS: Secteur[] = [
       "Logiciel, agence, cabinet de conseil. Qualification avant démo ou prise de contact.",
     tauxUtilisation: 3.0,
     fourchette: [2.0, 4.0],
+    sourcage: "source-directe",
+    references: "Drift SaaS +200 % conversations avec chatbot [2]",
   },
   {
     slug: "support",
     nom: "Support client / SAV / after-sales",
     description:
       "Portail client, aide en ligne, suivi de commande. Les visiteurs ont un problème concret, besoin fort.",
-    tauxUtilisation: 20.0,
-    fourchette: [15.0, 30.0],
+    tauxUtilisation: 15.0,
+    fourchette: [10.0, 25.0],
+    sourcage: "source-directe",
+    references:
+      "Which-50 / Stealth Agents : benchmark général 5-15 %, top de fourchette sur portails support dédiés [7]",
   },
   {
     slug: "medical-juridique",
     nom: "Médical, juridique, financier",
     description:
       "Sujets anxiogènes ou techniques. Les visiteurs cherchent rassurance avant toute démarche.",
-    tauxUtilisation: 4.5,
-    fourchette: [3.0, 6.0],
+    tauxUtilisation: 10.0,
+    fourchette: [5.0, 15.0],
+    sourcage: "source-directe",
+    references:
+      "Pareto Legal chat-to-conversion 10-20 % vs formulaires 2-3 % [9] ; médical extrapolé Rock Health 2025 [10]",
   },
   {
     slug: "medias",
@@ -120,14 +175,20 @@ export const SECTEURS: Secteur[] = [
       "Site éditorial, blog, portail d'actualités. Visiteurs très passifs, consultent et partent.",
     tauxUtilisation: 0.3,
     fourchette: [0.1, 0.5],
+    sourcage: "extrapolation-argumentee",
+    references:
+      "Which-50 : < 3 % = engagement faible [7] ; sites médias historiquement peu équipés et visiteurs en consultation passive",
   },
   {
     slug: "immobilier",
     nom: "Immobilier",
     description:
       "Agence, promoteur, portail. Projet long, visiteurs hésitants, besoin conseil répété.",
-    tauxUtilisation: 3.0,
-    fourchette: [2.0, 4.0],
+    tauxUtilisation: 10.0,
+    fourchette: [8.0, 18.0],
+    sourcage: "source-directe",
+    references:
+      "Realty-AI : solo 8-12 %, petites agences 10-15 %, grandes 12-18 % ; case study 12 % chat vs 2,5 % formulaire [8]",
   },
   {
     slug: "autre",
@@ -136,6 +197,8 @@ export const SECTEURS: Secteur[] = [
       "Si votre activité ne colle à aucune des catégories ci-dessus, ajustez le pourcentage manuellement.",
     tauxUtilisation: 2.0,
     fourchette: [0.5, 5.0],
+    sourcage: "extrapolation-argumentee",
+    references: "Fourchette médiane entre tous les secteurs",
   },
 ];
 

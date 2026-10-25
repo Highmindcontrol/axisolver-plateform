@@ -318,6 +318,21 @@ export function PanneauActions({
       );
     case "cloture":
       return <ClotureConversation onConfirme={onClotureConfirmee} />;
+    case "estimation_tarif":
+      return (
+        <PanneauEstimationTarif
+          visiteursMois={etat.elementActif.visiteursMois}
+          secteurSlug={etat.elementActif.secteurSlug}
+          usagePrincipal={etat.elementActif.usagePrincipal}
+          tailleEquipe={etat.elementActif.tailleEquipe}
+          formuleRecommandee={etat.elementActif.formuleRecommandee}
+          prixTextOnly={etat.elementActif.prixTextOnly}
+          prixClassique={etat.elementActif.prixClassique}
+          prixPremium={etat.elementActif.prixPremium}
+          tauxEffectif={etat.elementActif.tauxEffectif}
+          conversationsMois={etat.elementActif.conversationsMois}
+        />
+      );
     case "aucun":
     default:
       // Pattern AxiHub : rien d'affiché par défaut dans l'ailette.
@@ -1607,4 +1622,121 @@ function coupAxiSolver(cases: CaseM[]): number {
   const coins = [0, 2, 6, 8].filter((i) => vides.includes(i));
   if (coins.length > 0) return coins[Math.floor(Math.random() * coins.length)];
   return vides[Math.floor(Math.random() * vides.length)];
+}
+
+// --- Panneau Estimation Tarif ------------------------------------- //
+
+function PanneauEstimationTarif({
+  visiteursMois,
+  secteurSlug,
+  usagePrincipal,
+  tailleEquipe,
+  formuleRecommandee,
+  prixTextOnly,
+  prixClassique,
+  prixPremium,
+  tauxEffectif,
+  conversationsMois,
+}: {
+  visiteursMois: number;
+  secteurSlug: string;
+  usagePrincipal: string;
+  tailleEquipe: string;
+  formuleRecommandee: "text" | "classique" | "premium";
+  prixTextOnly: number;
+  prixClassique: number;
+  prixPremium: number;
+  tauxEffectif: number;
+  conversationsMois: number;
+}) {
+  const nomsFormules: Record<"text" | "classique" | "premium", string> = {
+    text: "AxiSolver Text Only",
+    classique: "AxiSolver Classique",
+    premium: "AxiSolver Premium",
+  };
+  const voixFormules: Record<"text" | "classique" | "premium", string> = {
+    text: "Écrit uniquement",
+    classique: "Voix neuronale Azure",
+    premium: "Voix ultra-réaliste ElevenLabs",
+  };
+  const prixRecommandee =
+    formuleRecommandee === "text"
+      ? prixTextOnly
+      : formuleRecommandee === "classique"
+        ? prixClassique
+        : prixPremium;
+  const autres = (["text", "classique", "premium"] as const).filter(
+    (s) => s !== formuleRecommandee,
+  );
+  const prixAutres: Record<"text" | "classique" | "premium", number> = {
+    text: prixTextOnly,
+    classique: prixClassique,
+    premium: prixPremium,
+  };
+
+  return (
+    <div className="flex h-full flex-col gap-4 overflow-y-auto p-5">
+      <div className="animate-fadeIn rounded-2xl border-2 border-amber-500 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-white">
+            Recommandée
+          </span>
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-700">
+            {voixFormules[formuleRecommandee]}
+          </span>
+        </div>
+        <h3 className="mt-3 text-xl font-semibold tracking-tight text-slate-900">
+          {nomsFormules[formuleRecommandee]}
+        </h3>
+        <div className="mt-3 flex items-baseline gap-2">
+          <span className="font-mono text-4xl font-semibold tracking-tight text-slate-900">
+            {prixRecommandee.toLocaleString("fr-FR")} €
+          </span>
+          <span className="text-xs text-slate-500">HT / mois</span>
+        </div>
+        <p className="mt-1 text-[11px] text-slate-500">
+          Pour {visiteursMois.toLocaleString("fr-FR")} visiteurs/mois ·
+          taux retenu {tauxEffectif}% · ~
+          {conversationsMois.toLocaleString("fr-FR")} conversations
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+          Les autres formules
+        </p>
+        <div className="mt-3 space-y-2">
+          {autres.map((f) => (
+            <div
+              key={f}
+              className="flex items-baseline justify-between border-b border-slate-100 pb-2 last:border-0"
+            >
+              <div>
+                <p className="text-sm font-medium text-slate-800">
+                  {nomsFormules[f]}
+                </p>
+                <p className="text-[11px] text-slate-500">{voixFormules[f]}</p>
+              </div>
+              <p className="font-mono text-sm font-semibold text-slate-700">
+                {prixAutres[f].toLocaleString("fr-FR")} €
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs leading-relaxed text-slate-600">
+        <p>
+          <span className="font-semibold text-slate-800">Base de calcul :</span>{" "}
+          secteur {secteurSlug.replace("-", " / ")} · usage {usagePrincipal} ·
+          équipe {tailleEquipe}.
+        </p>
+        <p className="mt-2">
+          Tarif indicatif HT. Devis définitif à la signature. Les
+          conversations incluses dans chaque formule couvrent la
+          volumétrie estimée.
+        </p>
+      </div>
+    </div>
+  );
 }

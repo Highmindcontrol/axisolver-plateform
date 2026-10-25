@@ -62,7 +62,14 @@ export type EvenementPanneau =
       type: "proposer_envoi_fiche_email";
       email?: string;
     }
-  | { type: "proposer_jeu_morpion" };
+  | { type: "proposer_jeu_morpion" }
+  | {
+      type: "estimer_tarif_axisolver";
+      visiteursMois: number;
+      secteurSlug: string;
+      usagePrincipal: string;
+      tailleEquipe: string;
+    };
 
 /** Champs de la fiche visiteur. */
 export type ChampFiche =
@@ -122,6 +129,19 @@ export type EtatPanneauTravail = {
       }
     | { kind: "envoi_fiche_email"; email?: string }
     | { kind: "morpion" }
+    | {
+        kind: "estimation_tarif";
+        visiteursMois: number;
+        secteurSlug: string;
+        usagePrincipal: string;
+        tailleEquipe: string;
+        formuleRecommandee: "text" | "classique" | "premium";
+        prixTextOnly: number;
+        prixClassique: number;
+        prixPremium: number;
+        tauxEffectif: number;
+        conversationsMois: number;
+      }
     | { kind: "cloture" };
   reference?: {
     reference: string;
@@ -452,6 +472,56 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
       type: "object" as const,
       properties: {},
       required: [],
+    },
+  },
+  {
+    name: "estimer_tarif_axisolver",
+    description:
+      "Calcule et affiche dans le panneau de travail le tarif AxiSolver recommandé pour le visiteur. À appeler APRÈS avoir obtenu en conversation les 5 informations suivantes : (1) il a un site internet (sinon pas d'estimation possible, propose plutôt AXI Vitrine Complète), (2) volume de visiteurs mensuels (approximation OK), (3) secteur d'activité parmi la liste autorisée, (4) usage principal du site (support/vente/leads/vitrine/mixte), (5) taille de l'équipe actuelle (aucune/une/petite/grande). Le tool CALCULE le prix officiel via la formule interne — ne cite jamais un chiffre toi-même, laisse le panneau l'afficher. Après l'appel, enchaîne vocalement avec une phrase du type « Voici votre estimation, visible à gauche. La formule qui vous correspond, c'est AxiSolver [nom], à [prix] euros par mois hors taxes. »",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        visiteursMois: {
+          type: "number",
+          minimum: 1,
+          description:
+            "Nombre de visiteurs mensuels du site, approximation OK (ex. 5000, 20000).",
+        },
+        secteurSlug: {
+          type: "string",
+          enum: [
+            "vitrine",
+            "ecommerce",
+            "ecommerce-premium",
+            "saas",
+            "support",
+            "medical-juridique",
+            "medias",
+            "immobilier",
+            "autre",
+          ],
+          description:
+            "Secteur d'activité du visiteur, choisi dans la liste du référentiel sectoriel.",
+        },
+        usagePrincipal: {
+          type: "string",
+          enum: ["support", "vente", "leads", "vitrine", "mixte"],
+          description:
+            "Usage principal du site : support client, vente en ligne, génération de leads, vitrine corporate, ou mixte.",
+        },
+        tailleEquipe: {
+          type: "string",
+          enum: ["aucune", "une", "petite", "grande"],
+          description:
+            "Taille de l'équipe qui répond aujourd'hui aux visiteurs : aucune personne, une seule, petite équipe 2-5, grande équipe 5+.",
+        },
+      },
+      required: [
+        "visiteursMois",
+        "secteurSlug",
+        "usagePrincipal",
+        "tailleEquipe",
+      ],
     },
   },
   {

@@ -450,6 +450,38 @@ export function ChatWidget() {
           elementActif: { kind: "cloture" },
         }));
         break;
+      case "estimer_tarif_axisolver": {
+        const visiteursMois = Number(input.visiteursMois ?? 0);
+        const secteurSlug = String(input.secteurSlug ?? "");
+        const usagePrincipal = String(input.usagePrincipal ?? "");
+        const tailleEquipe = String(input.tailleEquipe ?? "");
+        const formuleRecommandee = String(
+          input.formuleRecommandee ?? "classique",
+        ) as "text" | "classique" | "premium";
+        const prixTextOnly = Number(input.prixTextOnly ?? 0);
+        const prixClassique = Number(input.prixClassique ?? 0);
+        const prixPremium = Number(input.prixPremium ?? 0);
+        const tauxEffectif = Number(input.tauxEffectif ?? 0);
+        const conversationsMois = Number(input.conversationsMois ?? 0);
+        if (!visiteursMois || !secteurSlug) return;
+        setEtatPanneau((e) => ({
+          ...e,
+          elementActif: {
+            kind: "estimation_tarif",
+            visiteursMois,
+            secteurSlug,
+            usagePrincipal,
+            tailleEquipe,
+            formuleRecommandee,
+            prixTextOnly,
+            prixClassique,
+            prixPremium,
+            tauxEffectif,
+            conversationsMois,
+          },
+        }));
+        break;
+      }
     }
   }
 

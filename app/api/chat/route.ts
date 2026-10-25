@@ -6,6 +6,19 @@ import {
   auditerSiteParCategorie,
 } from "@/lib/axi-solver/audit-site";
 import { auditerReferencement } from "@/lib/axi-solver/audit-referencement";
+import {
+  FORMULES,
+  calculerPrix,
+  conversationsEstimees,
+  getFormule,
+  recommanderFormule,
+  tauxEffectif,
+  type ProfilProspect,
+  type SlugFormule,
+  type TailleEquipe,
+  type UsagePrincipal,
+} from "@/lib/axi-solver/tarification";
+import type { SlugSecteur } from "@/lib/axi-solver/secteurs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -316,6 +329,74 @@ export async function POST(request: Request) {
                       content: `Audit non réalisable (${msg}). Continue sans ces infos.`,
                     };
                   }
+                }
+
+                // --- Estimation tarifaire officielle --- //
+                if (b.name === "estimer_tarif_axisolver") {
+                  const input = b.input as {
+                    visiteursMois?: number;
+                    secteurSlug?: string;
+                    usagePrincipal?: string;
+                    tailleEquipe?: string;
+                  };
+                  const visiteurs = Number(input.visiteursMois ?? 0);
+                  if (
+                    !visiteurs ||
+                    !input.secteurSlug ||
+                    !input.usagePrincipal ||
+                    !input.tailleEquipe
+                  ) {
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content:
+                        "Paramètres incomplets. Repose les questions manquantes avant de rappeler le tool.",
+                    };
+                  }
+                  const profil: ProfilProspect = {
+                    aSite: true,
+                    visiteursMois: visiteurs,
+                    secteurSlug: input.secteurSlug as SlugSecteur,
+                    usagePrincipal: input.usagePrincipal as UsagePrincipal,
+                    tailleEquipe: input.tailleEquipe as TailleEquipe,
+                  };
+                  const taux = tauxEffectif(
+                    profil.secteurSlug,
+                    profil.usagePrincipal,
+                  );
+                  const conv = conversationsEstimees(
+                    profil.visiteursMois,
+                    taux,
+                  );
+                  const prix = Object.fromEntries(
+                    FORMULES.map((f) => [
+                      f.slug,
+                      calculerPrix(f, profil.visiteursMois, taux),
+                    ]),
+                  ) as Record<SlugFormule, number>;
+                  const recommandeeSlug = recommanderFormule(profil);
+                  const recommandee = getFormule(recommandeeSlug);
+
+                  emit({
+                    type: "tool_use",
+                    tool: "estimer_tarif_axisolver",
+                    id: b.id,
+                    input: {
+                      ...profil,
+                      formuleRecommandee: recommandeeSlug,
+                      prixTextOnly: prix.text,
+                      prixClassique: prix.classique,
+                      prixPremium: prix.premium,
+                      tauxEffectif: taux,
+                      conversationsMois: conv,
+                    },
+                  });
+
+                  return {
+                    type: "tool_result" as const,
+                    tool_use_id: b.id,
+                    content: `Estimation calculée. Formule recommandée : ${recommandee.nom} à ${prix[recommandeeSlug]} € HT / mois pour ${profil.visiteursMois} visiteurs mensuels (taux retenu ${taux}%, ~${conv} conversations/mois). Autres formules : Text Only ${prix.text} €, Classique ${prix.classique} €, Premium ${prix.premium} €. Annonce vocalement UNIQUEMENT la formule recommandée + son prix. Le visiteur voit le détail dans le panneau à gauche.`,
+                  };
                 }
 
                 return {

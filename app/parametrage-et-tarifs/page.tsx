@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Simulateur } from "./_simulateur";
+import { Questionnaire } from "./_questionnaire";
+import { AsideSources } from "./_sources";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { SiteHeader } from "@/components/site/header";
 
@@ -156,8 +157,11 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ─────────── SIMULATEUR ─────────── */}
-      <Simulateur />
+      {/* ─────────── QUESTIONNAIRE GUIDÉ ─────────── */}
+      <Questionnaire />
+
+      {/* ─────────── SOURCES DES CHIFFRES ─────────── */}
+      <AsideSources />
 
       {/* ─────────── FOOTER sobre ─────────── */}
       <footer className="border-t border-zinc-800 bg-zinc-950 px-6 py-10">
