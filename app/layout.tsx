@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque } from "next/font/google";
+import { Bricolage_Grotesque, Caveat } from "next/font/google";
 import "./globals.css";
 
 // Test de police globale AxiSolver — Bricolage Grotesque (sans-serif
@@ -9,6 +9,15 @@ const bricolage = Bricolage_Grotesque({
   variable: "--font-bricolage",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
+});
+
+// Police manuscrite Caveat pour les touches ludiques (fléchettes
+// « cliquez ici » autour du bouton pastille, légendes marginales).
+// Exposée via `--font-manuscrit`.
+const caveat = Caveat({
+  variable: "--font-manuscrit",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={bricolage.variable}>
+    <html lang="fr" className={`${bricolage.variable} ${caveat.variable}`}>
       <body className="antialiased">{children}</body>
     </html>
   );

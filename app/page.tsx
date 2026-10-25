@@ -1,9 +1,61 @@
 import Image from "next/image";
 import { ChatWidget } from "@/components/chat/chat-widget";
-import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
+import { BoutonPastilleAxi } from "@/components/chat/bouton-pastille";
 import { SiteHeader } from "@/components/site/header";
 
 type IconProps = { className?: string };
+
+/** Fléchette manuscrite + « cliquez ici » à GAUCHE de la pastille,
+ *  pointant vers la droite (vers le bouton). */
+function FlecheClicGauche({ className = "" }: { className?: string }) {
+  return (
+    <div className={`items-center gap-2 text-2xl text-amber-300 ${className}`}>
+      <span className="[font-family:var(--font-manuscrit),cursive] md:text-4xl">
+        cliquez ici
+      </span>
+      {/* SVG : flèche biscornue arrondie qui part en haut à gauche
+       *  et vient en bas pointer la pastille à droite. */}
+      <svg
+        viewBox="0 0 110 60"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-12 w-20 md:h-14 md:w-24"
+        aria-hidden
+      >
+        <path d="M4 10 C 30 4, 60 8, 85 30 C 95 38, 100 46, 102 52" />
+        <path d="M92 42 L 102 52 L 94 58" />
+      </svg>
+    </div>
+  );
+}
+
+/** Fléchette manuscrite + « cliquez ici » à DROITE de la pastille,
+ *  pointant vers la gauche (vers le bouton). */
+function FlecheClicDroite({ className = "" }: { className?: string }) {
+  return (
+    <div className={`items-center gap-2 text-2xl text-amber-300 ${className}`}>
+      <svg
+        viewBox="0 0 110 60"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-12 w-20 md:h-14 md:w-24"
+        aria-hidden
+      >
+        <path d="M106 10 C 80 4, 50 8, 25 30 C 15 38, 10 46, 8 52" />
+        <path d="M18 42 L 8 52 L 16 58" />
+      </svg>
+      <span className="[font-family:var(--font-manuscrit),cursive] md:text-4xl">
+        cliquez ici
+      </span>
+    </div>
+  );
+}
 
 function IconChat({ className }: IconProps) {
   return (
@@ -298,12 +350,12 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ─────────── AXI PREND LA PAROLE — moment éditorial ─────────── */}
+      {/* ─────────── AXI VOUS INVITE — moment éditorial avec grosse pastille ─────────── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-950 px-6 py-24 md:px-10 md:py-40">
-        {/* Halo doré subtil derrière la citation */}
+        {/* Halo doré subtil derrière la pastille */}
         <div
           aria-hidden
-          className="absolute left-1/2 top-1/2 h-[480px] w-[480px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/5 blur-3xl"
+          className="absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-400/8 blur-3xl"
         />
 
         <div className="relative mx-auto max-w-4xl">
@@ -311,44 +363,33 @@ export default function Page() {
             La voix d&apos;AXI
           </p>
 
-          <blockquote
-            className="mt-10 text-balance text-2xl font-medium leading-[1.4] text-white md:text-3xl lg:text-4xl"
-          >
-            <span className="text-amber-400">«</span>{" "}
-            Je suis une intelligence artificielle qui fait de votre site
-            web son territoire. Dès que je m&apos;installe, je déploie
-            mes compétences 24 heures sur 24 et 7 jours sur 7, en toute
-            autonomie.{" "}
-            <span className="text-amber-400">»</span>
-          </blockquote>
+          {/* Grosse pastille centrale encadrée par deux fléchettes
+              manuscrites « cliquez ici » qui invitent à l'action. */}
+          <div className="mt-16 flex items-center justify-center gap-4 md:gap-10">
+            {/* Fléchette gauche + libellé — cachée en mobile pour
+                garder la pastille lisible */}
+            <FlecheClicGauche className="hidden md:flex" />
 
-          <div className="mx-auto mt-14 max-w-2xl space-y-6 text-base leading-relaxed text-zinc-300 md:text-lg">
-            <p>
-              J&apos;accueille et je gère les demandes de vos visiteurs.
-              Je les transforme en contacts qualifiés pour vos équipes
-              de vente.
-            </p>
-            <p>
-              Je travaille aussi votre référencement pour vous faire
-              monter dans les résultats de recherche, et je vous remets
-              des comptes-rendus réguliers sur mes performances.
-            </p>
-            <p>
-              Et ce n&apos;est pas tout : je me comporte en gardien
-              actif de votre site, en surveillant en permanence tout
-              ce qui pourrait le menacer.
-            </p>
+            <BoutonPastilleAxi
+              tailleRem={10}
+              className="md:[&>button]:scale-[1.4] md:[&>span]:scale-[1.4]"
+            />
+
+            <FlecheClicDroite className="hidden md:flex" />
           </div>
 
-          {/* Pivot émotionnel : question d'invite + CTA central */}
-          <div className="mt-20 flex flex-col items-center gap-10 text-center">
-            <p
-              className="max-w-2xl text-balance text-2xl font-medium leading-snug text-amber-300 md:text-3xl lg:text-4xl"
-            >
+          {/* Variante mobile : une seule flèche sous la pastille */}
+          <p className="mt-4 flex items-center justify-center gap-2 text-xl text-amber-300 [font-family:var(--font-manuscrit),cursive] md:hidden">
+            <span aria-hidden>↑</span> cliquez ici{" "}
+            <span aria-hidden>↑</span>
+          </p>
+
+          {/* Pivot émotionnel : question d'invite sous la pastille */}
+          <div className="mt-16 flex flex-col items-center gap-6 text-center md:mt-24">
+            <p className="max-w-2xl text-balance text-2xl font-medium leading-snug text-amber-300 md:text-3xl lg:text-4xl">
               Et si vous me laissiez vous expliquer tout ça
               moi-même&nbsp;?
             </p>
-            <BoutonLancerAxiSolver libelle="Parlez à AxiSolver" />
             <p className="text-xs uppercase tracking-widest text-zinc-500">
               Vocal ou écrit · Toutes langues · Zéro engagement
             </p>
