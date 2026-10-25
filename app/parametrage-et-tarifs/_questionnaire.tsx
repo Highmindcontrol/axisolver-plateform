@@ -40,6 +40,7 @@ type Etape = 0 | 1 | 2 | 3 | 4 | 5;
 
 type EtatBrouillon = {
   aSite: boolean | null;
+  siteUrl: string | null;
   visiteursMois: number | null;
   rangeChoisie: string | null;
   secteurSlug: SlugSecteur | null;
@@ -49,12 +50,30 @@ type EtatBrouillon = {
 
 const ETAT_INITIAL: EtatBrouillon = {
   aSite: null,
+  siteUrl: null,
   visiteursMois: null,
   rangeChoisie: null,
   secteurSlug: null,
   usagePrincipal: null,
   tailleEquipe: null,
 };
+
+/**
+ * Extrait un hostname propre (ex. "exemple.com") depuis une saisie
+ * libre ("https://www.exemple.com/page", "exemple.com", etc.).
+ * Retourne null si la saisie n'est pas une URL plausible.
+ */
+function extraireHostname(saisie: string): string | null {
+  const texte = saisie.trim();
+  if (!texte) return null;
+  const avecProtocole = /^https?:\/\//i.test(texte) ? texte : `https://${texte}`;
+  try {
+    const u = new URL(avecProtocole);
+    return u.hostname.replace(/^www\./i, "");
+  } catch {
+    return null;
+  }
+}
 
 export function Questionnaire() {
   const [etape, setEtape] = useState<Etape>(0);
@@ -116,9 +135,13 @@ export function Questionnaire() {
             <EtapeSite
               onReponse={(aSite) => {
                 setEtat((e) => ({ ...e, aSite }));
-                if (aSite) setEtape(1);
               }}
+              onUrlSite={(url) =>
+                setEtat((e) => ({ ...e, siteUrl: url }))
+              }
+              onContinuer={() => setEtape(1)}
               aSite={etat.aSite}
+              siteUrl={etat.siteUrl}
             />
           )}
 
@@ -127,6 +150,7 @@ export function Questionnaire() {
               modeManuel={modeManuel}
               valeurManuelle={etat.visiteursMois ?? 5000}
               rangeChoisie={etat.rangeChoisie}
+              siteUrl={etat.siteUrl}
               onChoixRange={(slug, valeur) => {
                 setEtat((e) => ({
                   ...e,
@@ -280,12 +304,38 @@ function StepperVisuel({ etape }: { etape: Etape }) {
 
 function EtapeSite({
   onReponse,
+  onUrlSite,
+  onContinuer,
   aSite,
+  siteUrl,
 }: {
   onReponse: (aSite: boolean) => void;
+  onUrlSite: (url: string | null) => void;
+  onContinuer: () => void;
   aSite: boolean | null;
+  siteUrl: string | null;
 }) {
+  const [urlBrute, setUrlBrute] = useState(siteUrl ?? "");
+  const [erreurUrl, setErreurUrl] = useState<string | null>(null);
   const estSansSite: boolean = aSite === false;
+
+  function validerEtContinuer() {
+    const texte = urlBrute.trim();
+    if (!texte) {
+      onUrlSite(null);
+      onContinuer();
+      return;
+    }
+    const hostname = extraireHostname(texte);
+    if (!hostname) {
+      setErreurUrl("Format d'adresse non reconnu. Exemple : votresite.com");
+      return;
+    }
+    setErreurUrl(null);
+    onUrlSite(hostname);
+    onContinuer();
+  }
+
   if (estSansSite) {
     return (
       <div>
@@ -360,6 +410,63 @@ function EtapeSite({
           selectionnee={aSite === false}
         />
       </div>
+
+      {aSite === true && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            validerEtContinuer();
+          }}
+          className="mt-8 animate-fadeIn rounded-2xl border border-amber-400/40 bg-amber-400/5 p-6"
+        >
+          <label
+            htmlFor="site-url"
+            className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300"
+          >
+            L&apos;adresse de votre site (optionnel)
+          </label>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-300">
+            Si vous nous la donnez, on vous propose dans la question
+            suivante de voir votre trafic estimé via SimilarWeb — pour
+            retrouver un ordre de grandeur si vous n&apos;avez pas
+            Google Analytics ouvert.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <input
+              id="site-url"
+              type="text"
+              value={urlBrute}
+              onChange={(e) => {
+                setUrlBrute(e.target.value);
+                setErreurUrl(null);
+              }}
+              placeholder="votresite.com"
+              className="flex-1 rounded-md border border-zinc-700 bg-zinc-950 px-4 py-3 font-mono text-white placeholder:text-zinc-500 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30"
+              autoComplete="url"
+              inputMode="url"
+            />
+            <button
+              type="submit"
+              className="rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold text-zinc-950 transition-all hover:bg-amber-300"
+            >
+              Continuer →
+            </button>
+          </div>
+          {erreurUrl && (
+            <p className="mt-2 text-xs text-rose-400">{erreurUrl}</p>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              onUrlSite(null);
+              onContinuer();
+            }}
+            className="mt-4 text-xs font-medium text-zinc-400 hover:text-amber-300"
+          >
+            Je préfère ne pas donner mon URL → Continuer sans
+          </button>
+        </form>
+      )}
     </div>
   );
 }
@@ -370,6 +477,7 @@ function EtapeVisiteurs({
   modeManuel,
   valeurManuelle,
   rangeChoisie,
+  siteUrl,
   onChoixRange,
   onChangementManuel,
   onActiverManuel,
@@ -377,6 +485,7 @@ function EtapeVisiteurs({
   modeManuel: boolean;
   valeurManuelle: number;
   rangeChoisie: string | null;
+  siteUrl: string | null;
   onChoixRange: (slug: string, valeur: number) => void;
   onChangementManuel: (v: number) => void;
   onActiverManuel: () => void;
@@ -392,6 +501,44 @@ function EtapeVisiteurs({
         office. Si vous n&apos;en avez aucune idée, choisissez une
         fourchette au feeling.
       </p>
+
+      {siteUrl && (
+        <div className="mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-amber-400/40 bg-amber-400/5 px-5 py-4">
+          <span className="text-xs leading-relaxed text-zinc-300">
+            Pas d&apos;Analytics sous la main ? Voyez votre trafic
+            estimé pour{" "}
+            <span className="font-mono text-amber-300">{siteUrl}</span>{" "}
+            sur SimilarWeb (nouvelle fenêtre), puis revenez saisir le
+            chiffre ici.
+          </span>
+          <a
+            href={`https://www.similarweb.com/website/${encodeURIComponent(siteUrl)}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold text-zinc-950 transition-all hover:bg-amber-300"
+          >
+            Voir sur SimilarWeb
+            <svg
+              className="h-3 w-3"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M7 17 17 7" />
+              <path d="M7 7h10v10" />
+            </svg>
+          </a>
+          <span className="basis-full text-[11px] text-zinc-500">
+            Estimation directionnelle, pas un chiffre certifié —
+            marge d&apos;erreur courante 30 à 60 %. Idéal pour avoir
+            un ordre de grandeur.
+          </span>
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {RANGES_VISITEURS.map((r) => {
