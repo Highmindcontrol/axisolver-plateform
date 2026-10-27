@@ -39,7 +39,17 @@
     return;
   }
 
+  // Lit le site-id depuis l'attribut data-site-id en priorité, puis
+  // fallback sur la query string du src (?siteId=xxx) pour le template
+  // Google Tag Manager qui ne peut pas ajouter d'attributs data-*.
   var siteId = script.getAttribute("data-site-id");
+  if (!siteId && script.src) {
+    try {
+      siteId = new URL(script.src).searchParams.get("siteId");
+    } catch (e) {
+      /* URL non parsable */
+    }
+  }
   if (!siteId) {
     console.error(
       "[AxiSolver] attribut data-site-id manquant sur la balise script",
