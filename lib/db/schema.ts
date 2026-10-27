@@ -321,6 +321,79 @@ export const tickets = pgTable(
   ],
 );
 
+/* ─── Audits SEO (LOT H) ────────────────────────────────────────── */
+
+export const auditSeoStatutEnum = pgEnum("audit_seo_statut", [
+  "en_cours",
+  "termine",
+  "echec",
+]);
+
+export const auditSeoDeclencheurEnum = pgEnum("audit_seo_declencheur", [
+  "manuel",
+  "auto_mensuel",
+  "api",
+]);
+
+export const seoAudits = pgTable(
+  "seo_audits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    urlAuditee: text("url_auditee").notNull(),
+    declencheur: auditSeoDeclencheurEnum("declencheur").notNull().default("manuel"),
+    statut: auditSeoStatutEnum("statut").notNull().default("en_cours"),
+    scoreGlobal: integer("score_global"),
+    scoreTechnique: integer("score_technique"),
+    scoreContenu: integer("score_contenu"),
+    scoreMotsCles: integer("score_mots_cles"),
+    scorePerformance: integer("score_performance"),
+    scoreMobile: integer("score_mobile"),
+    findings: jsonb("findings").$type<FindingSeo[]>().notNull().default([]),
+    recommandations: jsonb("recommandations")
+      .$type<RecommandationSeo[]>()
+      .notNull()
+      .default([]),
+    motsClesTestes: text("mots_cles_testes").array().notNull().default([]),
+    dureeMs: integer("duree_ms"),
+    erreur: text("erreur"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    termineLe: timestamp("termine_le", { withTimezone: true }),
+  },
+  (t) => [
+    index("idx_seo_audits_site_id").on(t.siteId),
+    index("idx_seo_audits_cree_le").on(t.creeLe),
+  ],
+);
+
+/** Un constat atomique issu de l'audit (ex. « title tag absent »). */
+export type FindingSeo = {
+  pilier: "technique" | "contenu" | "mots_cles" | "performance" | "mobile";
+  code: string;
+  severite: "critique" | "haute" | "moyenne" | "basse" | "info";
+  message: string;
+  details?: Record<string, unknown>;
+};
+
+/** Action priorisée dérivée d'un ou plusieurs findings. */
+export type RecommandationSeo = {
+  titre: string;
+  description: string;
+  priorite: "critique" | "haute" | "moyenne" | "basse";
+  effort: "faible" | "moyen" | "eleve";
+  impact: "faible" | "moyen" | "fort";
+  pilier: "technique" | "contenu" | "mots_cles" | "performance" | "mobile";
+  pris_en_charge_axi?: {
+    pack: string;
+    cout_sans_axi: string;
+    cout_avec_axi: string;
+  };
+};
+
 /* ─── Membres additionnels d'un site (futur, LOT E) ─────────────── */
 /* Un site peut avoir plusieurs humains qui l'administrent (ex. le
  * propriétaire + son community manager). Préparé mais pas exploité

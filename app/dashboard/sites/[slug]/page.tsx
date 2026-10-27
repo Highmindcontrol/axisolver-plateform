@@ -10,6 +10,8 @@ import {
   MessageSquare,
   ChevronRight,
   ListChecks,
+  Gauge,
+  Mail,
 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
@@ -108,6 +110,18 @@ export default async function PageSiteOverview({
       href: `/dashboard/sites/${slug}/tickets`,
       icone: MessageSquare,
       badge: { libelle: "LOT E.7", ton: "info" },
+    },
+    {
+      titre: "Audit SEO",
+      corps: "5 piliers analysés + recommandations priorisées. Audit auto le 1er du mois.",
+      href: `/dashboard/sites/${slug}/seo`,
+      icone: Gauge,
+    },
+    {
+      titre: "Rapports quotidiens",
+      corps: "Email envoyé chaque matin à 7h. Aperçu et envoi manuel disponibles.",
+      href: `/dashboard/sites/${slug}/rapports`,
+      icone: Mail,
     },
   ];
 

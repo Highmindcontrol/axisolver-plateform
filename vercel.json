@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/rapports-quotidiens",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/audits-seo-mensuels",
+      "schedule": "0 7 1 * *"
     }
   ]
 }
