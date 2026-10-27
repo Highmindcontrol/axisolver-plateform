@@ -93,6 +93,9 @@ export const sites = pgTable("sites", {
   proprieteVerifieeLe: timestamp("propriete_verifiee_le", {
     withTimezone: true,
   }),
+  proprieteMethode: text("propriete_methode"),
+  tokenVerificationFichier: text("token_verification_fichier"),
+  tokenVerificationDns: text("token_verification_dns"),
   actif: boolean("actif").notNull().default(true),
   creeLe: timestamp("cree_le", { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),

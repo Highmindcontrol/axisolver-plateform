@@ -8,6 +8,7 @@ import {
   formaterResultats,
 } from "@/lib/axi-solver/connaissance/rechercher";
 import { TOOLS_AXISOLVER } from "@/lib/axi-solver/tools";
+import { estDestructif } from "@/lib/axi-solver/tools-destructifs";
 import {
   auditerSite,
   auditerSiteParCategorie,
@@ -133,6 +134,7 @@ export async function POST(request: Request) {
 
   let promptSysteme = SYSTEM_PROMPT_AXISOLVER_AUTOSELL;
   let siteIdCourant: string | null = null;
+  let proprieteVerifieeCourant = false;
   if (slug) {
     try {
       const config = await chargerConfigSite(slug);
@@ -151,6 +153,7 @@ export async function POST(request: Request) {
       }
       promptSysteme = construirePrompt(config);
       siteIdCourant = config.siteId;
+      proprieteVerifieeCourant = config.proprieteVerifiee;
     } catch (e) {
       console.error("[chat] Erreur chargement config site :", e);
       return jsonErreur("Erreur serveur à la configuration du site", 500, headersCors);
@@ -277,6 +280,23 @@ export async function POST(request: Request) {
           const toolResults: Anthropic.ToolResultBlockParam[] =
             await Promise.all(
               toolUseBlocks.map(async (b) => {
+                // ─── Garde-fou propriété de domaine ───
+                // Tout tool qui touche aux systèmes externes du client
+                // (Google Ads, Cloudflare, WAF…) est refusé si la
+                // propriété du domaine n'est pas vérifiée. Doctrine
+                // AxiSolver missions 5 et 6.
+                if (estDestructif(b.name) && !proprieteVerifieeCourant) {
+                  console.warn(
+                    `[chat] tool "${b.name}" refusé : propriété non vérifiée pour slug=${slug}`,
+                  );
+                  return {
+                    type: "tool_result" as const,
+                    tool_use_id: b.id,
+                    content:
+                      "Action refusée : la propriété du domaine n'est pas encore vérifiée. Invitez le propriétaire du site à aller sur son dashboard AxiSolver → Vérification de propriété pour valider le domaine avant toute action externe.",
+                  };
+                }
+
                 // --- Audits par volet (sécurité ou SEO) --- //
                 if (b.name === "auditer_securite" || b.name === "auditer_seo") {
                   const volet = b.name === "auditer_securite"

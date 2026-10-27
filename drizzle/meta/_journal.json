@@ -22,6 +22,13 @@
       "when": 1793072252901,
       "tag": "0002_chunks_pgvector",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793076927010,
+      "tag": "0003_tokens_verification_propriete",
+      "breakpoints": true
     }
   ]
 }
