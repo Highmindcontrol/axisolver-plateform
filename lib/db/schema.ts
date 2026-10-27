@@ -70,6 +70,7 @@ export const users = pgTable("users", {
   email: text("email"),
   nomAffiche: text("nom_affiche"),
   avatarUrl: text("avatar_url"),
+  stripeCustomerId: text("stripe_customer_id"),
   creeLe: timestamp("cree_le", { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -577,6 +578,75 @@ export const rateLimitsChat = pgTable(
   (t) => [
     index("idx_rate_limits_chat_site_visiteur").on(t.siteId, t.visiteurCle),
     index("idx_rate_limits_chat_bucket_jour").on(t.bucketJour),
+  ],
+);
+
+/* ─── Facturation Stripe (LOT K) ────────────────────────────────── */
+
+export const planAbonnementEnum = pgEnum("plan_abonnement", [
+  "starter",
+  "pro",
+  "business",
+]);
+
+export const statutAbonnementEnum = pgEnum("statut_abonnement", [
+  "trialing",
+  "active",
+  "past_due",
+  "canceled",
+  "unpaid",
+  "incomplete",
+  "incomplete_expired",
+]);
+
+export const stripeSubscriptions = pgTable(
+  "stripe_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    stripeCustomerId: text("stripe_customer_id").notNull(),
+    stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
+    stripePriceId: text("stripe_price_id").notNull(),
+    plan: planAbonnementEnum("plan").notNull(),
+    statut: statutAbonnementEnum("statut").notNull(),
+    periodeFinLe: timestamp("periode_fin_le", { withTimezone: true }),
+    annuleFinDePeriode: boolean("annule_fin_de_periode")
+      .notNull()
+      .default(false),
+    essaiFinLe: timestamp("essai_fin_le", { withTimezone: true }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("idx_stripe_subscriptions_user_id").on(t.userId)],
+);
+
+/* ─── Comptage conversations par site et par mois ──────────────── */
+
+export const usageConversations = pgTable(
+  "usage_conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    bucketMois: text("bucket_mois").notNull(),
+    nbConversations: integer("nb_conversations").notNull().default(0),
+    nbMessages: integer("nb_messages").notNull().default(0),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("idx_usage_conversations_user_bucket").on(t.userId, t.bucketMois),
+    index("idx_usage_conversations_site_bucket").on(t.siteId, t.bucketMois),
   ],
 );
 

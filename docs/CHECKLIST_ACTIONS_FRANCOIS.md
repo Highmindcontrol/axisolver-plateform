@@ -2,7 +2,7 @@
 
 Document exhaustif de tout ce que François doit faire **manuellement** pour que la V1 AxiSolver soit opérationnelle, soumise aux marketplaces, et prête au lancement commercial. Les tâches techniques (code, migrations, UI) sont déjà livrées côté repo.
 
-**Dernière mise à jour** : 27 octobre 2026 (fin LOT J)
+**Dernière mise à jour** : 27 octobre 2026 (fin LOT K)
 
 **Comment utiliser ce document** :
 - Chaque section a une colonne « Statut » à cocher au fur et à mesure
@@ -324,33 +324,66 @@ Rien à configurer. Dès le deploy :
 
 ---
 
-## 8. Stripe (LOT K — pas encore livré)
-
-Préparation à faire côté toi avant que je code le LOT K :
+## 8. Stripe (LOT K — livré)
 
 ### 8.1 — Compte Stripe
 
 - [ ] Vérifier compte Stripe Ataraxis Holding Ltd actif
-- [ ] Activer le mode Live (après vérifications KYC)
+- [ ] Activer le mode Live après KYC (démarrer en mode Test est OK le temps du beta)
 
 ### 8.2 — Produits à créer dans Stripe Dashboard
 
-Suggestion de pricing (à arbitrer avec toi) :
+Les 3 formules AxiSolver standalone (prix fondateur, pack vs standalone +50 %) :
 
-| Nom produit | Prix mensuel | Features | Usage |
-|---|---|---|---|
-| AxiSolver Starter | 99 € HT | 1 site, 500 conversations/mois | Standard |
-| AxiSolver Pro | 299 € HT | 5 sites, 5000 conversations/mois, retrait « Propulsé par » | PME |
-| AxiSolver Enterprise | sur devis | Sites illimités, conversations illimitées, SLA, support dédié | Grands comptes |
+| Nom produit | Prix mensuel HT | Features |
+|---|---|---|
+| AxiSolver Starter | 39 € | 1 site, 500 conversations/mois, essai 14j |
+| AxiSolver Pro | 59 € | 3 sites, 2 500 conv/mois, essai 14j, voix premium, « Propulsé par » masquable |
+| AxiSolver Business | 149 € | 10 sites, 15 000 conv/mois, SLA 99,9 %, onboarding dédié |
 
-- [ ] Créer les 3 produits dans Stripe Dashboard → Products
-- [ ] Noter les `price_id` que je devrai utiliser dans le code
+- [ ] Stripe Dashboard → **Products** → créer les 3 produits
+- [ ] Pour chaque produit, créer un **price récurrent mensuel** en EUR, HT (taxe gérée via Stripe Tax)
+- [ ] Noter les 3 `price_id` (format `price_XXXXXX`) et les poser sur Vercel :
+  - `STRIPE_PRICE_ID_STARTER`
+  - `STRIPE_PRICE_ID_PRO`
+  - `STRIPE_PRICE_ID_BUSINESS`
 
-### 8.3 — Webhooks Stripe
+### 8.3 — Clés API Stripe sur Vercel
 
-- [ ] Créer un endpoint webhook : `https://axisolver.app/api/webhooks/stripe`
-- [ ] Événements à écouter : `checkout.session.completed`, `invoice.paid`, `customer.subscription.updated`, `customer.subscription.deleted`
-- [ ] Noter le webhook signing secret pour la variable d'env
+Dans Vercel → Project → Environment Variables :
+
+- [ ] `STRIPE_SECRET_KEY` — clé secrète (Test puis Live)
+- [ ] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` — clé publique (facultatif pour V1, utile en V1.1 pour Elements)
+- [ ] `STRIPE_WEBHOOK_SECRET` — généré à l'étape 8.4
+
+### 8.4 — Endpoint Webhook
+
+- [ ] Stripe Dashboard → **Developers → Webhooks → Add endpoint**
+- [ ] URL : `https://axisolver.app/api/webhooks/stripe`
+- [ ] Événements à sélectionner (minimum) :
+  - `checkout.session.completed`
+  - `customer.subscription.created`
+  - `customer.subscription.updated`
+  - `customer.subscription.deleted`
+  - `invoice.payment_succeeded`
+  - `invoice.payment_failed`
+- [ ] Copier le **Signing Secret** (format `whsec_...`) et le poser comme `STRIPE_WEBHOOK_SECRET`
+
+### 8.5 — Stripe Tax (facultatif mais recommandé)
+
+- [ ] Stripe Dashboard → **Tax** → activer
+- [ ] Déclarer la nexus France + UE (OSS si > 10 000 € de ventes B2C EU)
+- [ ] Les sessions Checkout AxiSolver utilisent déjà `automatic_tax: enabled`
+
+### 8.6 — Portail client
+
+Déjà configuré côté code via `creerSessionPortail()`. Rien à faire côté Stripe Dashboard — le portail est activé par défaut.
+
+### 8.7 — Base de données
+
+- [ ] Exécuter dans Supabase SQL Editor : `drizzle/0012_stripe_facturation.sql`
+
+Crée les tables `stripe_subscriptions` + `usage_conversations` et ajoute `stripe_customer_id` à `users`.
 
 ---
 
@@ -398,6 +431,7 @@ Pour chaque mise à jour significative :
 - **27 oct 2026** : ajout section 7bis après LOT G (rapports quotidiens Brevo + cron Vercel 6h UTC + cheval de Troie upsell AXI Initial) ; nouvelles vars `BREVO_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`, `CRON_SECRET`
 - **27 oct 2026** : ajout section 7ter après LOT H (moteur SEO + dashboard + cron mensuel 1er du mois) et LOT I (moteur Shield 6 piliers + dashboard incidents + monitoring 6h/jour + rate limiting /api/chat + anti prompt injection). 2 migrations SQL + 3 nouveaux crons Vercel.
 - **27 oct 2026** : LOT J livré — moteur Ads 4 piliers (trackers, consentement, visibilité SERP, remarketing) + dashboard + cron mensuel 1er du mois à 9h UTC. Migration `drizzle/0011_ads_audits.sql` à exécuter. 5e cron ajouté.
+- **27 oct 2026** : LOT K livré — facturation Stripe. 3 formules (Starter 39 € / Pro 59 € / Business 149 €), essai 14 jours Starter+Pro, Stripe Checkout + Portail client, webhook signé, metering mensuel conversations avec enforcement HTTP 402 au-delà du quota, page /tarifs publique, /dashboard/abonnement. Migration `drizzle/0012_stripe_facturation.sql` à exécuter + 3 produits Stripe à créer + webhook endpoint à configurer. Section 8 enrichie.
 
 ---
 

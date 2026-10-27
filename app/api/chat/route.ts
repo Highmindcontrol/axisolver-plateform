@@ -17,6 +17,8 @@ import {
 } from "@/lib/axi-solver/audit-site";
 import { auditerReferencement } from "@/lib/axi-solver/audit-referencement";
 import { verifierShield } from "@/lib/engines/security/shield-widget";
+import { verifierQuotaConversations } from "@/lib/stripe/verifier-quotas";
+import { incrementerUsage } from "@/lib/stripe/incrementer-usage";
 import {
   FORMULES,
   calculerPrix,
@@ -142,6 +144,7 @@ export async function POST(request: Request) {
 
   let promptSysteme = SYSTEM_PROMPT_AXISOLVER_AUTOSELL;
   let siteIdCourant: string | null = null;
+  let ownerUserIdCourant: string | null = null;
   let proprieteVerifieeCourant = false;
   if (slug) {
     try {
@@ -161,10 +164,31 @@ export async function POST(request: Request) {
       }
       promptSysteme = construirePrompt(config);
       siteIdCourant = config.siteId;
+      ownerUserIdCourant = config.ownerUserId;
       proprieteVerifieeCourant = config.proprieteVerifiee;
     } catch (e) {
       console.error("[chat] Erreur chargement config site :", e);
       return jsonErreur("Erreur serveur à la configuration du site", 500, headersCors);
+    }
+  }
+
+  // Enforcement quota mensuel (LOT K.6) — seulement pour les sites avec
+  // un propriétaire humain. Les sites système Ataraxis (owner null)
+  // sont exemptés car ils sont dogfood interne.
+  if (siteIdCourant && ownerUserIdCourant) {
+    try {
+      const quota = await verifierQuotaConversations({
+        userId: ownerUserIdCourant,
+      });
+      if (!quota.autorise) {
+        return jsonErreur(
+          quota.raison ?? "Quota mensuel dépassé",
+          402,
+          headersCors,
+        );
+      }
+    } catch (e) {
+      console.warn("[chat] Enforcement quota échoué, requête autorisée :", e);
     }
   }
 
@@ -654,6 +678,18 @@ export async function POST(request: Request) {
             .catch((e) => {
               console.error("[chat] persist conversation failed:", e);
             });
+
+          // Metering mensuel (LOT K.6) — on compte 1 conversation sur le
+          // premier tour (nbTours == 1) et 1 message à chaque tour.
+          if (ownerUserIdCourant) {
+            incrementerUsage({
+              siteId: siteIdCourant,
+              userId: ownerUserIdCourant,
+              nouvelleConversation: nbTours === 1,
+            }).catch((e) => {
+              console.error("[chat] metering usage failed:", e);
+            });
+          }
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Erreur Claude";

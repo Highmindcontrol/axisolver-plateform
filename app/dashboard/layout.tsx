@@ -41,6 +41,12 @@ export default async function LayoutDashboard({
           </Link>
 
           <div className="flex items-center gap-4">
+            <Link
+              href="/dashboard/abonnement"
+              className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-indigo-700 sm:inline"
+            >
+              Abonnement
+            </Link>
             <span className="hidden text-xs text-slate-500 sm:inline">
               {user.email}
             </span>

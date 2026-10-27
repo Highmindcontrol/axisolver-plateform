@@ -23,6 +23,7 @@ import {
 export type ConfigSiteChargee = {
   siteId: string;
   slug: string;
+  ownerUserId: string | null;
   nomEntreprise: string;
   domainePrincipal: string;
   domainesAutorises: string[];
@@ -79,6 +80,7 @@ export async function chargerConfigSite(
   return {
     siteId: siteRow.id,
     slug: siteRow.slug,
+    ownerUserId: siteRow.ownerUserId,
     nomEntreprise: siteRow.nomEntreprise,
     domainePrincipal: siteRow.domainePrincipal,
     domainesAutorises: siteRow.domainesAutorises,
