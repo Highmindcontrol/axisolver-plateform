@@ -16,6 +16,7 @@ import {
   auditerSiteParCategorie,
 } from "@/lib/axi-solver/audit-site";
 import { auditerReferencement } from "@/lib/axi-solver/audit-referencement";
+import { verifierShield } from "@/lib/engines/security/shield-widget";
 import {
   FORMULES,
   calculerPrix,
@@ -164,6 +165,39 @@ export async function POST(request: Request) {
     } catch (e) {
       console.error("[chat] Erreur chargement config site :", e);
       return jsonErreur("Erreur serveur à la configuration du site", 500, headersCors);
+    }
+  }
+
+  // Shield widget (LOT I.3) — rate limiting + anti prompt injection.
+  // Appliqué uniquement sur les sites multi-tenants (slug présent) pour
+  // ne pas gêner le mode legacy axisolver.app.
+  if (siteIdCourant) {
+    const dernierMessageUser =
+      [...messagesInitiaux].reverse().find((m) => m.role === "user")?.content ??
+      "";
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+      request.headers.get("x-real-ip") ??
+      "0.0.0.0";
+    const userAgent = request.headers.get("user-agent") ?? "unknown";
+
+    try {
+      const shield = await verifierShield({
+        siteId: siteIdCourant,
+        ip,
+        userAgent,
+        message: dernierMessageUser,
+      });
+      if (!shield.autorise) {
+        const headersBlocage = { ...headersCors };
+        if (shield.retryAfterSeconds) {
+          headersBlocage["Retry-After"] = String(shield.retryAfterSeconds);
+        }
+        return jsonErreur(shield.message, 429, headersBlocage);
+      }
+    } catch (e) {
+      // Shield ne doit pas bloquer en cas d'erreur DB — on log et on continue.
+      console.warn("[chat] Shield en échec, requête autorisée par défaut :", e);
     }
   }
 

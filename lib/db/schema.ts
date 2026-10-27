@@ -394,6 +394,192 @@ export type RecommandationSeo = {
   };
 };
 
+/* ─── Audits sécurité (LOT I) ───────────────────────────────────── */
+
+export const auditSecurityStatutEnum = pgEnum("audit_security_statut", [
+  "en_cours",
+  "termine",
+  "echec",
+]);
+
+export const auditSecurityDeclencheurEnum = pgEnum(
+  "audit_security_declencheur",
+  ["manuel", "auto_mensuel", "api", "monitoring"],
+);
+
+export const securityAudits = pgTable(
+  "security_audits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    urlAuditee: text("url_auditee").notNull(),
+    declencheur: auditSecurityDeclencheurEnum("declencheur")
+      .notNull()
+      .default("manuel"),
+    statut: auditSecurityStatutEnum("statut").notNull().default("en_cours"),
+    scoreGlobal: integer("score_global"),
+    scoreHeaders: integer("score_headers"),
+    scoreTls: integer("score_tls"),
+    scoreExposition: integer("score_exposition"),
+    scoreCookies: integer("score_cookies"),
+    scoreContenu: integer("score_contenu"),
+    scoreReputation: integer("score_reputation"),
+    findings: jsonb("findings")
+      .$type<FindingSecurity[]>()
+      .notNull()
+      .default([]),
+    recommandations: jsonb("recommandations")
+      .$type<RecommandationSecurity[]>()
+      .notNull()
+      .default([]),
+    certificatSslExpireeLe: timestamp("certificat_ssl_expiree_le", {
+      withTimezone: true,
+    }),
+    dureeMs: integer("duree_ms"),
+    erreur: text("erreur"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    termineLe: timestamp("termine_le", { withTimezone: true }),
+  },
+  (t) => [
+    index("idx_security_audits_site_id").on(t.siteId),
+    index("idx_security_audits_cree_le").on(t.creeLe),
+  ],
+);
+
+/** Constat atomique issu de l'audit security (ex. « HSTS absent »). */
+export type FindingSecurity = {
+  pilier:
+    | "headers"
+    | "tls"
+    | "exposition"
+    | "cookies"
+    | "contenu"
+    | "reputation";
+  code: string;
+  severite: "critique" | "haute" | "moyenne" | "basse" | "info";
+  message: string;
+  details?: Record<string, unknown>;
+};
+
+/** Action priorisée dérivée d'un ou plusieurs findings security. */
+export type RecommandationSecurity = {
+  titre: string;
+  description: string;
+  priorite: "critique" | "haute" | "moyenne" | "basse";
+  effort: "faible" | "moyen" | "eleve";
+  impact: "faible" | "moyen" | "fort";
+  pilier: FindingSecurity["pilier"];
+  pris_en_charge_axi?: {
+    pack: string;
+    cout_sans_axi: string;
+    cout_avec_axi: string;
+  };
+};
+
+export const incidentSecurityTypeEnum = pgEnum("incident_security_type", [
+  "ssl_expiration_proche",
+  "ssl_expiree",
+  "site_indisponible",
+  "hash_html_change",
+  "noindex_apparu",
+  "redirection_suspecte",
+  "cert_invalide",
+]);
+
+export const incidentSecurityStatutEnum = pgEnum("incident_security_statut", [
+  "ouvert",
+  "resolu",
+  "ignore",
+]);
+
+export const incidentSecuriteSeveriteEnum = pgEnum(
+  "incident_security_severite",
+  ["critique", "haute", "moyenne", "basse"],
+);
+
+export const securityIncidents = pgTable(
+  "security_incidents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    type: incidentSecurityTypeEnum("type").notNull(),
+    severite: incidentSecuriteSeveriteEnum("severite").notNull(),
+    statut: incidentSecurityStatutEnum("statut").notNull().default("ouvert"),
+    message: text("message").notNull(),
+    details: jsonb("details").$type<Record<string, unknown>>().default({}),
+    detecteLe: timestamp("detecte_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    resoluLe: timestamp("resolu_le", { withTimezone: true }),
+    notifieLe: timestamp("notifie_le", { withTimezone: true }),
+  },
+  (t) => [
+    index("idx_security_incidents_site_id").on(t.siteId),
+    index("idx_security_incidents_statut").on(t.statut),
+    index("idx_security_incidents_detecte_le").on(t.detecteLe),
+  ],
+);
+
+/* ─── Monitoring périodique (snapshots pour détection changements) ─ */
+
+export const securityMonitorings = pgTable(
+  "security_monitorings",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    statusHttp: integer("status_http"),
+    hashHtml: text("hash_html"),
+    certificatExpireeLe: timestamp("certificat_expiree_le", {
+      withTimezone: true,
+    }),
+    certificatEmetteur: text("certificat_emetteur"),
+    tempsReponseMs: integer("temps_reponse_ms"),
+    erreur: text("erreur"),
+    mesureLe: timestamp("mesure_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("idx_security_monitorings_site_id").on(t.siteId),
+    index("idx_security_monitorings_mesure_le").on(t.mesureLe),
+  ],
+);
+
+/* ─── Rate limiting /api/chat (shield widget LOT I.3) ───────────── */
+
+export const rateLimitsChat = pgTable(
+  "rate_limits_chat",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    visiteurCle: text("visiteur_cle").notNull(),
+    bucketMinute: text("bucket_minute").notNull(),
+    bucketJour: text("bucket_jour").notNull(),
+    nbMsgsMinute: integer("nb_msgs_minute").notNull().default(0),
+    nbMsgsJour: integer("nb_msgs_jour").notNull().default(0),
+    bloqueJusqua: timestamp("bloque_jusqua", { withTimezone: true }),
+    derniereActiviteLe: timestamp("derniere_activite_le", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("idx_rate_limits_chat_site_visiteur").on(t.siteId, t.visiteurCle),
+    index("idx_rate_limits_chat_bucket_jour").on(t.bucketJour),
+  ],
+);
+
 /* ─── Membres additionnels d'un site (futur, LOT E) ─────────────── */
 /* Un site peut avoir plusieurs humains qui l'administrent (ex. le
  * propriétaire + son community manager). Préparé mais pas exploité

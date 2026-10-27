@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/audits-seo-mensuels",
       "schedule": "0 7 1 * *"
+    },
+    {
+      "path": "/api/cron/audits-security-mensuels",
+      "schedule": "0 8 1 * *"
+    },
+    {
+      "path": "/api/cron/monitoring-security",
+      "schedule": "0 */6 * * *"
     }
   ]
 }

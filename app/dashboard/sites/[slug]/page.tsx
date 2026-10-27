@@ -12,7 +12,9 @@ import {
   ListChecks,
   Gauge,
   Mail,
+  Shield,
 } from "lucide-react";
+import { desc } from "drizzle-orm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import {
@@ -20,6 +22,8 @@ import {
   siteConfigs,
   siteOptionsAccueil,
   siteConnaissanceSources,
+  securityAudits,
+  securityIncidents,
 } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +63,26 @@ export default async function PageSiteOverview({
     .select()
     .from(siteConnaissanceSources)
     .where(eq(siteConnaissanceSources.siteId, site.id));
+
+  const [dernierSecurityAudit] = await db
+    .select({
+      scoreGlobal: securityAudits.scoreGlobal,
+      statut: securityAudits.statut,
+    })
+    .from(securityAudits)
+    .where(eq(securityAudits.siteId, site.id))
+    .orderBy(desc(securityAudits.creeLe))
+    .limit(1);
+
+  const incidentsOuvertsCount = await db
+    .select({ id: securityIncidents.id })
+    .from(securityIncidents)
+    .where(
+      and(
+        eq(securityIncidents.siteId, site.id),
+        eq(securityIncidents.statut, "ouvert"),
+      ),
+    );
 
   const propVerifiee = site.proprieteVerifieeLe !== null;
 
@@ -116,6 +140,22 @@ export default async function PageSiteOverview({
       corps: "5 piliers analysés + recommandations priorisées. Audit auto le 1er du mois.",
       href: `/dashboard/sites/${slug}/seo`,
       icone: Gauge,
+    },
+    {
+      titre: "Sécurité & Shield",
+      corps:
+        dernierSecurityAudit?.statut === "termine"
+          ? `Score ${dernierSecurityAudit.scoreGlobal}/100 au dernier audit. Monitoring 6h/jour.`
+          : "6 piliers analysés (headers, TLS, exposition, cookies, contenu, réputation).",
+      href: `/dashboard/sites/${slug}/securite`,
+      icone: Shield,
+      badge:
+        incidentsOuvertsCount.length > 0
+          ? {
+              libelle: `${incidentsOuvertsCount.length} incident·s`,
+              ton: "attention" as const,
+            }
+          : undefined,
     },
     {
       titre: "Rapports quotidiens",
