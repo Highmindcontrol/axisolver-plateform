@@ -1,0 +1,591 @@
+{
+  "id": "ef65b788-1a0c-4062-ad91-295905aa0fda",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.site_configs": {
+      "name": "site_configs",
+      "schema": "",
+      "columns": {
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nom_assistant": {
+          "name": "nom_assistant",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'AXI'"
+        },
+        "secteur": {
+          "name": "secteur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ton": {
+          "name": "ton",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'professionnel_chaleureux'"
+        },
+        "mode_prompt": {
+          "name": "mode_prompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'au_service_du_site_hote'"
+        },
+        "langues_actives": {
+          "name": "langues_actives",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"fr\"}'"
+        },
+        "langue_defaut": {
+          "name": "langue_defaut",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'fr'"
+        },
+        "voix_mode": {
+          "name": "voix_mode",
+          "type": "voix_mode",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'texte_seul'"
+        },
+        "voix_id": {
+          "name": "voix_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "branding": {
+          "name": "branding",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"couleurPrincipale\":\"#4f46e5\",\"couleurSecondaire\":\"#8b5cf6\",\"logoUrl\":null,\"position\":\"bas-droite\",\"afficherPropulsePar\":true}'::jsonb"
+        },
+        "mentions_legales_url": {
+          "name": "mentions_legales_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "politique_conf_url": {
+          "name": "politique_conf_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email_notification": {
+          "name": "email_notification",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "maj_le": {
+          "name": "maj_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "site_configs_site_id_sites_id_fk": {
+          "name": "site_configs_site_id_sites_id_fk",
+          "tableFrom": "site_configs",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.site_connaissance_sources": {
+      "name": "site_connaissance_sources",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "source_connaissance_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom_affichage": {
+          "name": "nom_affichage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statut": {
+          "name": "statut",
+          "type": "source_connaissance_statut",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'en_attente'"
+        },
+        "derniere_ingestion_le": {
+          "name": "derniere_ingestion_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "derniere_erreur": {
+          "name": "derniere_erreur",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nb_chunks": {
+          "name": "nb_chunks",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "maj_le": {
+          "name": "maj_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "site_connaissance_sources_site_id_sites_id_fk": {
+          "name": "site_connaissance_sources_site_id_sites_id_fk",
+          "tableFrom": "site_connaissance_sources",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.site_membres": {
+      "name": "site_membres",
+      "schema": "",
+      "columns": {
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'admin'"
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "site_membres_site_id_sites_id_fk": {
+          "name": "site_membres_site_id_sites_id_fk",
+          "tableFrom": "site_membres",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "site_membres_user_id_users_id_fk": {
+          "name": "site_membres_user_id_users_id_fk",
+          "tableFrom": "site_membres",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "site_membres_site_id_user_id_pk": {
+          "name": "site_membres_site_id_user_id_pk",
+          "columns": [
+            "site_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.site_options_accueil": {
+      "name": "site_options_accueil",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "site_id": {
+          "name": "site_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordre": {
+          "name": "ordre",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "libelle": {
+          "name": "libelle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actif": {
+          "name": "actif",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "site_options_accueil_site_id_sites_id_fk": {
+          "name": "site_options_accueil_site_id_sites_id_fk",
+          "tableFrom": "site_options_accueil",
+          "tableTo": "sites",
+          "columnsFrom": [
+            "site_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.sites": {
+      "name": "sites",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "owner_user_id": {
+          "name": "owner_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nom_entreprise": {
+          "name": "nom_entreprise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "domaine_principal": {
+          "name": "domaine_principal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "domaines_autorises": {
+          "name": "domaines_autorises",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "plan": {
+          "name": "plan",
+          "type": "plan_site",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'beta'"
+        },
+        "api_key_hash": {
+          "name": "api_key_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "propriete_verifiee_le": {
+          "name": "propriete_verifiee_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actif": {
+          "name": "actif",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "maj_le": {
+          "name": "maj_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sites_owner_user_id_users_id_fk": {
+          "name": "sites_owner_user_id_users_id_fk",
+          "tableFrom": "sites",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "sites_slug_unique": {
+          "name": "sites_slug_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "slug"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nom_affiche": {
+          "name": "nom_affiche",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatar_url": {
+          "name": "avatar_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cree_le": {
+          "name": "cree_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "maj_le": {
+          "name": "maj_le",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.plan_site": {
+      "name": "plan_site",
+      "schema": "public",
+      "values": [
+        "beta",
+        "starter",
+        "pro",
+        "enterprise"
+      ]
+    },
+    "public.source_connaissance_statut": {
+      "name": "source_connaissance_statut",
+      "schema": "public",
+      "values": [
+        "en_attente",
+        "en_cours",
+        "ingere",
+        "echec"
+      ]
+    },
+    "public.source_connaissance_type": {
+      "name": "source_connaissance_type",
+      "schema": "public",
+      "values": [
+        "url",
+        "sitemap",
+        "pdf"
+      ]
+    },
+    "public.voix_mode": {
+      "name": "voix_mode",
+      "schema": "public",
+      "values": [
+        "texte_seul",
+        "navigateur",
+        "premium_elevenlabs"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

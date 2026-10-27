@@ -4,3 +4,6 @@ node_modules
 .env*.local
 .DS_Store
 *.log
+.env*
+# Les fichiers *.example sont des templates sans secrets, à versionner.
+!.env*.example
