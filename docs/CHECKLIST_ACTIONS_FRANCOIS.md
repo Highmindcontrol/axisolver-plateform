@@ -2,7 +2,7 @@
 
 Document exhaustif de tout ce que François doit faire **manuellement** pour que la V1 AxiSolver soit opérationnelle, soumise aux marketplaces, et prête au lancement commercial. Les tâches techniques (code, migrations, UI) sont déjà livrées côté repo.
 
-**Dernière mise à jour** : 27 octobre 2026 (fin LOT F)
+**Dernière mise à jour** : 27 octobre 2026 (fin LOT G)
 
 **Comment utiliser ce document** :
 - Chaque section a une colonne « Statut » à cocher au fur et à mesure
@@ -92,9 +92,10 @@ Toutes doivent être cochées en Production + Preview + Development :
 | `AZURE_SPEECH_REGION` | ✅ | Ex. `francecentral` |
 | `SERPER_API_KEY` | ✅ | Audit référencement SEO |
 | `AXI_VOICE` | ✅ | Voix pré-configurée |
-| `BREVO_API_KEY` (LOT G) | ⬜ | Pour envoyer les rapports quotidiens |
-| `CONTACT_FROM_EMAIL` (LOT G) | ⬜ | `noreply@axisolver.app` |
+| `BREVO_API_KEY` (LOT G) | ⬜ | Clé API Brevo v3 (créer dans Brevo → SMTP & API → API keys) pour envoyer les rapports quotidiens |
+| `CONTACT_FROM_EMAIL` (LOT G) | ⬜ | `noreply@axisolver.app` (expéditeur rapports) |
 | `CONTACT_FROM_NAME` (LOT G) | ⬜ | `AxiSolver` |
+| `CRON_SECRET` (LOT G) | ⬜ | Généré automatiquement par Vercel sur son plan Pro+ (header `Authorization: Bearer ${CRON_SECRET}` ajouté par Vercel sur appels cron). Si plan Hobby : générer soi-même et poser à la main. |
 | `STRIPE_SECRET_KEY` (LOT K) | ⬜ | Facturation |
 | `STRIPE_WEBHOOK_SECRET` (LOT K) | ⬜ | Webhooks Stripe |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` (LOT K) | ⬜ | Clé publique Stripe |
@@ -246,6 +247,47 @@ Déjà listées section 4.2.
 
 ---
 
+## 7bis. LOT G — Rapports quotidiens Brevo (livré)
+
+Le cron Vercel envoie chaque matin à **6h UTC** (7h Paris en hiver, 8h en été) un rapport des 24 dernières heures à l'email de notification configuré sur chaque site (ou à l'email du compte owner par défaut).
+
+### 7bis.1 — Clé API Brevo
+
+- [ ] Dans Brevo → **SMTP & API** → **API keys** → bouton « Generate a new API key »
+- [ ] Nom suggéré : `axisolver-rapports-prod`
+- [ ] Copier la clé (visible une seule fois)
+- [ ] La poser sur Vercel comme `BREVO_API_KEY` (prod + preview + dev)
+- [ ] Poser aussi `CONTACT_FROM_EMAIL=noreply@axisolver.app` et `CONTACT_FROM_NAME=AxiSolver`
+
+### 7bis.2 — Vercel Cron
+
+Le fichier `vercel.json` configure le cron automatiquement au prochain déploiement :
+
+```json
+{ "crons": [{ "path": "/api/cron/rapports-quotidiens", "schedule": "0 6 * * *" }] }
+```
+
+- [ ] Vérifier dans Vercel → Project → **Crons** que le cron apparaît après le prochain deploy
+- [ ] Sur plan **Pro ou Enterprise** : Vercel injecte automatiquement `CRON_SECRET` et l'ajoute dans le header `Authorization`
+- [ ] Sur plan **Hobby** : les crons quotidiens sont supportés mais il faut poser `CRON_SECRET` à la main (générer avec `openssl rand -hex 32`)
+
+### 7bis.3 — Test manuel
+
+- [ ] Après deploy, aller sur https://axisolver.app/dashboard/sites/{slug}/rapports
+- [ ] Cliquer « Envoyer maintenant » → vérifier réception de l'email
+- [ ] Vérifier dans Brevo → **Transactional** → **Statistics** que l'email est bien parti
+
+### 7bis.4 — Déclenchement manuel du cron (debug)
+
+```bash
+curl -X GET https://axisolver.app/api/cron/rapports-quotidiens \
+  -H "Authorization: Bearer <CRON_SECRET>"
+```
+
+Retourne un JSON `{ok, duree_ms, total, envoyes, echecs}`.
+
+---
+
 ## 8. Stripe (LOT K — pas encore livré)
 
 Préparation à faire côté toi avant que je code le LOT K :
@@ -317,6 +359,7 @@ Pour chaque mise à jour significative :
 ## Journal des modifications
 
 - **27 oct 2026** : document créé après LOT F.1 + F.2 + F.3 (plugin WordPress + template GTM + dashboard installation enrichi)
+- **27 oct 2026** : ajout section 7bis après LOT G (rapports quotidiens Brevo + cron Vercel 6h UTC + cheval de Troie upsell AXI Initial) ; nouvelles vars `BREVO_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`, `CRON_SECRET`
 
 ---
 
