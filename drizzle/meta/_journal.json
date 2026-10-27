@@ -8,6 +8,13 @@
       "when": 1793064315883,
       "tag": "0000_init_multi_tenant",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793067552262,
+      "tag": "0001_allow_null_owner_system_sites",
+      "breakpoints": true
     }
   ]
 }

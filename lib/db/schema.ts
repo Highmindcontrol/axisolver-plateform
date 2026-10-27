@@ -78,9 +78,11 @@ export const users = pgTable("users", {
 export const sites = pgTable("sites", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
-  ownerUserId: uuid("owner_user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "restrict" }),
+  // Nullable : permet des sites « système » Ataraxis (axisolver, coryphea,
+  // gaugista, ataraxis.group…) rattachés à aucun compte client humain.
+  ownerUserId: uuid("owner_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
   nomEntreprise: text("nom_entreprise").notNull(),
   domainePrincipal: text("domaine_principal").notNull(),
   domainesAutorises: text("domaines_autorises").array().notNull().default([]),

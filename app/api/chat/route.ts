@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT_AXISOLVER_AUTOSELL } from "@/lib/axi-solver/system-prompt";
+import { chargerConfigSite } from "@/lib/axi-solver/charger-config-site";
+import { construirePrompt } from "@/lib/axi-solver/construire-prompt";
+import { verifierOrigine } from "@/lib/axi-solver/verifier-origine";
 import { TOOLS_AXISOLVER } from "@/lib/axi-solver/tools";
 import {
   auditerSite,
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { messages: ClientMessage[] };
+  let body: { messages: ClientMessage[]; slug?: string };
   try {
     body = await request.json();
   } catch {
@@ -65,6 +68,36 @@ export async function POST(request: Request) {
   const messagesInitiaux = Array.isArray(body?.messages) ? body.messages : [];
   if (messagesInitiaux.length === 0) {
     return jsonErreur("Aucun message fourni", 400);
+  }
+
+  // Multi-tenant : si un `slug` est fourni (via URL ou body), on charge
+  // la config du site cible. Sinon, fallback legacy sur le prompt vitrine
+  // historique d'axisolver.app (rétro-compatibilité V1).
+  const url = new URL(request.url);
+  const slug = url.searchParams.get("slug") ?? body?.slug ?? null;
+
+  let promptSysteme = SYSTEM_PROMPT_AXISOLVER_AUTOSELL;
+  if (slug) {
+    try {
+      const config = await chargerConfigSite(slug);
+      if (!config) {
+        return jsonErreur(`Site "${slug}" introuvable ou inactif`, 404);
+      }
+      // Vérification Origin pour empêcher qu'un site tiers détourne
+      // l'instance d'un autre. En dev localhost toujours OK.
+      const origine = request.headers.get("origin");
+      const verif = verifierOrigine(origine, config);
+      if (!verif.autorise) {
+        console.warn(
+          `[chat] Origin refusé pour slug="${slug}" : ${verif.raison}`,
+        );
+        return jsonErreur(verif.raison ?? "Origin non autorisé", 403);
+      }
+      promptSysteme = construirePrompt(config);
+    } catch (e) {
+      console.error("[chat] Erreur chargement config site :", e);
+      return jsonErreur("Erreur serveur à la configuration du site", 500);
+    }
   }
 
   const client = new Anthropic({ apiKey: cle });
@@ -99,7 +132,7 @@ export async function POST(request: Request) {
           const claudeStream = client.messages.stream({
             model: "claude-haiku-4-5-20251001",
             max_tokens: 1024,
-            system: SYSTEM_PROMPT_AXISOLVER_AUTOSELL,
+            system: promptSysteme,
             tools: TOOLS_AXISOLVER,
             messages: messagesAnthropic,
           });
