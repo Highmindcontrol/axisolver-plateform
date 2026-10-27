@@ -162,3 +162,36 @@ export async function deconnexionAction() {
   await supabase.auth.signOut();
   redirect("/connexion");
 }
+
+/* ─── Renvoyer le lien de confirmation ───────────────────────── */
+
+export type EtatRenvoiConfirmation = {
+  erreur: string | null;
+  ok?: boolean;
+};
+
+export async function renvoyerConfirmationAction(
+  _prev: EtatRenvoiConfirmation,
+  formData: FormData,
+): Promise<EtatRenvoiConfirmation> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email || !EMAIL_REGEX.test(email)) {
+    return { erreur: "Adresse email invalide." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const siteUrl =
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://axisolver.app";
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: {
+      emailRedirectTo: `${siteUrl}/api/auth/confirm?next=/dashboard`,
+    },
+  });
+  if (error) {
+    console.error("[renvoyer-confirmation]", error.message);
+    // Pas de leak sur l'existence du compte — toujours retourner ok.
+  }
+  return { erreur: null, ok: true };
+}
