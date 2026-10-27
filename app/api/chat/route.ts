@@ -36,6 +36,53 @@ type ClientMessage = {
 };
 
 /**
+ * Preflight CORS — appelé par le navigateur avant un POST cross-origin
+ * depuis un site tiers qui embed le widget. On autorise uniquement
+ * les origines inscrites dans `domaines_autorises` du site cible.
+ */
+export async function OPTIONS(request: Request) {
+  const origine = request.headers.get("origin");
+  const url = new URL(request.url);
+  const slug = url.searchParams.get("slug");
+
+  const headers = await construireHeadersCors(origine, slug);
+  return new Response(null, { status: 204, headers });
+}
+
+/**
+ * Construit les headers CORS dynamiquement selon le site cible.
+ * Si le slug n'existe pas ou si l'origine n'est pas autorisée, on
+ * renvoie des headers sans Access-Control-Allow-Origin — le navigateur
+ * bloquera la requête côté client. Vary: Origin pour que les CDN
+ * ne cachent pas la réponse d'un site pour un autre.
+ */
+async function construireHeadersCors(
+  origine: string | null,
+  slug: string | null,
+): Promise<Record<string, string>> {
+  const base: Record<string, string> = {
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
+  };
+  if (!slug || !origine) return base;
+
+  try {
+    const config = await chargerConfigSite(slug);
+    if (!config) return base;
+    const verif = verifierOrigine(origine, config);
+    if (verif.autorise) {
+      base["Access-Control-Allow-Origin"] = origine;
+      base["Access-Control-Allow-Credentials"] = "true";
+    }
+  } catch {
+    // DB inaccessible — on ne renvoie pas de CORS, requête bloquée.
+  }
+  return base;
+}
+
+/**
  * POST /api/chat
  *
  * Streaming SSE pour la conversation AxiSolver avec tool calling natif.
@@ -52,13 +99,17 @@ type ClientMessage = {
  */
 export async function POST(request: Request) {
   const cle = process.env.ANTHROPIC_API_KEY;
+  const origine = request.headers.get("origin");
+  const urlReq = new URL(request.url);
+  const slugCors = urlReq.searchParams.get("slug");
+  const headersCors = await construireHeadersCors(origine, slugCors);
 
   if (!cle) {
     return new Response(
       sseStreamStatique(
         "AxiSolver sera branché en direct dès que la clé Claude sera posée côté serveur. En attendant, pour composer votre équipe AXI et souscrire, direction axihub.live — AXI vous y attend en live.",
       ),
-      sseHeaders(),
+      sseHeaders(headersCors),
     );
   }
 
@@ -66,12 +117,12 @@ export async function POST(request: Request) {
   try {
     body = await request.json();
   } catch {
-    return jsonErreur("JSON invalide", 400);
+    return jsonErreur("JSON invalide", 400, headersCors);
   }
 
   const messagesInitiaux = Array.isArray(body?.messages) ? body.messages : [];
   if (messagesInitiaux.length === 0) {
-    return jsonErreur("Aucun message fourni", 400);
+    return jsonErreur("Aucun message fourni", 400, headersCors);
   }
 
   // Multi-tenant : si un `slug` est fourni (via URL ou body), on charge
@@ -86,7 +137,7 @@ export async function POST(request: Request) {
     try {
       const config = await chargerConfigSite(slug);
       if (!config) {
-        return jsonErreur(`Site "${slug}" introuvable ou inactif`, 404);
+        return jsonErreur(`Site "${slug}" introuvable ou inactif`, 404, headersCors);
       }
       // Vérification Origin pour empêcher qu'un site tiers détourne
       // l'instance d'un autre. En dev localhost toujours OK.
@@ -96,13 +147,13 @@ export async function POST(request: Request) {
         console.warn(
           `[chat] Origin refusé pour slug="${slug}" : ${verif.raison}`,
         );
-        return jsonErreur(verif.raison ?? "Origin non autorisé", 403);
+        return jsonErreur(verif.raison ?? "Origin non autorisé", 403, headersCors);
       }
       promptSysteme = construirePrompt(config);
       siteIdCourant = config.siteId;
     } catch (e) {
       console.error("[chat] Erreur chargement config site :", e);
-      return jsonErreur("Erreur serveur à la configuration du site", 500);
+      return jsonErreur("Erreur serveur à la configuration du site", 500, headersCors);
     }
   }
 
@@ -516,27 +567,32 @@ export async function POST(request: Request) {
     },
   });
 
-  return new Response(stream, sseHeaders());
+  return new Response(stream, sseHeaders(headersCors));
 }
 
 // ------------------------------------------------------------------ //
 // Utilitaires                                                        //
 // ------------------------------------------------------------------ //
 
-function sseHeaders(): ResponseInit {
+function sseHeaders(cors: Record<string, string> = {}): ResponseInit {
   return {
     headers: {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      ...cors,
     },
   };
 }
 
-function jsonErreur(message: string, status: number): Response {
+function jsonErreur(
+  message: string,
+  status: number,
+  cors: Record<string, string> = {},
+): Response {
   return new Response(JSON.stringify({ erreur: message }), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...cors },
   });
 }
 
