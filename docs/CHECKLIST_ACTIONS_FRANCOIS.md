@@ -2,7 +2,7 @@
 
 Document exhaustif de tout ce que François doit faire **manuellement** pour que la V1 AxiSolver soit opérationnelle, soumise aux marketplaces, et prête au lancement commercial. Les tâches techniques (code, migrations, UI) sont déjà livrées côté repo.
 
-**Dernière mise à jour** : 27 octobre 2026 (fin LOT I)
+**Dernière mise à jour** : 27 octobre 2026 (fin LOT J)
 
 **Comment utiliser ce document** :
 - Chaque section a une colonne « Statut » à cocher au fur et à mesure
@@ -292,24 +292,26 @@ Retourne un JSON `{ok, duree_ms, total, envoyes, echecs}`.
 
 ### Base de données
 
-- [ ] Exécuter dans Supabase SQL Editor : `drizzle/0009_seo_audits.sql`
-- [ ] Exécuter dans Supabase SQL Editor : `drizzle/0010_security_shield.sql`
+- [x] Exécuter dans Supabase SQL Editor : `drizzle/0009_seo_audits.sql`
+- [x] Exécuter dans Supabase SQL Editor : `drizzle/0010_security_shield.sql`
+- [ ] Exécuter dans Supabase SQL Editor : `drizzle/0011_ads_audits.sql`
 
-Ces 2 migrations créent les tables :
-- `seo_audits`, `security_audits` (score mensuel + recommandations)
+Ces 3 migrations créent les tables :
+- `seo_audits`, `security_audits`, `ads_audits` (scores mensuels + recommandations)
 - `security_incidents` (alertes du monitoring 6h/jour)
 - `security_monitorings` (snapshots status + hash + SSL)
 - `rate_limits_chat` (shield widget /api/chat)
 
 ### Crons Vercel
 
-Après prochain deploy, vérifier dans Vercel → Project → **Crons** que 4 crons apparaissent :
+Après prochain deploy, vérifier dans Vercel → Project → **Crons** que 5 crons apparaissent :
 
 | Path | Schedule | Rôle |
 |---|---|---|
 | `/api/cron/rapports-quotidiens` | `0 6 * * *` | Rapport email tous les matins 7h Paris |
 | `/api/cron/audits-seo-mensuels` | `0 7 1 * *` | Audit SEO le 1er du mois |
 | `/api/cron/audits-security-mensuels` | `0 8 1 * *` | Audit sécurité le 1er du mois |
+| `/api/cron/audits-ads-mensuels` | `0 9 1 * *` | Audit publicité le 1er du mois |
 | `/api/cron/monitoring-security` | `0 */6 * * *` | Monitoring toutes les 6h |
 
 ### Shield widget automatique
@@ -395,6 +397,7 @@ Pour chaque mise à jour significative :
 - **27 oct 2026** : document créé après LOT F.1 + F.2 + F.3 (plugin WordPress + template GTM + dashboard installation enrichi)
 - **27 oct 2026** : ajout section 7bis après LOT G (rapports quotidiens Brevo + cron Vercel 6h UTC + cheval de Troie upsell AXI Initial) ; nouvelles vars `BREVO_API_KEY`, `CONTACT_FROM_EMAIL`, `CONTACT_FROM_NAME`, `CRON_SECRET`
 - **27 oct 2026** : ajout section 7ter après LOT H (moteur SEO + dashboard + cron mensuel 1er du mois) et LOT I (moteur Shield 6 piliers + dashboard incidents + monitoring 6h/jour + rate limiting /api/chat + anti prompt injection). 2 migrations SQL + 3 nouveaux crons Vercel.
+- **27 oct 2026** : LOT J livré — moteur Ads 4 piliers (trackers, consentement, visibilité SERP, remarketing) + dashboard + cron mensuel 1er du mois à 9h UTC. Migration `drizzle/0011_ads_audits.sql` à exécuter. 5e cron ajouté.
 
 ---
 

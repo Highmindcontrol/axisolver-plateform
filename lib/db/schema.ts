@@ -580,6 +580,101 @@ export const rateLimitsChat = pgTable(
   ],
 );
 
+/* ─── Audits publicité / Ads (LOT J) ────────────────────────────── */
+
+export const auditAdsStatutEnum = pgEnum("audit_ads_statut", [
+  "en_cours",
+  "termine",
+  "echec",
+]);
+
+export const auditAdsDeclencheurEnum = pgEnum("audit_ads_declencheur", [
+  "manuel",
+  "auto_mensuel",
+  "api",
+]);
+
+export const adsAudits = pgTable(
+  "ads_audits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    urlAuditee: text("url_auditee").notNull(),
+    declencheur: auditAdsDeclencheurEnum("declencheur")
+      .notNull()
+      .default("manuel"),
+    statut: auditAdsStatutEnum("statut").notNull().default("en_cours"),
+    scoreGlobal: integer("score_global"),
+    scoreTrackers: integer("score_trackers"),
+    scoreConsentement: integer("score_consentement"),
+    scoreVisibilite: integer("score_visibilite"),
+    scoreRemarketing: integer("score_remarketing"),
+    trackersDetectes: jsonb("trackers_detectes")
+      .$type<TrackerDetecte[]>()
+      .notNull()
+      .default([]),
+    annoncesConcurrentes: jsonb("annonces_concurrentes")
+      .$type<AnnonceSerp[]>()
+      .notNull()
+      .default([]),
+    findings: jsonb("findings").$type<FindingAds[]>().notNull().default([]),
+    recommandations: jsonb("recommandations")
+      .$type<RecommandationAds[]>()
+      .notNull()
+      .default([]),
+    motsClesTestes: text("mots_cles_testes").array().notNull().default([]),
+    dureeMs: integer("duree_ms"),
+    erreur: text("erreur"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    termineLe: timestamp("termine_le", { withTimezone: true }),
+  },
+  (t) => [
+    index("idx_ads_audits_site_id").on(t.siteId),
+    index("idx_ads_audits_cree_le").on(t.creeLe),
+  ],
+);
+
+export type TrackerDetecte = {
+  code: string;
+  nom: string;
+  categorie: "analytics" | "publicite" | "remarketing" | "attribution" | "cmp";
+  id?: string;
+};
+
+export type AnnonceSerp = {
+  requete: string;
+  position: number;
+  titre: string;
+  url: string;
+  description?: string;
+};
+
+export type FindingAds = {
+  pilier: "trackers" | "consentement" | "visibilite" | "remarketing";
+  code: string;
+  severite: "critique" | "haute" | "moyenne" | "basse" | "info";
+  message: string;
+  details?: Record<string, unknown>;
+};
+
+export type RecommandationAds = {
+  titre: string;
+  description: string;
+  priorite: "critique" | "haute" | "moyenne" | "basse";
+  effort: "faible" | "moyen" | "eleve";
+  impact: "faible" | "moyen" | "fort";
+  pilier: FindingAds["pilier"];
+  pris_en_charge_axi?: {
+    pack: string;
+    cout_sans_axi: string;
+    cout_avec_axi: string;
+  };
+};
+
 /* ─── Membres additionnels d'un site (futur, LOT E) ─────────────── */
 /* Un site peut avoir plusieurs humains qui l'administrent (ex. le
  * propriétaire + son community manager). Préparé mais pas exploité

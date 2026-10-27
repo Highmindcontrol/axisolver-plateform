@@ -13,6 +13,7 @@ import {
   Gauge,
   Mail,
   Shield,
+  Megaphone,
 } from "lucide-react";
 import { desc } from "drizzle-orm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -24,6 +25,7 @@ import {
   siteConnaissanceSources,
   securityAudits,
   securityIncidents,
+  adsAudits,
 } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
@@ -83,6 +85,16 @@ export default async function PageSiteOverview({
         eq(securityIncidents.statut, "ouvert"),
       ),
     );
+
+  const [dernierAdsAudit] = await db
+    .select({
+      scoreGlobal: adsAudits.scoreGlobal,
+      statut: adsAudits.statut,
+    })
+    .from(adsAudits)
+    .where(eq(adsAudits.siteId, site.id))
+    .orderBy(desc(adsAudits.creeLe))
+    .limit(1);
 
   const propVerifiee = site.proprieteVerifieeLe !== null;
 
@@ -156,6 +168,15 @@ export default async function PageSiteOverview({
               ton: "attention" as const,
             }
           : undefined,
+    },
+    {
+      titre: "Publicité & Ads",
+      corps:
+        dernierAdsAudit?.statut === "termine"
+          ? `Score ${dernierAdsAudit.scoreGlobal}/100. Trackers, consentement RGPD, visibilité SERP.`
+          : "4 piliers analysés (trackers, consentement, visibilité SERP, remarketing).",
+      href: `/dashboard/sites/${slug}/ads`,
+      icone: Megaphone,
     },
     {
       titre: "Rapports quotidiens",
