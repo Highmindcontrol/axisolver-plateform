@@ -75,6 +75,7 @@ export async function inscriptionAction(
     password: motDePasse,
     options: {
       data: { full_name: nom },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://axisolver.app"}/api/auth/confirm?next=/dashboard`,
     },
   });
   if (error) {
@@ -91,7 +92,14 @@ export async function inscriptionAction(
   if (!data.user) {
     return { erreur: "Impossible de créer le compte pour l'instant." };
   }
-  redirect(APRES_CONNEXION);
+  // Si la session est déjà créée (confirmation email désactivée dans
+  // Supabase), on va direct sur le dashboard. Sinon on redirige vers
+  // la page « vérifiez votre email ».
+  if (data.session) {
+    redirect(APRES_CONNEXION);
+  } else {
+    redirect(`/verification-email?email=${encodeURIComponent(email)}`);
+  }
 }
 
 /* ─── Mot de passe oublié ─────────────────────────────────────── */
