@@ -24,7 +24,7 @@ import {
 export type EtatVerification = {
   erreur: string | null;
   succes?: {
-    methode: "fichier" | "dns";
+    methode: "fichier" | "dns" | "balise";
     verifieLe: string;
   };
   erreurs?: string[];
@@ -57,6 +57,9 @@ export async function genererTokensAction(slug: string): Promise<void> {
   if (!site.tokenVerificationDns) {
     updates.tokenVerificationDns = genererToken();
   }
+  if (!site.tokenVerificationBalise) {
+    updates.tokenVerificationBalise = genererToken();
+  }
   if (Object.keys(updates).length > 0) {
     await db
       .update(sites)
@@ -81,7 +84,11 @@ export async function verifierProprieteAction(
   const site = await recupererSitePossede(slug, user.id);
   if (!site) return { erreur: "Site introuvable." };
 
-  if (!site.tokenVerificationFichier || !site.tokenVerificationDns) {
+  if (
+    !site.tokenVerificationFichier ||
+    !site.tokenVerificationDns ||
+    !site.tokenVerificationBalise
+  ) {
     return {
       erreur:
         "Tokens de vérification manquants — rechargez la page pour les générer.",
@@ -92,6 +99,7 @@ export async function verifierProprieteAction(
     domaine: site.domainePrincipal,
     tokenFichier: site.tokenVerificationFichier,
     tokenDns: site.tokenVerificationDns,
+    tokenBalise: site.tokenVerificationBalise,
   });
 
   if (resultat.verifie && resultat.methode) {

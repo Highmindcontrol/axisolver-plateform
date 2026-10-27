@@ -26,7 +26,7 @@ import { promises as dns } from "node:dns";
 
 export type ResultatVerification = {
   verifie: boolean;
-  methode?: "fichier" | "dns";
+  methode?: "fichier" | "dns" | "balise";
   erreurs: string[];
 };
 
@@ -42,11 +42,13 @@ export async function verifierProprieteDomaine(params: {
   domaine: string;
   tokenFichier: string;
   tokenDns: string;
+  tokenBalise: string;
 }): Promise<ResultatVerification> {
-  const { domaine, tokenFichier, tokenDns } = params;
+  const { domaine, tokenFichier, tokenDns, tokenBalise } = params;
 
-  const [resFichier, resDns] = await Promise.allSettled([
+  const [resFichier, resBalise, resDns] = await Promise.allSettled([
     verifierParFichier(domaine, tokenFichier),
+    verifierParBalise(domaine, tokenBalise),
     verifierParDns(domaine, tokenDns),
   ]);
 
@@ -55,16 +57,72 @@ export async function verifierProprieteDomaine(params: {
   if (resFichier.status === "fulfilled" && resFichier.value.ok) {
     return { verifie: true, methode: "fichier", erreurs: [] };
   }
-  if (resFichier.status === "fulfilled") erreurs.push(`fichier : ${resFichier.value.raison}`);
-  if (resFichier.status === "rejected") erreurs.push(`fichier : ${String(resFichier.reason)}`);
-
+  if (resBalise.status === "fulfilled" && resBalise.value.ok) {
+    return { verifie: true, methode: "balise", erreurs: [] };
+  }
   if (resDns.status === "fulfilled" && resDns.value.ok) {
     return { verifie: true, methode: "dns", erreurs: [] };
   }
+
+  if (resFichier.status === "fulfilled") erreurs.push(`fichier : ${resFichier.value.raison}`);
+  if (resFichier.status === "rejected") erreurs.push(`fichier : ${String(resFichier.reason)}`);
+  if (resBalise.status === "fulfilled") erreurs.push(`balise meta : ${resBalise.value.raison}`);
+  if (resBalise.status === "rejected") erreurs.push(`balise meta : ${String(resBalise.reason)}`);
   if (resDns.status === "fulfilled") erreurs.push(`DNS : ${resDns.value.raison}`);
   if (resDns.status === "rejected") erreurs.push(`DNS : ${String(resDns.reason)}`);
 
   return { verifie: false, erreurs };
+}
+
+async function verifierParBalise(
+  domaine: string,
+  token: string,
+): Promise<{ ok: boolean; raison?: string }> {
+  const urls = [`https://${domaine}/`, `https://www.${domaine}/`];
+  for (const url of urls) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: {
+          "User-Agent": USER_AGENT,
+          Accept: "text/html",
+        },
+        redirect: "follow",
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (!res.ok) continue;
+      const html = await res.text();
+      // Cherche <meta name="axisolver-verification" content="TOKEN"> en
+      // tolérant les variations d'attributs/espaces/guillemets simples.
+      const regex = new RegExp(
+        `<meta[^>]*name\\s*=\\s*["']axisolver-verification["'][^>]*content\\s*=\\s*["']${token.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&",
+        )}["']`,
+        "i",
+      );
+      const regexInverse = new RegExp(
+        `<meta[^>]*content\\s*=\\s*["']${token.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&",
+        )}["'][^>]*name\\s*=\\s*["']axisolver-verification["']`,
+        "i",
+      );
+      if (regex.test(html) || regexInverse.test(html)) {
+        return { ok: true };
+      }
+    } catch (e) {
+      clearTimeout(timer);
+      // Continue avec l'URL suivante
+    }
+  }
+  return {
+    ok: false,
+    raison: `aucune balise <meta name="axisolver-verification"> avec le bon token trouvée dans le <head> de ${domaine}`,
+  };
 }
 
 async function verifierParFichier(

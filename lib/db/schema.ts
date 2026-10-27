@@ -96,6 +96,7 @@ export const sites = pgTable("sites", {
   proprieteMethode: text("propriete_methode"),
   tokenVerificationFichier: text("token_verification_fichier"),
   tokenVerificationDns: text("token_verification_dns"),
+  tokenVerificationBalise: text("token_verification_balise"),
   actif: boolean("actif").notNull().default(true),
   creeLe: timestamp("cree_le", { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),

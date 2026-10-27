@@ -1,0 +1,1 @@
+ALTER TABLE "sites" ADD COLUMN "token_verification_balise" text;
