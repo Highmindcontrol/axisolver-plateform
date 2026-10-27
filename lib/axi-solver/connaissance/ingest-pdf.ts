@@ -1,8 +1,23 @@
 import "server-only";
 
-// @ts-expect-error — pdf-parse n'exporte pas de types natifs
-import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import { ingererSegments } from "./ingest";
+
+/**
+ * Import dynamique de pdf-parse pour éviter que Next.js bundle le
+ * module au build-time (son index.js lance un test au require).
+ */
+type PdfParseFn = (buffer: Buffer) => Promise<{
+  text: string;
+  numpages: number;
+  info?: { Title?: string };
+}>;
+
+async function getPdfParse(): Promise<PdfParseFn> {
+  const mod = (await import("pdf-parse")) as unknown as {
+    default?: PdfParseFn;
+  } & PdfParseFn;
+  return (mod.default ?? mod) as PdfParseFn;
+}
 
 /**
  * Ingestion d'un PDF uploadé par le propriétaire du site.
@@ -34,6 +49,7 @@ export async function ingererPdf(params: {
     );
   }
 
+  const pdfParse = await getPdfParse();
   const parsed = await pdfParse(buffer);
   const texte = String(parsed.text ?? "").trim();
   const nbPages = Number(parsed.numpages ?? 0);
