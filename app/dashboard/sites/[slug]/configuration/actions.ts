@@ -127,7 +127,7 @@ export async function sauverConfigurationAction(
       .set({
         nomAssistant,
         ton,
-        voixMode,
+        voixMode: voixMode as "texte_seul" | "navigateur" | "premium_elevenlabs",
         voixId: voixId || null,
         langueDefaut,
         languesActives: languesFiltrees,
