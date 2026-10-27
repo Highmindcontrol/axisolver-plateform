@@ -79,18 +79,53 @@ export async function inscriptionAction(
     },
   });
   if (error) {
-    console.error("[inscription]", error.name, error.message);
-    const msg = error.message.toLowerCase();
-    if (msg.includes("already") || msg.includes("exists")) {
+    const errObj = error as unknown as {
+      name: string;
+      message: string;
+      code?: string;
+      status?: number;
+    };
+    console.error(
+      "[inscription] erreur Supabase :",
+      JSON.stringify(
+        {
+          name: errObj.name,
+          message: errObj.message,
+          code: errObj.code,
+          status: errObj.status,
+        },
+        null,
+        2,
+      ),
+    );
+    const msg = errObj.message.toLowerCase();
+    if (msg.includes("already") || msg.includes("exists") || msg.includes("registered")) {
       return { erreur: "Un compte existe déjà avec cette adresse." };
     }
-    if (msg.includes("password")) {
+    if (msg.includes("password") || msg.includes("weak")) {
       return { erreur: "Mot de passe refusé par Supabase (trop court ou trop faible)." };
     }
-    return { erreur: "Impossible de créer le compte pour l'instant." };
+    if (msg.includes("rate") || msg.includes("too many")) {
+      return { erreur: "Trop de tentatives — réessayez dans quelques minutes." };
+    }
+    if (msg.includes("signup") && msg.includes("disabled")) {
+      return { erreur: "L'inscription est désactivée côté Supabase." };
+    }
+    if (msg.includes("smtp") || msg.includes("mail")) {
+      return {
+        erreur: `Erreur d'envoi de l'email (${errObj.message}). Vérifiez la config SMTP Supabase.`,
+      };
+    }
+    return {
+      erreur: `Erreur Supabase : ${errObj.message}${errObj.code ? ` [${errObj.code}]` : ""}`,
+    };
   }
   if (!data.user) {
-    return { erreur: "Impossible de créer le compte pour l'instant." };
+    console.error(
+      "[inscription] signUp sans erreur mais data.user est null — identities:",
+      JSON.stringify(data),
+    );
+    return { erreur: "Supabase a renvoyé une réponse incomplète (data.user null)." };
   }
   // Si la session est déjà créée (confirmation email désactivée dans
   // Supabase), on va direct sur le dashboard. Sinon on redirige vers
