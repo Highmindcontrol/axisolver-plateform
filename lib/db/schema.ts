@@ -239,6 +239,87 @@ export type ChunkMeta = {
   section?: string;
 };
 
+/* ─── Conversations + tickets (LOT E.6) ─────────────────────────── */
+
+export const chaleurTicketEnum = pgEnum("chaleur_ticket", [
+  "froid",
+  "tiede",
+  "chaud",
+  "urgent",
+]);
+
+export const statutTicketEnum = pgEnum("statut_ticket", [
+  "resolu_par_axi",
+  "ouvert",
+  "en_cours",
+  "transfere",
+  "ferme",
+]);
+
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    visiteurId: text("visiteur_id"),
+    userAgent: text("user_agent"),
+    url: text("url"),
+    debutLe: timestamp("debut_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    finLe: timestamp("fin_le", { withTimezone: true }),
+    messages: jsonb("messages")
+      .$type<MessageConversation[]>()
+      .notNull()
+      .default([]),
+    resumeAxi: text("resume_axi"),
+    nbTours: integer("nb_tours").notNull().default(0),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("idx_conversations_site_id").on(t.siteId)],
+);
+
+export type MessageConversation = {
+  role: "user" | "assistant";
+  content: string;
+  horodatage: string;
+};
+
+export const tickets = pgTable(
+  "tickets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    reference: text("reference").notNull().unique(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    conversationId: uuid("conversation_id").references(
+      () => conversations.id,
+      { onDelete: "set null" },
+    ),
+    statut: statutTicketEnum("statut").notNull().default("ouvert"),
+    chaleur: chaleurTicketEnum("chaleur").notNull().default("tiede"),
+    prenom: text("prenom"),
+    email: text("email"),
+    telephone: text("telephone"),
+    resume: text("resume"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    majLe: timestamp("maj_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("idx_tickets_site_id").on(t.siteId),
+    index("idx_tickets_statut").on(t.statut),
+  ],
+);
+
 /* ─── Membres additionnels d'un site (futur, LOT E) ─────────────── */
 /* Un site peut avoir plusieurs humains qui l'administrent (ex. le
  * propriétaire + son community manager). Préparé mais pas exploité

@@ -9,6 +9,8 @@ import {
 } from "@/lib/axi-solver/connaissance/rechercher";
 import { TOOLS_AXISOLVER } from "@/lib/axi-solver/tools";
 import { estDestructif } from "@/lib/axi-solver/tools-destructifs";
+import { db } from "@/lib/db";
+import { conversations } from "@/lib/db/schema";
 import {
   auditerSite,
   auditerSiteParCategorie,
@@ -114,13 +116,18 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { messages: ClientMessage[]; slug?: string };
+  let body: {
+    messages: ClientMessage[];
+    slug?: string;
+    visiteurId?: string;
+  };
   try {
     body = await request.json();
   } catch {
     return jsonErreur("JSON invalide", 400, headersCors);
   }
 
+  const visiteurId = body?.visiteurId ?? null;
   const messagesInitiaux = Array.isArray(body?.messages) ? body.messages : [];
   if (messagesInitiaux.length === 0) {
     return jsonErreur("Aucun message fourni", 400, headersCors);
@@ -579,6 +586,41 @@ export async function POST(request: Request) {
 
         emit({ type: "done" });
         controller.close();
+
+        // Capture asynchrone de la conversation en DB (fire-and-forget)
+        // Uniquement pour les sites tiers (slug présent + siteIdCourant),
+        // pas pour axisolver.app vitrine (où le flow est différent).
+        if (siteIdCourant) {
+          const messagesPourStockage = messagesAnthropic
+            .filter(
+              (m): m is { role: "user" | "assistant"; content: string } =>
+                typeof m.content === "string",
+            )
+            .map((m) => ({
+              role: m.role,
+              content: m.content,
+              horodatage: new Date().toISOString(),
+            }));
+          const nbTours = messagesPourStockage.filter(
+            (m) => m.role === "assistant",
+          ).length;
+
+          db
+            .insert(conversations)
+            .values({
+              siteId: siteIdCourant,
+              visiteurId: visiteurId ?? null,
+              userAgent: request.headers.get("user-agent") ?? null,
+              url: request.headers.get("referer") ?? null,
+              messages: messagesPourStockage,
+              nbTours,
+              finLe: new Date(),
+            })
+            .then(() => {})
+            .catch((e) => {
+              console.error("[chat] persist conversation failed:", e);
+            });
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "Erreur Claude";
         emit({ type: "erreur", message });
