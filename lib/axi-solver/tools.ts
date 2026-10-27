@@ -534,6 +534,29 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
       required: [],
     },
   },
+  {
+    name: "chercher_base_connaissances",
+    description:
+      "Interroge la base de connaissances du site hôte (contenus URL/sitemap crawlés + PDF uploadés par le propriétaire du site). À utiliser dès qu'une question du visiteur porte sur le contenu, les tarifs, les horaires, les services, les procédures du site. Retourne les passages les plus pertinents avec leur source (URL ou page du PDF). INSTRUCTION ABSOLUE : si tu utilises un résultat, cite la source dans ta réponse. Si aucun résultat ne répond vraiment, dis-le franchement — ne jamais inventer. Ne pas appeler ce tool si la question n'a rien à voir avec le site (ex. une blague, une salutation).",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        requete: {
+          type: "string" as const,
+          description:
+            "La question ou le sujet à chercher, reformulé en 5-20 mots. Formule à la 3e personne ou en requête neutre (ex. 'tarifs consultation licenciement' plutôt que 'je voudrais savoir le prix').",
+        },
+        nb_resultats: {
+          type: "integer" as const,
+          minimum: 1,
+          maximum: 10,
+          description:
+            "Nombre de passages à récupérer. Défaut : 5. Monter à 8-10 pour une question large, baisser à 3 pour une question très ciblée.",
+        },
+      },
+      required: ["requete"],
+    },
+  },
 ];
 
 /** État initial du panneau au démarrage de la conversation. */

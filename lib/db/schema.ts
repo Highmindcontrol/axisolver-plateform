@@ -8,6 +8,8 @@ import {
   boolean,
   pgEnum,
   primaryKey,
+  index,
+  vector,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -181,6 +183,58 @@ export const siteConnaissanceSources = pgTable("site_connaissance_sources", {
   creeLe: timestamp("cree_le", { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
 });
+
+/* ─── Chunks de base de connaissances + embeddings pgvector (LOT B) ─ */
+/* Chaque source ingérée (URL, sitemap, PDF) est découpée en chunks de
+ * ~300-500 tokens, puis embedded via OpenAI text-embedding-3-small
+ * (dimension 1536). Un index HNSW sur l'embedding permet la recherche
+ * par similarité cosinus en millisecondes. Le tool call
+ * `chercher_base_connaissances` du /api/chat lit cette table. */
+
+export const baseConnaissanceChunks = pgTable(
+  "base_connaissance_chunks",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    sourceId: uuid("source_id")
+      .notNull()
+      .references(() => siteConnaissanceSources.id, {
+        onDelete: "cascade",
+      }),
+    position: integer("position").notNull().default(0),
+    texte: text("texte").notNull(),
+    tokens: integer("tokens").notNull().default(0),
+    embedding: vector("embedding", { dimensions: 1536 }).notNull(),
+    meta: jsonb("meta").$type<ChunkMeta>().notNull().default({}),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    // Index HNSW cosine pour la recherche sémantique rapide
+    index("idx_chunks_embedding_hnsw").using(
+      "hnsw",
+      t.embedding.op("vector_cosine_ops"),
+    ),
+    // Index BTree sur site_id pour filtrer avant le vectoriel
+    index("idx_chunks_site_id").on(t.siteId),
+    index("idx_chunks_source_id").on(t.sourceId),
+  ],
+);
+
+/** Métadonnées d'un chunk — ce qui permet de citer la source. */
+export type ChunkMeta = {
+  /** URL d'origine si crawl web */
+  url?: string;
+  /** Titre de la page / document */
+  titre?: string;
+  /** Numéro de page pour les PDF */
+  page?: number;
+  /** Section / titre H2-H3 si extrait d'une structure */
+  section?: string;
+};
 
 /* ─── Membres additionnels d'un site (futur, LOT E) ─────────────── */
 /* Un site peut avoir plusieurs humains qui l'administrent (ex. le

@@ -15,6 +15,13 @@
       "when": 1793067552262,
       "tag": "0001_allow_null_owner_system_sites",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793072252901,
+      "tag": "0002_chunks_pgvector",
+      "breakpoints": true
     }
   ]
 }

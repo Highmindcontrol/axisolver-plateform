@@ -3,6 +3,10 @@ import { SYSTEM_PROMPT_AXISOLVER_AUTOSELL } from "@/lib/axi-solver/system-prompt
 import { chargerConfigSite } from "@/lib/axi-solver/charger-config-site";
 import { construirePrompt } from "@/lib/axi-solver/construire-prompt";
 import { verifierOrigine } from "@/lib/axi-solver/verifier-origine";
+import {
+  rechercher,
+  formaterResultats,
+} from "@/lib/axi-solver/connaissance/rechercher";
 import { TOOLS_AXISOLVER } from "@/lib/axi-solver/tools";
 import {
   auditerSite,
@@ -77,6 +81,7 @@ export async function POST(request: Request) {
   const slug = url.searchParams.get("slug") ?? body?.slug ?? null;
 
   let promptSysteme = SYSTEM_PROMPT_AXISOLVER_AUTOSELL;
+  let siteIdCourant: string | null = null;
   if (slug) {
     try {
       const config = await chargerConfigSite(slug);
@@ -94,6 +99,7 @@ export async function POST(request: Request) {
         return jsonErreur(verif.raison ?? "Origin non autorisé", 403);
       }
       promptSysteme = construirePrompt(config);
+      siteIdCourant = config.siteId;
     } catch (e) {
       console.error("[chat] Erreur chargement config site :", e);
       return jsonErreur("Erreur serveur à la configuration du site", 500);
@@ -430,6 +436,58 @@ export async function POST(request: Request) {
                     tool_use_id: b.id,
                     content: `Estimation calculée. Formule recommandée : ${recommandee.nom} à ${prix[recommandeeSlug]} € HT / mois pour ${profil.visiteursMois} visiteurs mensuels (taux retenu ${taux}%, ~${conv} conversations/mois). Autres formules : Text Only ${prix.text} €, Classique ${prix.classique} €, Premium ${prix.premium} €. Annonce vocalement UNIQUEMENT la formule recommandée + son prix. Le visiteur voit le détail dans le panneau à gauche.`,
                   };
+                }
+
+                // --- Recherche RAG dans la base de connaissances --- //
+                if (b.name === "chercher_base_connaissances") {
+                  if (!siteIdCourant) {
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content:
+                        "Base de connaissances non disponible pour cette instance (pas de site_id).",
+                    };
+                  }
+                  try {
+                    const input = b.input as {
+                      requete?: string;
+                      nb_resultats?: number;
+                    };
+                    const requete = String(input.requete ?? "").trim();
+                    if (!requete) {
+                      return {
+                        type: "tool_result" as const,
+                        tool_use_id: b.id,
+                        content:
+                          "Requête vide — précise ce que tu cherches avant de rappeler le tool.",
+                      };
+                    }
+                    const resultats = await rechercher({
+                      siteId: siteIdCourant,
+                      requete,
+                      limite: Math.max(
+                        1,
+                        Math.min(10, Number(input.nb_resultats ?? 5)),
+                      ),
+                    });
+                    console.log(
+                      `[chercher_base_connaissances] site=${siteIdCourant} requete="${requete}" nb_resultats=${resultats.length}`,
+                    );
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: formaterResultats(resultats),
+                    };
+                  } catch (err) {
+                    const msg =
+                      err instanceof Error ? err.message : "recherche échouée";
+                    console.error("[chercher_base_connaissances]", msg);
+                    return {
+                      type: "tool_result" as const,
+                      tool_use_id: b.id,
+                      content: `Recherche base de connaissances indisponible (${msg}). Continue sans ces infos.`,
+                    };
+                  }
                 }
 
                 return {
