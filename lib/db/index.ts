@@ -7,23 +7,47 @@ import * as schema from "./schema";
 /**
  * Client Drizzle pour les queries serveur AxiSolver.
  *
- * Utilisé par les Server Actions, les routes API, les cron jobs.
- * Pas utilisable côté navigateur (postgres-js nécessite TCP direct).
+ * Initialisation **paresseuse** (lazy) : le client postgres n'est
+ * créé qu'à la première utilisation réelle. Permet au build Next
+ * d'analyser les routes qui importent `db` sans crasher si
+ * DATABASE_URL n'est pas encore disponible (ex. build Vercel avant
+ * que l'env var ne soit configurée).
  *
- * Les composants client qui ont besoin de lire la DB doivent passer
- * par le client Supabase JS (RLS appliquée) via createSupabaseServerClient
- * depuis un Server Component ou une Server Action.
+ * À l'usage runtime effectif, l'absence de DATABASE_URL lève une
+ * erreur claire.
  */
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL manquant — Drizzle ne peut pas se connecter");
+type Db = ReturnType<typeof drizzle<typeof schema>>;
+
+let _db: Db | null = null;
+let _client: ReturnType<typeof postgres> | null = null;
+
+function initDb(): Db {
+  if (_db) return _db;
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    throw new Error(
+      "DATABASE_URL manquant — Drizzle ne peut pas se connecter",
+    );
+  }
+  _client = postgres(connectionString, {
+    prepare: false,
+    max: 10,
+  });
+  _db = drizzle(_client, { schema });
+  return _db;
 }
 
-const client = postgres(connectionString, {
-  prepare: false,
-  max: 10,
-});
+/**
+ * Proxy qui différe l'init au premier accès. Permet d'importer `db`
+ * depuis des modules analysés au build time sans crash.
+ */
+export const db: Db = new Proxy({} as Db, {
+  get(_target, prop) {
+    const instance = initDb();
+    const value = instance[prop as keyof Db];
+    return typeof value === "function" ? value.bind(instance) : value;
+  },
+}) as Db;
 
-export const db = drizzle(client, { schema });
 export { schema };

@@ -9,6 +9,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  * Fournit la nav minimale + un bouton déconnexion. Sera enrichi au
  * LOT E avec la vraie structure dashboard (sites, config, tickets).
  */
+// Dynamic : auth check à chaque requête, pas de prerender au build.
+export const dynamic = "force-dynamic";
+
 export default async function LayoutDashboard({
   children,
 }: {
