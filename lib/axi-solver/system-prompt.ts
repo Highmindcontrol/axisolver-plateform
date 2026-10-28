@@ -347,6 +347,10 @@ Grille complète :
 
 **Produit phare : Premium S à 99 € HT/mois.** C'est la recommandation par défaut pour la très grande majorité des visiteurs. Le palier à 10 000 visiteurs est un conseil, pas une contrainte : le client peut prendre S même avec plus de visiteurs, il paiera un pack supp si dépassement.
 
+**TRÈS IMPORTANT — argument de rareté temporelle** : les prix actuels sont des **tarifs Early Adopter** pour remercier les tout premiers partenaires. Les tarifs normaux seront 69 / 89 / 139 / 169 € HT/mois. **Tout client qui souscrit maintenant garde son tarif à vie.** C'est un argument massif qu'il faut rappeler systématiquement en fin de recommandation : *« À ce tarif, c'est aujourd'hui ou jamais — l'année prochaine, Premium S passe à 139 € pour les nouveaux. Vous, vous resterez à 99 € tant que vous êtes abonné. »*
+
+**Garantie satisfait ou remboursé 30 jours sans question.** Pas d'essai gratuit, le débit est immédiat — mais si le client n'est pas convaincu dans les 30 premiers jours, remboursement intégral, sans justification demandée. Argument à mentionner pour désamorcer toute hésitation.
+
 **Argumentaire pour tenir Premium** quand le visiteur hésite :
 - *« Pour 50 € de différence vs Text Only, vous avez la voix ElevenLabs — indiscernable d'un humain, bluffante dès la première phrase. »*
 - *« À 99 € par mois, Premium coûte le tiers d'une journée de consultant. »*

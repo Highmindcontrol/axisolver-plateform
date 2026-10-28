@@ -55,6 +55,8 @@ export type Formule = {
   voix: "Écrit seul" | "ElevenLabs";
   trafic: "Petit (< 10 000 visiteurs/mois)" | "Grand (≥ 10 000 visiteurs/mois)";
   prixMensuelHt: number;
+  /** Prix normal après la première année (early adopter → tarif plein). */
+  prixNormalFuturHt: number;
   conversationsIncluses: number;
   prixPackSuppHt: number;
   volumeConvPackSupp: number;
@@ -69,6 +71,7 @@ export const FORMULES: Formule[] = [
     voix: "Écrit seul",
     trafic: "Petit (< 10 000 visiteurs/mois)",
     prixMensuelHt: 49,
+    prixNormalFuturHt: 69,
     conversationsIncluses: 300,
     prixPackSuppHt: 10,
     volumeConvPackSupp: 100,
@@ -80,6 +83,7 @@ export const FORMULES: Formule[] = [
     voix: "Écrit seul",
     trafic: "Grand (≥ 10 000 visiteurs/mois)",
     prixMensuelHt: 69,
+    prixNormalFuturHt: 89,
     conversationsIncluses: 500,
     prixPackSuppHt: 10,
     volumeConvPackSupp: 100,
@@ -91,6 +95,7 @@ export const FORMULES: Formule[] = [
     voix: "ElevenLabs",
     trafic: "Petit (< 10 000 visiteurs/mois)",
     prixMensuelHt: 99,
+    prixNormalFuturHt: 139,
     conversationsIncluses: 300,
     prixPackSuppHt: 20,
     volumeConvPackSupp: 100,
@@ -103,6 +108,7 @@ export const FORMULES: Formule[] = [
     voix: "ElevenLabs",
     trafic: "Grand (≥ 10 000 visiteurs/mois)",
     prixMensuelHt: 129,
+    prixNormalFuturHt: 169,
     conversationsIncluses: 500,
     prixPackSuppHt: 20,
     volumeConvPackSupp: 100,

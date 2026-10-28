@@ -16,8 +16,8 @@
  * (10 € pour Text, 20 € pour Premium), reportables jusqu'à 3 mois
  * sur le solde non consommé.
  *
- * Essai 14 jours sans CB sur les 4 formules, avec garde-fous :
- * 50 pages crawl max + 500 conv max + 15 min TTS max pendant l'essai.
+ * Satisfait ou remboursé 30 jours sans question (débit immédiat,
+ * remboursement intégral si demandé dans les 30 premiers jours).
  *
  * Les stripe_price_id doivent être posés dans Vercel comme variables
  * d'env après la création des produits dans Stripe Dashboard.
@@ -63,8 +63,8 @@ export const FORMULES: Record<SlugPlan, Formule> = {
       "Shield widget (rate limit + anti injection)",
       "Pack supp. de 100 conv à 10 € HT",
     ],
-    essaiJours: 14,
-    cta: "Démarrer l'essai 14 jours",
+    essaiJours: 0,
+    cta: "Souscrire maintenant",
   },
   "text-l": {
     slug: "text-l",
@@ -84,8 +84,8 @@ export const FORMULES: Record<SlugPlan, Formule> = {
       "Volume adapté aux sites à forte audience",
       "Pack supp. de 100 conv à 10 € HT",
     ],
-    essaiJours: 14,
-    cta: "Démarrer l'essai 14 jours",
+    essaiJours: 0,
+    cta: "Souscrire maintenant",
   },
   "premium-s": {
     slug: "premium-s",
@@ -109,8 +109,8 @@ export const FORMULES: Record<SlugPlan, Formule> = {
       "Mention « Propulsé par » masquable",
       "Pack supp. de 100 conv à 20 € HT",
     ],
-    essaiJours: 14,
-    cta: "Démarrer l'essai 14 jours",
+    essaiJours: 0,
+    cta: "Souscrire maintenant",
   },
   "premium-l": {
     slug: "premium-l",
@@ -130,8 +130,8 @@ export const FORMULES: Record<SlugPlan, Formule> = {
       "Volume adapté aux sites à forte audience",
       "Pack supp. de 100 conv à 20 € HT",
     ],
-    essaiJours: 14,
-    cta: "Démarrer l'essai 14 jours",
+    essaiJours: 0,
+    cta: "Souscrire maintenant",
   },
 };
 

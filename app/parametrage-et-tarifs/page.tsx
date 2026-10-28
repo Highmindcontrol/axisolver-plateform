@@ -78,12 +78,38 @@ export default function Page() {
             </h2>
           </div>
 
+          {/* Bandeau Early Adopter */}
+          <div className="mb-10 rounded-2xl border border-amber-400/40 bg-gradient-to-r from-amber-400/10 via-amber-400/15 to-amber-400/10 p-6 md:p-8">
+            <div className="flex flex-col items-start gap-5 md:flex-row md:items-center md:gap-8">
+              <div className="flex-shrink-0">
+                <span className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-950">
+                  Prix Early Adopter
+                </span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  Profitez de ces tarifs. Gardez-les à vie.
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-200 md:text-base">
+                  AxiSolver est en phase de lancement. Pour remercier ses
+                  tout premiers partenaires, nous proposons des tarifs
+                  largement en dessous du service rendu.{" "}
+                  <span className="font-semibold text-white">
+                    Souscrit maintenant = tarif garanti à vie, même après
+                    la hausse de l&apos;année prochaine.
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {[
               {
                 nom: "AxiSolver Text Only",
                 sub: "Petit volume · Écrit seul",
                 prix: 49,
+                prixNormal: 69,
                 conv: 300,
                 phare: false,
                 desc:
@@ -93,6 +119,7 @@ export default function Page() {
                 nom: "AxiSolver Text Only",
                 sub: "Grand volume · Écrit seul",
                 prix: 69,
+                prixNormal: 89,
                 conv: 500,
                 phare: false,
                 desc:
@@ -102,6 +129,7 @@ export default function Page() {
                 nom: "AxiSolver Premium",
                 sub: "Petit volume · Voix ElevenLabs",
                 prix: 99,
+                prixNormal: 139,
                 conv: 300,
                 phare: true,
                 desc:
@@ -111,6 +139,7 @@ export default function Page() {
                 nom: "AxiSolver Premium",
                 sub: "Grand volume · Voix ElevenLabs",
                 prix: 129,
+                prixNormal: 169,
                 conv: 500,
                 phare: false,
                 desc:
@@ -136,11 +165,17 @@ export default function Page() {
                 <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
                   {f.nom}
                 </h3>
-                <p className="mt-2 flex items-baseline gap-1.5">
+                <p className="mt-2 flex items-baseline gap-2">
                   <span className="font-mono text-4xl font-semibold tracking-tight text-white">
                     {f.prix} €
                   </span>
                   <span className="text-sm text-zinc-400">HT / mois</span>
+                </p>
+                <p className="mt-1 flex items-baseline gap-2 text-xs text-zinc-500">
+                  <span>Tarif normal</span>
+                  <span className="font-mono text-sm text-zinc-400 line-through decoration-zinc-500">
+                    {f.prixNormal} €
+                  </span>
                 </p>
                 <p className="mt-5 text-sm leading-relaxed text-zinc-300">
                   {f.desc}
@@ -156,7 +191,8 @@ export default function Page() {
             Palier à 10 000 visiteurs/mois : conseil, pas une
             contrainte. Packs supplémentaires de 100 conv à la
             demande (10 € en Text Only, 20 € en Premium), reportables
-            jusqu&apos;à 3 mois.
+            jusqu&apos;à 3 mois. Satisfait ou remboursé sans question
+            pendant 30 jours.
           </p>
         </div>
       </section>

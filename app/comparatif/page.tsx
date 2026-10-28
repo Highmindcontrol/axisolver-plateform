@@ -653,8 +653,8 @@ export default function PageComparatif() {
               <span className="text-amber-400"> long discours</span>.
             </h2>
             <p className="mt-5 text-base text-zinc-400">
-              14 jours d&apos;essai gratuit. Pas de carte bancaire
-              demandée. Annulation en 1 clic.
+              Satisfait ou remboursé pendant 30 jours, sans question.
+              Annulation en 1 clic.
             </p>
             <Link
               href="/parametrage-et-tarifs"

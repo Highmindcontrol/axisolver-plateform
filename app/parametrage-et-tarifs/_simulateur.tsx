@@ -270,12 +270,18 @@ export function Simulateur() {
 
             <div className="md:col-span-2">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Votre tarif
+                Votre tarif early adopter
               </p>
               <p className="mt-3 font-mono text-6xl font-semibold tracking-tight text-amber-400 md:text-7xl">
                 {formuleRecommandee.prixMensuelHt} €
               </p>
               <p className="text-sm text-zinc-400">par mois HT · tout inclus</p>
+              <p className="mt-2 flex items-baseline gap-2 text-xs text-zinc-500">
+                <span>Tarif normal</span>
+                <span className="font-mono text-sm text-zinc-400 line-through decoration-zinc-500">
+                  {formuleRecommandee.prixNormalFuturHt} €
+                </span>
+              </p>
 
               <div className="mt-8">
                 <Link
@@ -285,7 +291,7 @@ export function Simulateur() {
                   Souscrire maintenant
                 </Link>
                 <p className="mt-3 text-center text-[11px] uppercase tracking-widest text-zinc-500">
-                  14 j d&apos;essai · sans carte bancaire
+                  Satisfait ou remboursé 30 j · sans question
                 </p>
               </div>
             </div>
@@ -330,6 +336,12 @@ export function Simulateur() {
                       {f.prixMensuelHt} €
                     </span>
                     <span className="text-xs text-zinc-400">HT/mois</span>
+                  </p>
+                  <p className="mt-1 flex items-baseline gap-2 text-[11px] text-zinc-500">
+                    <span>Normal</span>
+                    <span className="font-mono text-xs text-zinc-400 line-through decoration-zinc-500">
+                      {f.prixNormalFuturHt} €
+                    </span>
                   </p>
                   <ul className="mt-5 space-y-2 text-xs text-zinc-300 md:text-sm">
                     <li className="flex items-start gap-2">

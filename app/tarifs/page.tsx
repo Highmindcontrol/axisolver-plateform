@@ -18,7 +18,7 @@ export default function PageTarifs() {
         <p className="mx-auto mt-4 max-w-xl text-sm text-slate-600">
           Tous les plans incluent la base de connaissances, les rapports
           quotidiens, les audits SEO/Shield/Ads et le Shield widget.
-          Essai gratuit 14 jours sans carte bancaire sur les 3 formules.
+          Satisfait ou remboursé 30 jours, sans question, sur les 4 formules.
         </p>
       </header>
 
@@ -76,11 +76,9 @@ export default function PageTarifs() {
                 cta={f.cta}
                 variant={estPro ? "primaire" : "secondaire"}
               />
-              {f.essaiJours > 0 && (
-                <p className="mt-2 text-center text-[11px] text-slate-500">
-                  Sans carte bancaire · annulable à tout moment
-                </p>
-              )}
+              <p className="mt-2 text-center text-[11px] text-slate-500">
+                Satisfait ou remboursé 30 j · sans question
+              </p>
             </div>
           );
         })}

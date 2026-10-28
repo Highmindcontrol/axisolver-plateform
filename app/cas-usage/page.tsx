@@ -418,7 +418,7 @@ export default function PageCasUsage() {
             </h2>
             <p className="mt-5 text-base text-zinc-400">
               5 questions courtes, votre tarif précis en direct.
-              14 jours d&apos;essai sans carte bancaire.
+              Satisfait ou remboursé 30 jours, sans question.
             </p>
             <Link
               href="/parametrage-et-tarifs"
