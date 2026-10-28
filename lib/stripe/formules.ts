@@ -44,7 +44,7 @@ export type Formule = {
 export const FORMULES: Record<SlugPlan, Formule> = {
   "text-s": {
     slug: "text-s",
-    nom: "AxiSolver Text Only — Petit volume",
+    nom: "AxiSolver Text Only 300",
     description:
       "Toutes les missions AxiSolver sans voix synthétique. Pour les sites de moins de 10 000 visiteurs mensuels.",
     prixMensuelHt: 49,
@@ -68,7 +68,7 @@ export const FORMULES: Record<SlugPlan, Formule> = {
   },
   "text-l": {
     slug: "text-l",
-    nom: "AxiSolver Text Only — Grand volume",
+    nom: "AxiSolver Text Only 500",
     description:
       "Toutes les missions AxiSolver sans voix synthétique. Pour les sites au-delà de 10 000 visiteurs mensuels.",
     prixMensuelHt: 69,
@@ -89,7 +89,7 @@ export const FORMULES: Record<SlugPlan, Formule> = {
   },
   "premium-s": {
     slug: "premium-s",
-    nom: "AxiSolver Premium — Petit volume",
+    nom: "AxiSolver Premium 300",
     description:
       "Les 6 missions avec la voix ElevenLabs ultra-réaliste. Idéal pour sites de moins de 10 000 visiteurs mensuels.",
     prixMensuelHt: 99,
@@ -114,7 +114,7 @@ export const FORMULES: Record<SlugPlan, Formule> = {
   },
   "premium-l": {
     slug: "premium-l",
-    nom: "AxiSolver Premium — Grand volume",
+    nom: "AxiSolver Premium 500",
     description:
       "Les 6 missions avec la voix ElevenLabs ultra-réaliste. Pour sites au-delà de 10 000 visiteurs mensuels.",
     prixMensuelHt: 129,

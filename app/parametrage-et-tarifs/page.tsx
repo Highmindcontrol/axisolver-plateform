@@ -106,8 +106,8 @@ export default function Page() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
             {[
               {
-                nom: "AxiSolver Text Only",
-                sub: "Petit volume · Écrit seul",
+                nom: "AxiSolver Text Only 300",
+                sub: "300 conv · Écrit seul",
                 prix: 49,
                 prixNormal: 69,
                 conv: 300,
@@ -116,8 +116,8 @@ export default function Page() {
                   "Les 6 missions AxiSolver en version écrite. Idéal pour les sites de moins de 10 000 visiteurs mensuels.",
               },
               {
-                nom: "AxiSolver Text Only",
-                sub: "Grand volume · Écrit seul",
+                nom: "AxiSolver Text Only 500",
+                sub: "500 conv · Écrit seul",
                 prix: 69,
                 prixNormal: 89,
                 conv: 500,
@@ -126,8 +126,8 @@ export default function Page() {
                   "La version écrite dimensionnée pour les sites à forte audience. Au-delà de 10 000 visiteurs mensuels.",
               },
               {
-                nom: "AxiSolver Premium",
-                sub: "Petit volume · Voix ElevenLabs",
+                nom: "AxiSolver Premium 300",
+                sub: "300 conv · Voix ElevenLabs",
                 prix: 99,
                 prixNormal: 139,
                 conv: 300,
@@ -136,8 +136,8 @@ export default function Page() {
                   "La voix ElevenLabs ultra-réaliste pour la majorité des sites. Notre produit phare.",
               },
               {
-                nom: "AxiSolver Premium",
-                sub: "Grand volume · Voix ElevenLabs",
+                nom: "AxiSolver Premium 500",
+                sub: "500 conv · Voix ElevenLabs",
                 prix: 129,
                 prixNormal: 169,
                 conv: 500,
@@ -173,7 +173,7 @@ export default function Page() {
                 </p>
                 <p className="mt-1 flex items-baseline gap-2 text-xs text-zinc-500">
                   <span>Tarif normal</span>
-                  <span className="font-mono text-sm text-zinc-400 line-through decoration-zinc-500">
+                  <span className="font-mono text-sm text-zinc-200 line-through decoration-amber-400 decoration-[2.5px]">
                     {f.prixNormal} €
                   </span>
                 </p>
@@ -187,12 +187,54 @@ export default function Page() {
             ))}
           </div>
 
+          {/* Encart Packs supplémentaires */}
+          <div className="mt-10 rounded-2xl border border-zinc-800 bg-zinc-950/70 p-6 backdrop-blur-sm md:p-8">
+            <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between md:gap-10">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                  Besoin de conversations supplémentaires&nbsp;?
+                </p>
+                <h3 className="mt-3 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  Packs additionnels à la demande
+                </h3>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-zinc-400">
+                  Un mois exceptionnellement chargé&nbsp;? Vous achetez un
+                  pack supplémentaire d&apos;un clic depuis votre
+                  dashboard. Les conversations non consommées se
+                  reportent jusqu&apos;à 3 mois.
+                </p>
+              </div>
+              <div className="grid flex-shrink-0 grid-cols-1 gap-4 sm:grid-cols-2 md:w-auto">
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-5 py-4 text-center">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+                    Pack Text Only
+                  </p>
+                  <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-white">
+                    10 €
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-zinc-400">
+                    100 conv · HT
+                  </p>
+                </div>
+                <div className="rounded-xl border border-amber-400/40 bg-amber-400/5 px-5 py-4 text-center">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-amber-300">
+                    Pack Premium
+                  </p>
+                  <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-white">
+                    20 €
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-zinc-400">
+                    100 conv · HT
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <p className="mt-10 text-center text-xs leading-relaxed text-zinc-500">
             Palier à 10 000 visiteurs/mois : conseil, pas une
-            contrainte. Packs supplémentaires de 100 conv à la
-            demande (10 € en Text Only, 20 € en Premium), reportables
-            jusqu&apos;à 3 mois. Satisfait ou remboursé sans question
-            pendant 30 jours.
+            contrainte. Satisfait ou remboursé sans question pendant
+            30 jours.
           </p>
         </div>
       </section>

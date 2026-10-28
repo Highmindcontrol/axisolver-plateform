@@ -66,7 +66,7 @@ export type Formule = {
 export const FORMULES: Formule[] = [
   {
     slug: "text-s",
-    nom: "AxiSolver Text Only — Petit",
+    nom: "AxiSolver Text Only 300",
     sousTitre: "L'essentiel écrit, pour les sites qui démarrent.",
     voix: "Écrit seul",
     trafic: "Petit (< 10 000 visiteurs/mois)",
@@ -78,7 +78,7 @@ export const FORMULES: Formule[] = [
   },
   {
     slug: "text-l",
-    nom: "AxiSolver Text Only — Grand",
+    nom: "AxiSolver Text Only 500",
     sousTitre: "L'essentiel écrit, pour les sites à forte audience.",
     voix: "Écrit seul",
     trafic: "Grand (≥ 10 000 visiteurs/mois)",
@@ -90,7 +90,7 @@ export const FORMULES: Formule[] = [
   },
   {
     slug: "premium-s",
-    nom: "AxiSolver Premium — Petit",
+    nom: "AxiSolver Premium 300",
     sousTitre: "La voix ElevenLabs, pour la majorité des sites.",
     voix: "ElevenLabs",
     trafic: "Petit (< 10 000 visiteurs/mois)",
@@ -103,7 +103,7 @@ export const FORMULES: Formule[] = [
   },
   {
     slug: "premium-l",
-    nom: "AxiSolver Premium — Grand",
+    nom: "AxiSolver Premium 500",
     sousTitre: "La voix ElevenLabs, pour les sites qui scalent.",
     voix: "ElevenLabs",
     trafic: "Grand (≥ 10 000 visiteurs/mois)",

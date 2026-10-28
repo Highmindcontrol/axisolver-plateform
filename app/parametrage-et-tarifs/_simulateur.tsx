@@ -190,18 +190,33 @@ export function Simulateur() {
             <button
               type="button"
               onClick={() => setPreferenceVoix("voix")}
-              className={`rounded-xl border px-5 py-4 text-left text-sm transition-all ${
+              className={`relative overflow-hidden rounded-xl border px-5 py-4 text-left text-sm transition-all ${
                 preferenceVoix === "voix"
-                  ? "border-amber-400 bg-amber-400/10 text-white"
-                  : "border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-amber-400/40 hover:bg-zinc-900"
+                  ? "border-amber-400 text-white"
+                  : "border-zinc-800 text-zinc-200 hover:border-amber-400/60"
               }`}
+              style={{
+                backgroundImage: "url(/separation-ondes-dorees.png)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
               aria-pressed={preferenceVoix === "voix"}
             >
-              <p className="font-semibold">Avec voix</p>
-              <p className="mt-1 text-xs text-zinc-500">
-                ElevenLabs ultra-réaliste. L&apos;expérience bluffante
-                qui engage le plus.
-              </p>
+              <div
+                aria-hidden
+                className={`absolute inset-0 ${
+                  preferenceVoix === "voix"
+                    ? "bg-zinc-950/55"
+                    : "bg-zinc-950/70 hover:bg-zinc-950/60"
+                }`}
+              />
+              <div className="relative">
+                <p className="font-semibold text-white">Avec voix</p>
+                <p className="mt-1 text-xs text-zinc-300">
+                  ElevenLabs ultra-réaliste. L&apos;expérience bluffante
+                  qui engage le plus.
+                </p>
+              </div>
             </button>
             <button
               type="button"
@@ -278,7 +293,7 @@ export function Simulateur() {
               <p className="text-sm text-zinc-400">par mois HT · tout inclus</p>
               <p className="mt-2 flex items-baseline gap-2 text-xs text-zinc-500">
                 <span>Tarif normal</span>
-                <span className="font-mono text-sm text-zinc-400 line-through decoration-zinc-500">
+                <span className="font-mono text-sm text-zinc-400 line-through decoration-amber-400 decoration-[2.5px]">
                   {formuleRecommandee.prixNormalFuturHt} €
                 </span>
               </p>
@@ -339,7 +354,7 @@ export function Simulateur() {
                   </p>
                   <p className="mt-1 flex items-baseline gap-2 text-[11px] text-zinc-500">
                     <span>Normal</span>
-                    <span className="font-mono text-xs text-zinc-400 line-through decoration-zinc-500">
+                    <span className="font-mono text-xs text-zinc-400 line-through decoration-amber-400 decoration-[2.5px]">
                       {f.prixNormalFuturHt} €
                     </span>
                   </p>
