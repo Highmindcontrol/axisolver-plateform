@@ -231,10 +231,8 @@ export default function Page() {
             </div>
           </div>
 
-          <p className="mt-10 text-center text-xs leading-relaxed text-zinc-500">
-            Palier à 10 000 visiteurs/mois : conseil, pas une
-            contrainte. Satisfait ou remboursé sans question pendant
-            30 jours.
+          <p className="mt-10 text-center text-xl font-semibold tracking-tight text-white md:text-2xl">
+            Satisfait ou remboursé sans question pendant 30 jours.
           </p>
         </div>
       </section>
