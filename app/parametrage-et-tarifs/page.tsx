@@ -63,56 +63,104 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ─────────── EXPLICATION « POURQUOI 3 FORMULES » (fond ondes dorées) ─────────── */}
+      {/* ─────────── NOS 3 FORFAITS (fond ondes dorées) ─────────── */}
       <section
-        className="relative overflow-hidden bg-zinc-900 bg-cover bg-center bg-no-repeat px-6 py-16 md:px-10 md:py-24"
+        className="relative overflow-hidden bg-zinc-900 bg-cover bg-center bg-no-repeat px-6 py-20 md:px-10 md:py-28"
         style={{ backgroundImage: "url(/separation-ondes-dorees.png)" }}
       >
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-zinc-900/85 via-zinc-900/75 to-zinc-900/90"
+          className="absolute inset-0 bg-gradient-to-b from-zinc-900/80 via-zinc-900/60 to-zinc-900/85"
         />
-        <div className="relative mx-auto grid max-w-5xl grid-cols-1 gap-10 md:grid-cols-3 md:gap-14">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-              Ce qui coûte
+        <div className="relative mx-auto max-w-6xl">
+          <div className="mb-14 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Nos trois forfaits
             </p>
-            <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
-              La voix.
-            </h3>
-            <p className="mt-3 text-base leading-relaxed text-zinc-300">
-              Comprendre la demande du visiteur et lui répondre texte,
-              c&apos;est quelques centimes. La voix synthétique,
-              c&apos;est l&apos;essentiel du coût technique
-              d&apos;AxiSolver. On vous laisse le choix.
-            </p>
+            <h2 className="mt-5 text-balance text-3xl font-semibold leading-tight tracking-tight text-white md:text-5xl">
+              Trois voix,{" "}
+              <span className="text-amber-400">une seule intelligence.</span>
+            </h2>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-              Ce qui change
-            </p>
-            <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
-              Le ressenti.
-            </h3>
-            <p className="mt-3 text-base leading-relaxed text-zinc-300">
-              Une voix bluffante peut tripler votre taux
-              d&apos;engagement. Mais elle n&apos;est pas indispensable
-              pour tous les sites. L&apos;écrit reste parfait pour la
-              plupart des usages.
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-              Ce qui ne change pas
-            </p>
-            <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
-              Tout le reste.
-            </h3>
-            <p className="mt-3 text-base leading-relaxed text-zinc-300">
-              Les six missions sont identiques dans les trois formules :
-              accueil, SEO, sécurité, Analytics, Ads intelligents,
-              bouclier défensif. Seule la voix change.
-            </p>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
+            {/* Text Only */}
+            <article className="rounded-2xl border border-zinc-700/60 bg-zinc-950/55 p-7 backdrop-blur-sm transition-all hover:border-amber-400/40 md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Text Only · Sans voix
+              </p>
+              <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
+                AxiSolver Text Only
+              </h3>
+              <p className="mt-2 flex items-baseline gap-1.5">
+                <span className="font-mono text-4xl font-semibold tracking-tight text-white">
+                  49 €
+                </span>
+                <span className="text-sm text-zinc-400">HT / mois</span>
+              </p>
+              <p className="mt-5 text-sm leading-relaxed text-zinc-300">
+                Les six missions AxiSolver en version écrite. Chat
+                multilingue, SEO, Analytics, Shield et Ads intelligents
+                inclus. Aucune diffusion vocale, pour les sites qui
+                privilégient le texte.
+              </p>
+              <p className="mt-5 text-[11px] uppercase tracking-widest text-zinc-500">
+                500 conversations incluses / mois
+              </p>
+            </article>
+
+            {/* Classique Azure */}
+            <article className="rounded-2xl border border-zinc-700/60 bg-zinc-950/55 p-7 backdrop-blur-sm transition-all hover:border-amber-400/40 md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Classique · Voix Azure
+              </p>
+              <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
+                AxiSolver Classique
+              </h3>
+              <p className="mt-2 flex items-baseline gap-1.5">
+                <span className="font-mono text-4xl font-semibold tracking-tight text-white">
+                  69 €
+                </span>
+                <span className="text-sm text-zinc-400">HT / mois</span>
+              </p>
+              <p className="mt-5 text-sm leading-relaxed text-zinc-300">
+                Les six missions avec la voix neuronale Azure. Qualité
+                professionnelle en toutes langues européennes, légère
+                signature robotique. Le meilleur rapport qualité-prix pour
+                engager vocalement vos visiteurs.
+              </p>
+              <p className="mt-5 text-[11px] uppercase tracking-widest text-zinc-500">
+                400 conversations incluses / mois
+              </p>
+            </article>
+
+            {/* Premium ElevenLabs */}
+            <article className="relative rounded-2xl border border-amber-400/60 bg-zinc-950/70 p-7 shadow-lg shadow-amber-400/10 backdrop-blur-sm md:p-8">
+              <span className="absolute -top-3 right-6 inline-flex rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-950">
+                Phare
+              </span>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Premium · Voix ElevenLabs
+              </p>
+              <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
+                AxiSolver Premium
+              </h3>
+              <p className="mt-2 flex items-baseline gap-1.5">
+                <span className="font-mono text-4xl font-semibold tracking-tight text-white">
+                  99 €
+                </span>
+                <span className="text-sm text-zinc-400">HT / mois</span>
+              </p>
+              <p className="mt-5 text-sm leading-relaxed text-zinc-300">
+                La voix ElevenLabs ultra-réaliste, indiscernable d&apos;un
+                humain. Idéal pour les marques fortes et les sites
+                premium qui ne tolèrent aucune signature robotique. Rendu
+                vocal bluffant dès la première phrase.
+              </p>
+              <p className="mt-5 text-[11px] uppercase tracking-widest text-zinc-500">
+                300 conversations incluses / mois
+              </p>
+            </article>
           </div>
         </div>
       </section>
