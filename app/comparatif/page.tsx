@@ -178,23 +178,28 @@ const COUTS_HUMAINS: Array<{
     role: "Chargé d'accueil visiteurs",
     description:
       "Répond aux visiteurs 24/7, qualifie les demandes, oriente vers les bons produits, transforme en prospects chauds.",
-    coutMensuel: "3 200 €",
+    coutMensuel: "1 000 à 3 000 €",
   },
   {
     role: "Spécialiste SEO",
     description:
       "Audits mensuels, suivi des positions, détection des pages de fuite, parcours brisés, optimisations continues.",
-    coutMensuel: "3 400 €",
+    coutMensuel: "2 500 à 5 000 €",
   },
   {
     role: "Traffic manager Ads",
     description:
       "Création et pilotage des campagnes AdWords/AdSense, split testing permanent, surveillance ROI, ajustements d'enchères.",
-    coutMensuel: "4 100 €",
+    coutMensuel: "3 000 à 5 500 €",
   },
 ];
 
-const COUT_HUMAIN_TOTAL = 10700;
+const COUT_HUMAIN_MIN = 6500;
+const COUT_HUMAIN_MAX = 13500;
+const AXISOLVER_PREMIUM_PRIX = 99;
+const RATIO_MOINS_CHER = Math.round(
+  COUT_HUMAIN_MIN / AXISOLVER_PREMIUM_PRIX,
+);
 
 export default function PageComparatif() {
   return (
@@ -599,15 +604,14 @@ export default function PageComparatif() {
                     Total équipe humaine équivalente
                   </p>
                   <p className="mt-4 flex items-baseline gap-3">
-                    <span className="font-mono text-6xl font-semibold tracking-tight text-white md:text-7xl">
-                      {COUT_HUMAIN_TOTAL.toLocaleString("fr-FR")} €
-                    </span>
-                    <span className="text-base text-zinc-400">
-                      par mois
+                    <span className="font-mono text-5xl font-semibold tracking-tight text-white md:text-6xl">
+                      {COUT_HUMAIN_MIN.toLocaleString("fr-FR")} à{" "}
+                      {COUT_HUMAIN_MAX.toLocaleString("fr-FR")} €
                     </span>
                   </p>
+                  <p className="mt-2 text-sm text-zinc-400">par mois</p>
                   <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-                    Hypothèse conservatrice en France, charges employeur
+                    Fourchette observée en France, charges employeur
                     comprises, pour 3 postes juniors à mi-carrière. Hors
                     coûts de recrutement, formation, matériel, bureaux et
                     arrêts maladie.
@@ -619,14 +623,14 @@ export default function PageComparatif() {
                     AxiSolver Premium
                   </p>
                   <p className="mt-4 font-mono text-6xl font-semibold tracking-tight text-amber-400 md:text-7xl">
-                    99 €
+                    {AXISOLVER_PREMIUM_PRIX} €
                   </p>
                   <p className="mt-1 text-sm text-zinc-400">
                     par mois · tout inclus
                   </p>
                   <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-amber-300">
                     <Sparkles className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    108 fois moins cher
+                    {RATIO_MOINS_CHER} fois moins cher
                   </p>
                 </div>
               </div>

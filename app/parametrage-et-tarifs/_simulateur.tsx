@@ -63,9 +63,6 @@ export function Simulateur() {
   );
 
   const formuleRecommandee = getFormule(slugRecommande);
-  const margeAvecQuota =
-    formuleRecommandee.conversationsIncluses - conv;
-  const dansLeQuota = margeAvecQuota >= 0;
 
   return (
     <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
@@ -280,52 +277,7 @@ export function Simulateur() {
               </p>
               <p className="text-sm text-zinc-400">par mois HT · tout inclus</p>
 
-              <div
-                className={`mt-6 rounded-xl border p-4 ${
-                  dansLeQuota
-                    ? "border-emerald-500/30 bg-emerald-500/5"
-                    : "border-amber-500/40 bg-amber-500/10"
-                }`}
-              >
-                <p
-                  className={`text-xs font-semibold uppercase tracking-widest ${
-                    dansLeQuota ? "text-emerald-300" : "text-amber-300"
-                  }`}
-                >
-                  {dansLeQuota ? "Dans le quota" : "Léger dépassement"}
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-200">
-                  {dansLeQuota ? (
-                    <>
-                      Vous consommerez environ{" "}
-                      <span className="font-semibold text-white">
-                        {conv.toLocaleString("fr-FR")}
-                      </span>{" "}
-                      conversations/mois. Il vous restera {margeAvecQuota}{" "}
-                      conv de marge.
-                    </>
-                  ) : (
-                    <>
-                      Vos{" "}
-                      <span className="font-semibold text-white">
-                        {conv.toLocaleString("fr-FR")}
-                      </span>{" "}
-                      conv estimées dépassent de {Math.abs(margeAvecQuota)} le
-                      quota inclus. Comptez environ{" "}
-                      <span className="font-semibold text-white">
-                        {Math.ceil(
-                          Math.abs(margeAvecQuota) /
-                            formuleRecommandee.volumeConvPackSupp,
-                        ) * formuleRecommandee.prixPackSuppHt}{" "}
-                        €
-                      </span>{" "}
-                      de pack supp. certains mois chargés.
-                    </>
-                  )}
-                </p>
-              </div>
-
-              <div className="mt-6">
+              <div className="mt-8">
                 <Link
                   href={`/inscription?plan=${formuleRecommandee.slug}`}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-zinc-950 shadow-lg shadow-amber-400/20 transition-all hover:bg-amber-300 md:text-base"
