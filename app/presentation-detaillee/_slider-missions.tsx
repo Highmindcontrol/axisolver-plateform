@@ -35,6 +35,7 @@ type Mission = {
   tarifsSubtitle: string;
   tarifs: Array<{ label: string; detail: string; prix: string }>;
   resumeAxisolver: string;
+  bulletsDetailles: string[];
 };
 
 const MISSIONS_SLIDES: Mission[] = [
@@ -109,6 +110,12 @@ const MISSIONS_SLIDES: Mission[] = [
     ],
     resumeAxisolver:
       "Accueil 24/7 · voix et écrit · toutes langues européennes · qualification + routage CRM",
+    bulletsDetailles: [
+      "Reconnaît un visiteur qui revient — sans profil psychologique durable, juste de quoi reprendre le fil.",
+      "Chaque ticket est clôturé avec une référence AXI-XXXX copiable, utilisable comme identifiant de dossier côté équipe.",
+      "Jamais de prix ferme ni de date confirmée annoncés par AxiSolver — il propose, votre équipe arbitre.",
+      "Hors scope (climat, politique, question médicale ou juridique personnalisée) : il recadre poliment et revient à votre métier.",
+    ],
   },
   {
     slug: "seo",
@@ -186,6 +193,13 @@ const MISSIONS_SLIDES: Mission[] = [
     ],
     resumeAxisolver:
       "Audit SEO initial · re-check hebdomadaire · détection pages de fuite · rapport mensuel narratif",
+    bulletsDetailles: [
+      "Audit on-page initial complet : balises, structure, maillage interne, images, Core Web Vitals.",
+      "Suit les mots-clés les plus tapés par vos vrais visiteurs — pas une liste théorique issue d'un outil.",
+      "Repère les requêtes à faible concurrence (longue traîne) et vous propose du contenu à produire.",
+      "Chaque faille vient avec trois solutions : agence partenaire, voie dev interne, méthode pas-à-pas en 15 minutes.",
+      "Analytics narratif : moments de bascule mois après mois en langage humain, pas un dashboard cryptique à décoder.",
+    ],
   },
   {
     slug: "securite",
@@ -253,6 +267,14 @@ const MISSIONS_SLIDES: Mission[] = [
     ],
     resumeAxisolver:
       "Audit sécurité initial · surveillance 24/7 · rapport mensuel · blocage temps réel",
+    bulletsDetailles: [
+      "Scan initial complet : failles, CVE actives, plugins obsolètes, headers manquants, certificats expirés.",
+      "Alerte immédiate si régression détectée, avec procédure de correction à chaque alerte.",
+      "Côté widget : détection temps réel des prompt injections, bots agressifs, scraping, comportements anormaux.",
+      "Côté serveur (si vous donnez accès à vos logs) : détection des tentatives d'intrusion — bruteforce, SQL injection, path traversal.",
+      "Alerte en langage humain : « Hier à 3h47, 847 tentatives de login sur /admin depuis 12 IPs — voulez-vous que je les bloque ? ».",
+      "Après validation, règles de blocage exécutées en autonomie. Preuve de propriété DNS requise avant toute action côté serveur.",
+    ],
   },
   {
     slug: "ads",
@@ -323,6 +345,13 @@ const MISSIONS_SLIDES: Mission[] = [
     ],
     resumeAxisolver:
       "Audience · mots-clés · créatives · budget · split testing permanent · validation d'un clic",
+    bulletsDetailles: [
+      "Prépare les groupes d'annonces Google Ads : mots-clés, enchères suggérées, textes d'annonce.",
+      "Prépare les emplacements AdSense pour optimiser vos revenus publicitaires.",
+      "Garde-fou absolu : aucune dépense déclenchée sans validation humaine depuis votre tableau de bord.",
+      "Après 90 jours de validation réussie, option « carte blanche » dans un budget que vous plafonnez vous-même.",
+      "Rotation A/B/n automatique sur les variantes qui performent, pause immédiate des campagnes qui gaspillent.",
+    ],
   },
 ];
 
@@ -492,6 +521,21 @@ export function SliderMissions() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          {/* Dans le détail — bullets techniques */}
+          <div className="mt-12 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-7 md:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+              Dans le détail
+            </p>
+            <ul className="mt-6 space-y-4 text-sm leading-relaxed text-zinc-300 md:text-base">
+              {mission.bulletsDetailles.map((b) => (
+                <li key={b} className="flex items-start gap-3">
+                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
