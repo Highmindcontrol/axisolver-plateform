@@ -45,9 +45,8 @@ const MISSIONS_SLIDES: Mission[] = [
     titreAccent: "transformé en résultat.",
     pitch: (
       <>
-        AxiSolver prend la parole dès qu&apos;un visiteur arrive sur votre
-        site — en voix ou à l&apos;écrit, dans toutes les langues
-        européennes. Il comprend, résout, qualifie, et{" "}
+        AxiSolver prend la parole en voix ou à l&apos;écrit, dans toutes
+        les langues européennes. Il comprend, résout, qualifie, et{" "}
         <span className="font-semibold text-white">
           transforme chaque conversation en action concrète
         </span>{" "}
@@ -259,7 +258,7 @@ const MISSIONS_SLIDES: Mission[] = [
     slug: "ads",
     categorie: "Publicité en ligne",
     titreMain: "Agence Ads ? Freelance traffic manager ?",
-    titreAccent: "AxiSolver fait leur travail.",
+    titreAccent: "AxiSolver s'en charge.",
     pitch: (
       <>
         Piloter sérieusement des campagnes Google Ads, Facebook Ads ou

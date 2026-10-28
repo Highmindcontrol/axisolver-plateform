@@ -222,7 +222,7 @@ export default function Page() {
         <div className="mx-auto max-w-5xl text-center">
           <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white md:text-4xl lg:text-5xl">
             Tout ce qu&apos;AxiSolver{" "}
-            <span className="text-amber-400">fait.</span>
+            <span className="text-amber-400">fait pour vous.</span>
           </h1>
         </div>
       </section>
@@ -631,22 +631,30 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ─────────── PROTOCOLE DUO ─────────── */}
+      {/* ─────────── SI VOUS AVEZ DÉJÀ UN ASSISTANT AXI ─────────── */}
       <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
           <div className="mb-10 max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              Protocole Duo
+              Famille AXI
             </p>
             <h2 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
-              Si vous avez aussi un AXI maison,{" "}
+              Si vous avez déjà un assistant AXI,{" "}
               <span className="text-amber-400">ils se parlent.</span>
             </h2>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-              Quand votre entreprise a adopté l&apos;écosystème AXI
-              complet via AxiHub, AxiSolver se branche en Duo avec
-              votre AXI maison. Deux cercles qui se recouvrent, pas
-              un cercle qui s&apos;agrandit.
+              AxiSolver fait partie de la famille des applications AXI.
+              Quand votre entreprise a déjà adopté l&apos;écosystème AXI
+              via{" "}
+              <a
+                href="https://axihub.live"
+                className="font-semibold text-amber-300 underline-offset-4 hover:underline"
+              >
+                AxiHub
+              </a>{" "}
+              — un AXI assistant, un AXI commercial, un AXI maison —
+              AxiSolver se branche en Duo. Deux cercles qui se
+              recouvrent, pas un cercle qui s&apos;agrandit.
             </p>
           </div>
 
@@ -656,7 +664,7 @@ export default function Page() {
                 Interrogation en direct
               </strong>{" "}
               — « Un visiteur demande livraison samedi, as-tu capacité
-              ? » Votre AXI maison répond. AxiSolver reformule au
+              ? » Votre assistant AXI répond. AxiSolver reformule au
               visiteur.
             </li>
             <li className="border-t border-zinc-800 pt-5">
@@ -664,7 +672,7 @@ export default function Page() {
                 Délégation d&apos;action
               </strong>{" "}
               — prise de RDV réel, envoi de mail de suivi, création
-              de devis. Votre AXI maison agit avec son autorité.
+              de devis. Votre assistant AXI agit avec son autorité.
               AxiSolver reste dans son scope accueil.
             </li>
             <li className="border-t border-zinc-800 pt-5">
@@ -679,7 +687,7 @@ export default function Page() {
                 Validation en deux temps
               </strong>{" "}
               — prix personnalisé ou délai spécifique validés par
-              votre AXI maison avant diffusion au visiteur.
+              votre assistant AXI avant diffusion au visiteur.
             </li>
             <li className="border-t border-zinc-800 pt-5">
               <strong className="text-white">
@@ -688,6 +696,13 @@ export default function Page() {
               — AxiSolver apprend comment ses tickets ont été traités.
             </li>
           </ul>
+
+          <p className="mt-10 max-w-2xl text-sm leading-relaxed text-zinc-400">
+            Pas encore d&apos;assistant AXI ? Pas de problème. AxiSolver
+            se vend et se gère directement ici, de façon totalement
+            autonome. Vous souscrivez, vous paramétrez, vous pilotez.
+            Point.
+          </p>
         </div>
       </section>
 
@@ -824,40 +839,6 @@ export default function Page() {
               </p>
             </article>
           </div>
-        </div>
-      </section>
-
-      {/* ─────────── FAMILLE AXI ─────────── */}
-      <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
-        <div className="mx-auto max-w-4xl">
-          <aside className="rounded-2xl border-l-4 border-amber-400 border-y border-r border-zinc-800 bg-zinc-900/60 p-8 md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              Famille AXI
-            </p>
-            <h2 className="mt-5 text-2xl font-semibold tracking-tight text-white md:text-3xl">
-              AxiSolver fait partie de la famille des applications{" "}
-              <span className="text-amber-400">AXI</span>.
-            </h2>
-            <p className="mt-5 text-base leading-relaxed text-zinc-200 md:text-lg">
-              AxiSolver se vend et se gère directement ici, sur son
-              propre site. Vous souscrivez, vous paramétrez, vous
-              pilotez. Point.
-            </p>
-            <p className="mt-4 text-base leading-relaxed text-zinc-300 md:text-lg">
-              On le retrouve également sur{" "}
-              <a
-                href="https://axihub.live"
-                className="font-semibold text-amber-300 underline-offset-4 hover:underline"
-              >
-                AxiHub
-              </a>
-              , le hub de l&apos;écosystème AXI, pour les entreprises
-              qui veulent l&apos;écosystème complet — AxiSolver y
-              apparaît alors en Duo avec un AXI maison, un AXI
-              commercial, un AXI assistant, et toutes les autres
-              briques d&apos;intelligence disponibles à la carte.
-            </p>
-          </aside>
         </div>
       </section>
 
