@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 
 import { BandeauActions } from "@/components/dashboard/bandeau-actions";
-import { BandePouls } from "@/components/dashboard/bande-pouls";
+import { PanneauAccueil } from "@/components/dashboard/panneau-accueil";
 import { ToggleConversation } from "@/components/dashboard/toggle-conversation";
 import { db } from "@/lib/db";
 import { sites, usageConversations } from "@/lib/db/schema";
@@ -77,30 +77,14 @@ export default async function PageDashboard() {
 
   return (
     <div className="flex flex-col">
-      <div className="relative flex flex-col overflow-hidden">
-        <BackdropFondu />
-        <div className="relative z-10 flex flex-col">
-          <BandePouls titreConversation={null} siteFocus={null} />
-          <div className="flex flex-col gap-4 px-6 py-10 md:px-14 lg:px-16">
-            <ToggleConversation prenom={prenomCap} sites={sitesChantier} />
-          </div>
-        </div>
-      </div>
+      <ToggleConversation prenom={prenomCap} sites={sitesChantier} />
 
       <BandeauActions
         nbSites={mesSites.length}
         conversationsCeMois={agregats[0]?.total ?? 0}
       />
-    </div>
-  );
-}
 
-function BackdropFondu() {
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-slate-50 to-violet-50" />
-      <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
-      <div className="absolute top-1/3 right-1/4 h-80 w-80 rounded-full bg-violet-300/25 blur-3xl" />
+      <PanneauAccueil prenom={prenomCap} nbSites={mesSites.length} />
     </div>
   );
 }

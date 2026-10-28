@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, MessagesSquare, Sparkles } from "lucide-react";
+import { ChevronDown, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import { TroisEcrans } from "./trois-ecrans";
@@ -14,11 +14,13 @@ type SiteChantier = {
 };
 
 /**
- * Enveloppe « replié par défaut » autour du bloc 3 écrans.
+ * Barre « Converser avec AXI » qui remplace l'ancienne BandePouls.
  *
- * À l'arrivée sur /dashboard, seul le gros bouton « Converser avec
- * AXI » s'affiche. Un clic déplie le triptyque (ailette sites + chat
- * AXI + carnet de session). Un second clic replie.
+ * Pleine largeur, collée en haut du contenu principal, sans radius —
+ * elle fait office de header de la zone centrale. Clic → déplie le
+ * triptyque (ailette sites + chat AXI + carnet de session) juste en
+ * dessous. Second clic → replie. Rien d'autre entre la sidebar et
+ * cette barre.
  */
 export function ToggleConversation({
   prenom,
@@ -30,36 +32,36 @@ export function ToggleConversation({
   const [ouvert, setOuvert] = useState(false);
 
   return (
-    <div className="flex flex-col">
+    <>
       <button
         type="button"
         onClick={() => setOuvert((v) => !v)}
         aria-expanded={ouvert}
         aria-controls="panneau-conversation-axi"
-        className="group flex w-full items-center justify-between gap-4 rounded-2xl border border-white/50 bg-white/80 px-6 py-5 text-left shadow-sm backdrop-blur transition-all hover:border-indigo-300 hover:shadow-md"
+        className="group flex w-full items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
       >
         <div className="flex items-center gap-4">
           <span
-            className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-white shadow-md shadow-indigo-500/30"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-white shadow-md shadow-indigo-500/30"
             aria-hidden
           >
             <Sparkles className="h-5 w-5" strokeWidth={2.2} />
           </span>
           <div>
-            <p className="text-base font-semibold text-slate-900">
+            <p className="text-sm font-semibold text-slate-900">
               {ouvert
                 ? "Conversation avec AXI"
                 : "Converser avec AXI"}
             </p>
-            <p className="mt-0.5 text-sm text-slate-600">
+            <p className="mt-0.5 text-xs text-slate-600">
               {ouvert
-                ? "Fermer la fenêtre de conversation pour revenir au tableau de bord."
-                : "Ouvrez le copilote AxiSolver pour configurer vos sites, poser des questions, piloter vos actions."}
+                ? "Fermer la fenêtre de conversation."
+                : "Ouvrez le copilote AxiSolver — configuration, questions, actions."}
             </p>
           </div>
         </div>
         <span
-          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
+          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
             ouvert ? "rotate-180" : ""
           }`}
           aria-hidden
@@ -69,48 +71,26 @@ export function ToggleConversation({
       </button>
 
       {ouvert && (
-        <div id="panneau-conversation-axi" className="mt-6 animate-fadeIn">
-          <TroisEcrans prenom={prenom} sites={sites} />
+        <div
+          id="panneau-conversation-axi"
+          className="relative flex flex-col overflow-hidden border-b border-slate-200"
+        >
+          <BackdropFondu />
+          <div className="relative z-10 px-6 py-10 md:px-14 lg:px-16">
+            <TroisEcrans prenom={prenom} sites={sites} />
+          </div>
         </div>
       )}
-
-      {!ouvert && (
-        <PanneauReplie prenom={prenom} nbSites={sites.length} />
-      )}
-    </div>
+    </>
   );
 }
 
-function PanneauReplie({
-  prenom,
-  nbSites,
-}: {
-  prenom: string | null;
-  nbSites: number;
-}) {
+function BackdropFondu() {
   return (
-    <div className="mt-6 rounded-2xl border border-white/40 bg-white/60 p-6 text-sm text-slate-700 shadow-sm backdrop-blur">
-      <div className="flex items-start gap-3">
-        <MessagesSquare
-          className="mt-0.5 h-5 w-5 flex-shrink-0 text-indigo-700"
-          strokeWidth={2}
-          aria-hidden
-        />
-        <div>
-          <p className="font-medium text-slate-900">
-            {prenom ? `Bonjour ${prenom}.` : "Bonjour."} Votre tableau
-            de bord est prêt.
-          </p>
-          <p className="mt-1 leading-relaxed text-slate-600">
-            Vous gérez{" "}
-            <strong className="font-semibold text-slate-900">
-              {nbSites} site{nbSites > 1 ? "s" : ""}
-            </strong>
-            . Utilisez les onglets de la barre du bas pour naviguer, ou
-            lancez une conversation avec AXI quand vous en avez besoin.
-          </p>
-        </div>
-      </div>
+    <div aria-hidden className="pointer-events-none absolute inset-0">
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-slate-50 to-violet-50" />
+      <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
+      <div className="absolute top-1/3 right-1/4 h-80 w-80 rounded-full bg-violet-300/25 blur-3xl" />
     </div>
   );
 }
