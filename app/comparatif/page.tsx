@@ -425,31 +425,21 @@ export default function PageComparatif() {
           </div>
         </section>
 
-        {/* ─── Section Sécurité (image Axi + bouclier en fond) ─── */}
-        <section
-          className="relative overflow-hidden border-b border-zinc-900 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage:
-              "url(/comparatif-securite-axi-bouclier.png)",
-          }}
-        >
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-gradient-to-b from-zinc-950/60 via-zinc-950/80 to-zinc-950/95"
-          />
-          <div className="relative mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+        {/* ─── Section Sécurité ─── */}
+        <section className="border-b border-zinc-900 bg-zinc-950">
+          <div className="mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
                 Sécurité
               </p>
-              <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)] md:text-5xl lg:text-6xl">
+              <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
                 Partenaire supplémentaire de la{" "}
                 <span className="text-amber-400">
                   sécurité de votre site
                 </span>
                 .
               </h2>
-              <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] md:text-lg">
+              <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
                 AxiSolver ne remplace pas vos antivirus de site, votre
                 firewall ou votre hébergeur sécurisé. Il vient en{" "}
                 <span className="font-semibold text-white">
@@ -465,7 +455,7 @@ export default function PageComparatif() {
               {MISSIONS_SECURITE.map((m) => (
                 <article
                   key={m.titre}
-                  className="rounded-2xl border border-zinc-700/60 bg-zinc-950/70 p-7 backdrop-blur-sm md:p-8"
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7 md:p-8"
                 >
                   <ShieldCheck
                     className="h-9 w-9 text-amber-400"
@@ -480,9 +470,23 @@ export default function PageComparatif() {
                 </article>
               ))}
             </div>
+          </div>
 
+          {/* Bandeau image Axi + bouclier + antivirus */}
+          <div
+            className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:h-72"
+            style={{
+              backgroundImage:
+                "url(/comparatif-securite-axi-bouclier.png)",
+            }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+          </div>
+
+          <div className="mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-32">
             {/* Comparatif tarifaire sécurité */}
-            <div className="mt-16 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950/80 backdrop-blur-sm">
+            <div className="mt-16 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
               <div className="border-b border-zinc-800 bg-zinc-950/90 px-6 py-5 md:px-8">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
                   Combien coûte une sécurité de site professionnelle
@@ -542,10 +546,10 @@ export default function PageComparatif() {
           </div>
         </section>
 
-        {/* ─── Section Ads (comparatif tarifaire agences / freelances) ─── */}
+        {/* ─── Section Ads ─── */}
         <section className="relative overflow-hidden border-b border-zinc-900 bg-zinc-950">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(251,191,36,0.08),_transparent_60%)]" />
-          <div className="relative mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
+          <div className="relative mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
                 Publicité en ligne
@@ -588,7 +592,20 @@ export default function PageComparatif() {
                 </article>
               ))}
             </div>
+          </div>
 
+          {/* Bandeau image AxiSolver vs agence SEO/Ads */}
+          <div
+            className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:h-72"
+            style={{
+              backgroundImage: "url(/comparatif-ads-axi-agence.png)",
+            }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+          </div>
+
+          <div className="relative mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-32">
             {/* Comparatif tarifaire Ads */}
             <div className="mt-16 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
               <div className="border-b border-zinc-800 bg-zinc-950/80 px-6 py-5 md:px-8">
