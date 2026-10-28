@@ -282,7 +282,7 @@ export default function Page() {
       >
         <div
           aria-hidden
-          className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/35 to-zinc-950"
+          className="absolute inset-0 bg-gradient-to-b from-zinc-950/50 via-zinc-950/15 to-zinc-950"
         />
 
         <div className="relative z-10 flex min-h-[640px] flex-col justify-between py-10 md:min-h-[820px] md:py-16">
