@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, Search, ShieldCheck, Target } from "lucide-react";
+import {
+  MessageCircle,
+  Search,
+  Settings,
+  ShieldCheck,
+  Target,
+} from "lucide-react";
 
 /**
  * Comparatif tarifaire multi-onglets pour la page /comparatif.
@@ -19,7 +25,7 @@ import { MessageCircle, Search, ShieldCheck, Target } from "lucide-react";
 type Tarif = { label: string; detail: string; prix: string };
 
 type Section = {
-  slug: "accueil" | "seo" | "ads" | "securite";
+  slug: "accueil" | "seo" | "ads" | "securite" | "parametrage";
   categorie: string;
   Icon: typeof MessageCircle;
   tarifsHeader: string;
@@ -192,6 +198,47 @@ const SECTIONS: Section[] = [
     resumeAxisolver:
       "Audit sécurité initial · surveillance 24/7 · rapport mensuel · blocage temps réel",
   },
+  {
+    slug: "parametrage",
+    categorie: "Paramétrage",
+    Icon: Settings,
+    tarifsHeader: "Combien coûte le paramétrage d'une solution concurrente",
+    tarifsSubtitle:
+      "Avec un chatbot classique, chaque réponse se rédige à la main. AxiSolver absorbe votre site et vos PDF, sans script à écrire.",
+    tarifs: [
+      {
+        label: "Rédacteur FAQ / scripts chatbot interne",
+        detail:
+          "Poste junior, rédige et maintient les réponses — chaque nouvelle offre produit demande une mise à jour",
+        prix: "2 000 à 4 000 €/mois",
+      },
+      {
+        label: "Agence rédaction scripts chatbot",
+        detail: "Prestation one-shot d'écriture des arbres de dialogue + maintenance",
+        prix: "5 000 à 15 000 € + maintenance",
+      },
+      {
+        label: "Chatbot classique à arbres de dialogue",
+        detail:
+          "Botnation, Pandorabot, Landbot : abonnement + main-d'œuvre pour construire chaque scénario",
+        prix: "50 à 500 €/mois + config",
+      },
+      {
+        label: "Outil de knowledge base pure (Guru, Notion AI)",
+        detail:
+          "Base de connaissances pour l'équipe interne, à rédiger manuellement",
+        prix: "15 à 50 €/user/mois",
+      },
+      {
+        label: "Développement RAG custom (crawler + embeddings + LLM)",
+        detail:
+          "Pipeline complet d'extraction, découpage, vectorisation, recherche sémantique",
+        prix: "20 000 à 80 000 €",
+      },
+    ],
+    resumeAxisolver:
+      "Crawl automatique · ingestion PDF · embeddings vectorisés · chaque réponse sourcée · re-crawl mensuel",
+  },
 ];
 
 export function ComparatifTarifaire() {
@@ -210,9 +257,10 @@ export function ComparatifTarifaire() {
             <span className="text-amber-400">Ou AxiSolver à 99 € HT/mois.</span>
           </h2>
           <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-            Pour chacune de ses 4 missions principales, voici ce que coûte
-            la solution humaine ou logicielle équivalente sur le marché
-            français. Cliquez sur l&apos;onglet qui vous intéresse.
+            Pour chacune de ses missions, voici ce que coûte la solution
+            humaine ou logicielle équivalente sur le marché français — y
+            compris le paramétrage initial que vous évitez. Cliquez sur
+            l&apos;onglet qui vous intéresse.
           </p>
         </div>
 
