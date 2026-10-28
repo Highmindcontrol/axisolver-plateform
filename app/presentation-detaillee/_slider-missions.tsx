@@ -396,19 +396,31 @@ export function SliderMissions() {
 
       {/* Contenu du slide actif */}
       <div key={mission.slug} className="animate-[fadeIn_300ms_ease-out]">
-        <div className="mx-auto max-w-6xl px-6 pt-20 md:px-10 md:pt-28">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              {mission.categorie}
-            </p>
-            <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
-              {mission.titreMain}{" "}
-              <span className="text-amber-400">{mission.titreAccent}</span>
-            </h2>
-            <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-              {mission.pitch}
-            </p>
-          </div>
+        {/* Titre seul au-dessus du bandeau image */}
+        <div className="mx-auto max-w-5xl px-6 pt-16 text-center md:px-10 md:pt-24">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+            {mission.categorie}
+          </p>
+          <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
+            {mission.titreMain}{" "}
+            <span className="text-amber-400">{mission.titreAccent}</span>
+          </h2>
+        </div>
+
+        {/* Bandeau image juste après le titre */}
+        <div
+          className="relative mt-12 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-16 md:h-72"
+          style={{ backgroundImage: `url(${mission.image})` }}
+          aria-hidden
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+        </div>
+
+        {/* Descriptif + 3 cards */}
+        <div className="mx-auto max-w-6xl px-6 md:px-10">
+          <p className="mx-auto mt-14 max-w-3xl text-center text-base leading-relaxed text-zinc-300 md:mt-16 md:text-lg">
+            {mission.pitch}
+          </p>
 
           <div className="mt-14 grid grid-cols-1 gap-6 md:mt-16 md:grid-cols-3">
             {mission.cards.map((c) => (
@@ -429,15 +441,6 @@ export function SliderMissions() {
               </article>
             ))}
           </div>
-        </div>
-
-        {/* Bandeau image */}
-        <div
-          className="relative mt-14 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-16 md:h-72"
-          style={{ backgroundImage: `url(${mission.image})` }}
-          aria-hidden
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
         </div>
 
         {/* Tableau tarifaire */}
