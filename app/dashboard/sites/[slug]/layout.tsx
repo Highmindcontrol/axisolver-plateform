@@ -39,23 +39,27 @@ export default async function LayoutSite({
     .limit(1);
   if (!siteActif) notFound();
 
-  const bucketMois = formatterBucketMois(new Date());
+  const mesSites = await db
+    .select({
+      id: sites.id,
+      slug: sites.slug,
+      nomEntreprise: sites.nomEntreprise,
+      domainePrincipal: sites.domainePrincipal,
+      proprieteVerifieeLe: sites.proprieteVerifieeLe,
+      branding: siteConfigs.branding,
+    })
+    .from(sites)
+    .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
+    .where(eq(sites.ownerUserId, user.id))
+    .orderBy(sites.creeLe);
 
-  const [mesSites, conversationsParSite] = await Promise.all([
-    db
-      .select({
-        id: sites.id,
-        slug: sites.slug,
-        nomEntreprise: sites.nomEntreprise,
-        domainePrincipal: sites.domainePrincipal,
-        proprieteVerifieeLe: sites.proprieteVerifieeLe,
-        branding: siteConfigs.branding,
-      })
-      .from(sites)
-      .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
-      .where(eq(sites.ownerUserId, user.id))
-      .orderBy(sites.creeLe),
-    db
+  // Comptage conversations : optionnel (tolère l'absence de la table
+  // usage_conversations tant que les migrations 0012+ ne sont pas
+  // appliquées en prod).
+  const compteParSite = new Map<string, number>();
+  try {
+    const bucketMois = formatterBucketMois(new Date());
+    const conversationsParSite = await db
       .select({
         siteId: usageConversations.siteId,
         total: sql<number>`coalesce(sum(${usageConversations.nbConversations}), 0)::int`,
@@ -67,12 +71,12 @@ export default async function LayoutSite({
           eq(usageConversations.bucketMois, bucketMois),
         ),
       )
-      .groupBy(usageConversations.siteId),
-  ]);
-
-  const compteParSite = new Map<string, number>();
-  for (const r of conversationsParSite) {
-    compteParSite.set(r.siteId, r.total);
+      .groupBy(usageConversations.siteId);
+    for (const r of conversationsParSite) {
+      compteParSite.set(r.siteId, r.total);
+    }
+  } catch {
+    // Table pas encore créée en prod — on affiche 0 conversation.
   }
 
   const sitesHeader = mesSites.map((s) => ({

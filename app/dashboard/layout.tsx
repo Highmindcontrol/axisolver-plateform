@@ -15,6 +15,14 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  */
 export const dynamic = "force-dynamic";
 
+type Plan =
+  | "text-s"
+  | "text-l"
+  | "premium-s"
+  | "premium-l"
+  | "pack-web-s"
+  | "pack-web-l";
+
 export default async function LayoutDashboard({
   children,
 }: {
@@ -29,29 +37,37 @@ export default async function LayoutDashboard({
     redirect("/connexion");
   }
 
-  const [mesSites, [subscription]] = await Promise.all([
-    db
-      .select({
-        slug: sites.slug,
-        nomEntreprise: sites.nomEntreprise,
-        domainePrincipal: sites.domainePrincipal,
-      })
-      .from(sites)
-      .where(eq(sites.ownerUserId, user.id))
-      .orderBy(sites.creeLe),
-    db
+  const mesSites = await db
+    .select({
+      slug: sites.slug,
+      nomEntreprise: sites.nomEntreprise,
+      domainePrincipal: sites.domainePrincipal,
+    })
+    .from(sites)
+    .where(eq(sites.ownerUserId, user.id))
+    .orderBy(sites.creeLe);
+
+  // Lecture de l'abonnement Stripe : optionnelle (tolère l'absence
+  // de la table stripe_subscriptions tant que les migrations
+  // 0012+ ne sont pas appliquées en prod).
+  let plan: Plan | null = null;
+  try {
+    const [subscription] = await db
       .select({ plan: stripeSubscriptions.plan })
       .from(stripeSubscriptions)
       .where(eq(stripeSubscriptions.userId, user.id))
       .orderBy(desc(stripeSubscriptions.creeLe))
-      .limit(1),
-  ]);
+      .limit(1);
+    plan = (subscription?.plan ?? null) as Plan | null;
+  } catch {
+    plan = null;
+  }
 
   return (
     <div className="relative flex min-h-screen bg-slate-50 text-slate-900">
       <SidebarDashboard
         sites={mesSites}
-        plan={subscription?.plan ?? null}
+        plan={plan}
         userEmail={user.email ?? ""}
       />
 
