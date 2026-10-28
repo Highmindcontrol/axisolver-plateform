@@ -239,18 +239,22 @@ export default function PageCasUsage() {
       <SiteHeader />
       <main className="min-h-screen bg-zinc-950 text-white">
         {/* ─── Hero ─── */}
-        <section className="relative overflow-hidden border-b border-zinc-900">
+        <section
+          className="relative overflow-hidden border-b border-zinc-900 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url(/cas-usage-axi-plateformes.png)" }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-b from-zinc-950/55 via-zinc-950/20 to-zinc-950"
+          />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(251,191,36,0.08),_transparent_60%)]" />
-          <div className="relative mx-auto max-w-5xl px-6 py-24 text-center md:px-10 md:py-32">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              Cas d&apos;usage
-            </p>
-            <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.1] tracking-tight md:text-6xl">
+          <div className="relative mx-auto flex min-h-[640px] max-w-5xl flex-col justify-end px-6 py-24 text-center md:min-h-[760px] md:px-10 md:py-28">
+            <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)] md:text-6xl lg:text-7xl">
               AxiSolver est{" "}
               <span className="text-amber-400">prêt pour votre site</span>,
               quel qu&apos;il soit.
             </h1>
-            <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+            <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] md:text-lg">
               Shopify, WordPress, React, Framer, Webflow, HTML
               statique — AxiSolver s&apos;installe en quelques minutes.
               Voici concrètement ce qu&apos;on a préparé pour vous selon
