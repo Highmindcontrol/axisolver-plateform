@@ -1,15 +1,18 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
+import { eq, desc } from "drizzle-orm";
+
+import { SidebarDashboard } from "@/components/dashboard/sidebar-dashboard";
+import { db } from "@/lib/db";
+import { sites, stripeSubscriptions } from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
- * Layout dashboard — protège toutes les routes /dashboard/*.
+ * Layout dashboard AxiSolver (back-office client).
  *
- * Si l'utilisateur n'est pas authentifié, redirige vers /connexion.
- * Fournit la nav minimale + un bouton déconnexion. Sera enrichi au
- * LOT E avec la vraie structure dashboard (sites, config, tickets).
+ * Structure calquée sur AxiHub : sidebar permanente à gauche (packs
+ * d'intelligence + sites), header fin en haut, zone centrale fluide
+ * qui héberge le chat AXI permanent et les onglets contextuels.
  */
-// Dynamic : auth check à chaque requête, pas de prerender au build.
 export const dynamic = "force-dynamic";
 
 export default async function LayoutDashboard({
@@ -26,42 +29,37 @@ export default async function LayoutDashboard({
     redirect("/connexion");
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-6 px-6 py-3">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-sm font-semibold text-slate-900"
-          >
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-xs font-bold text-white">
-              A
-            </span>
-            AxiSolver
-          </Link>
+  const [mesSites, [subscription]] = await Promise.all([
+    db
+      .select({
+        slug: sites.slug,
+        nomEntreprise: sites.nomEntreprise,
+        domainePrincipal: sites.domainePrincipal,
+      })
+      .from(sites)
+      .where(eq(sites.ownerUserId, user.id))
+      .orderBy(sites.creeLe),
+    db
+      .select({ plan: stripeSubscriptions.plan })
+      .from(stripeSubscriptions)
+      .where(eq(stripeSubscriptions.userId, user.id))
+      .orderBy(desc(stripeSubscriptions.creeLe))
+      .limit(1),
+  ]);
 
-          <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard/abonnement"
-              className="hidden text-sm font-medium text-slate-600 transition-colors hover:text-indigo-700 sm:inline"
-            >
-              Abonnement
-            </Link>
-            <span className="hidden text-xs text-slate-500 sm:inline">
-              {user.email}
-            </span>
-            <form action="/api/auth/deconnexion" method="post">
-              <button
-                type="submit"
-                className="text-sm font-medium text-slate-600 transition-colors hover:text-indigo-700"
-              >
-                Déconnexion
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main>{children}</main>
+  return (
+    <div className="relative flex min-h-screen bg-slate-50 text-slate-900">
+      <SidebarDashboard
+        sites={mesSites}
+        plan={subscription?.plan ?? null}
+        userEmail={user.email ?? ""}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <main className="relative flex min-h-0 flex-1 flex-col overflow-y-auto bg-slate-50">
+          <div className="relative z-10 flex flex-1 flex-col">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
