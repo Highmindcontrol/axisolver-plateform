@@ -327,7 +327,14 @@ export default function PageComparatif() {
 
         {/* ─── Section Interface ─── */}
         <section className="border-b border-zinc-900 bg-zinc-950">
-          <div className="mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
+          <div
+            className="relative h-56 w-full bg-cover bg-center bg-no-repeat md:h-72"
+            style={{ backgroundImage: "url(/presentation-interface-immersive.png)" }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+          </div>
+          <div className="mx-auto max-w-6xl px-6 pt-16 md:px-10 md:pt-20">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
                 Interface
@@ -415,18 +422,19 @@ export default function PageComparatif() {
             </div>
           </div>
 
-          <div
-            className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:h-72 md:mb-24"
-            style={{ backgroundImage: "url(/presentation-interface-immersive.png)" }}
-            aria-hidden
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
-          </div>
+          <div className="h-16 md:h-24" aria-hidden />
         </section>
 
         {/* ─── Section Base de connaissances ─── */}
         <section className="border-b border-zinc-900 bg-zinc-950">
-          <div className="mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
+          <div
+            className="relative h-56 w-full bg-cover bg-center bg-no-repeat md:h-72"
+            style={{ backgroundImage: "url(/presentation-base-connaissances-axi.png)" }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+          </div>
+          <div className="mx-auto max-w-6xl px-6 pt-16 md:px-10 md:pt-20">
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
                 Base de connaissances
@@ -507,13 +515,7 @@ export default function PageComparatif() {
             </div>
           </div>
 
-          <div
-            className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:mb-24 md:h-72"
-            style={{ backgroundImage: "url(/presentation-base-connaissances-axi.png)" }}
-            aria-hidden
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
-          </div>
+          <div className="h-16 md:h-24" aria-hidden />
         </section>
 
         {/* ─── Comparatif tarifaire par mission (onglets) ─── */}
