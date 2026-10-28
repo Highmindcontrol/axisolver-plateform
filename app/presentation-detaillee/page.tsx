@@ -218,9 +218,9 @@ export default function Page() {
       <SiteHeader />
 
       {/* ─────────── HERO court centré au-dessus du slider ─────────── */}
-      <section className="bg-zinc-950 px-6 pt-8 md:px-10 md:pt-10">
+      <section className="bg-zinc-950 px-6 pb-16 pt-10 md:px-10 md:pb-24 md:pt-14">
         <div className="mx-auto max-w-5xl text-center">
-          <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
+          <h1 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white md:text-4xl lg:text-5xl">
             Tout ce qu&apos;AxiSolver{" "}
             <span className="text-amber-400">fait.</span>
           </h1>
