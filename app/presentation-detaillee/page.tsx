@@ -137,7 +137,6 @@ const MISSIONS_DETAILLEES: Array<{
       "Option « carte blanche » après 90 jours de validation réussie, dans un budget que vous plafonnez",
     ],
     Icon: IconTarget,
-    avenir: true,
   },
   {
     numero: "06",
@@ -153,7 +152,6 @@ const MISSIONS_DETAILLEES: Array<{
       "Preuve de propriété DNS requise avant toute action côté serveur",
     ],
     Icon: IconShieldCheck,
-    avenir: true,
   },
 ];
 
