@@ -188,7 +188,6 @@ const CAPACITES: Array<{
     resume:
       "Préparation complète de vos campagnes AdWords et AdSense. Vous validez d'un clic.",
     Icon: IconTarget,
-    avenir: true,
   },
   {
     numero: "06",
@@ -196,7 +195,6 @@ const CAPACITES: Array<{
     resume:
       "Comme un antivirus actif. Blocage temps réel des bots, injections et intrusions.",
     Icon: IconShieldCheck,
-    avenir: true,
   },
 ];
 
@@ -313,7 +311,10 @@ export default function Page() {
                 Six territoires simultanés.
               </span>
             </h2>
-            <p className="mt-7 max-w-2xl text-base leading-relaxed text-zinc-400 md:text-lg">
+            <p className="mt-6 text-lg font-medium tracking-tight text-amber-300 md:text-xl">
+              Aucun équivalent sur le marché.
+            </p>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-zinc-400 md:text-lg">
               La métamorphose de votre présence en ligne, dans un seul
               produit indivisible. Pas de version Lite. Pas de pack à
               composer. Juste AxiSolver, qui fait tout.
