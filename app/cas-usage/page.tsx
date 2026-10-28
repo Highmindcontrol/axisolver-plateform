@@ -1,12 +1,10 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Check,
   ShoppingBag,
   Globe,
   Package,
   TrendingUp,
-  Users,
   Sparkles,
 } from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
@@ -179,33 +177,6 @@ const SCENARIOS: Scenario[] = [
       "AxiSolver Text Only (49 €/mois) convient parfaitement aux sites vitrines et portails informatifs. Les SaaS B2B et services passeront sur Classique ou Premium pour l'effet voix sur la qualification de leads.",
   },
 ];
-
-const COUTS_HUMAINS: Array<{
-  role: string;
-  description: string;
-  coutMensuel: string;
-}> = [
-  {
-    role: "Chargé d'accueil visiteurs",
-    description:
-      "Répond aux visiteurs 24/7, qualifie les demandes, oriente vers les bons produits, transforme en prospects chauds.",
-    coutMensuel: "3 200 €",
-  },
-  {
-    role: "Spécialiste SEO",
-    description:
-      "Audits mensuels, suivi des positions, détection des pages de fuite, parcours brisés, optimisations continues.",
-    coutMensuel: "3 400 €",
-  },
-  {
-    role: "Traffic manager Ads",
-    description:
-      "Création et pilotage des campagnes AdWords/AdSense, split testing permanent, surveillance ROI, ajustements d'enchères.",
-    coutMensuel: "4 100 €",
-  },
-];
-
-const COUT_HUMAIN_TOTAL = 10700; // somme en € HT, charges employeur comprises
 
 function BadgeVerdict({ verdict }: { verdict: Scenario["profilsTypes"][number]["verdict"] }) {
   const config = {
@@ -436,97 +407,6 @@ export default function PageCasUsage() {
           </div>
         </section>
 
-        {/* ─── Section équipe humaine équivalente ─── */}
-        <section className="border-b border-zinc-900 py-20 md:py-28">
-          <div className="mx-auto max-w-6xl px-6 md:px-10">
-            <div className="mx-auto max-w-3xl text-center">
-              <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/5 px-4 py-1.5">
-                <Users className="h-4 w-4 text-amber-400" strokeWidth={2} />
-                <span className="text-xs font-semibold uppercase tracking-widest text-amber-300">
-                  Combien ça coûterait en vrais salaires ?
-                </span>
-              </div>
-              <h2 className="mt-8 text-balance text-3xl font-semibold leading-tight tracking-tight md:text-5xl">
-                Imaginez trois personnes à temps plein pour votre site.
-              </h2>
-              <p className="mt-7 text-base leading-relaxed text-zinc-300 md:text-lg">
-                Un chargé d&apos;accueil 24/7, un spécialiste SEO et un
-                traffic manager Ads qui travaille en continu votre
-                split testing. Ce que vous paieriez chaque mois en charges
-                employeur, en France, pour avoir cette équipe à vos côtés.
-              </p>
-            </div>
-
-            <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
-              {COUTS_HUMAINS.map((c) => (
-                <article
-                  key={c.role}
-                  className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-widest text-amber-300">
-                    {c.role}
-                  </p>
-                  <p className="mt-6 font-mono text-4xl font-semibold tracking-tight text-white">
-                    {c.coutMensuel}
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    par mois · charges employeur comprises
-                  </p>
-                  <p className="mt-6 text-sm leading-relaxed text-zinc-400">
-                    {c.description}
-                  </p>
-                </article>
-              ))}
-            </div>
-
-            <div className="mt-14 overflow-hidden rounded-3xl border border-amber-400/30 bg-gradient-to-br from-zinc-900 via-amber-400/5 to-zinc-900 p-10 md:p-14">
-              <div className="grid grid-cols-1 items-center gap-10 md:grid-cols-5">
-                <div className="md:col-span-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                    Total équipe humaine équivalente
-                  </p>
-                  <p className="mt-4 flex items-baseline gap-3">
-                    <span className="font-mono text-6xl font-semibold tracking-tight text-white md:text-7xl">
-                      {COUT_HUMAIN_TOTAL.toLocaleString("fr-FR")} €
-                    </span>
-                    <span className="text-base text-zinc-400">
-                      par mois
-                    </span>
-                  </p>
-                  <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-                    Hypothèse conservatrice en France, charges employeur
-                    comprises, pour 3 postes juniors à mi-carrière. Hors
-                    coûts de recrutement, formation, matériel, bureaux et
-                    arrêts maladie.
-                  </p>
-                </div>
-
-                <div className="md:col-span-2">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                    AxiSolver Premium
-                  </p>
-                  <p className="mt-4 font-mono text-6xl font-semibold tracking-tight text-amber-400 md:text-7xl">
-                    99 €
-                  </p>
-                  <p className="mt-1 text-sm text-zinc-400">
-                    par mois · tout inclus
-                  </p>
-                  <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-amber-300">
-                    <Sparkles className="h-3.5 w-3.5" strokeWidth={2.5} />
-                    108 fois moins cher
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <p className="mx-auto mt-10 max-w-3xl text-center text-sm italic leading-relaxed text-zinc-500">
-              Évidemment, AxiSolver ne remplace pas chaque geste humain —
-              il remplace la charge opérationnelle qui empêche vos vraies
-              équipes de se concentrer sur ce qui compte : la stratégie,
-              la relation client incarnée, la décision.
-            </p>
-          </div>
-        </section>
 
         {/* ─── CTA ─── */}
         <section className="py-20 md:py-28">

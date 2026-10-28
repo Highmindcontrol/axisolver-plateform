@@ -1,9 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import {
+  BadgeCheck,
+  BarChart3,
+  Bell,
+  Eye,
+  History,
+  LayoutDashboard,
+  MousePointerClick,
+  Plug,
+  Route,
+  Scale,
+  Sliders,
+  Users,
+} from "lucide-react";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { SiteHeader } from "@/components/site/header";
 import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
 import { SliderMissions } from "./_slider-missions";
+
+type IconType = typeof Scale;
 
 export const metadata: Metadata = {
   title: "Présentation détaillée — AxiSolver",
@@ -44,26 +60,81 @@ const LIGNES_ROUGES = [
   },
 ];
 
-const DOCTRINE = [
+const DOCTRINE: Array<{ titre: string; detail: string; Icon: IconType }> = [
   {
     titre: "Obligation de moyens, pas de résultat",
+    Icon: Scale,
     detail:
       "AxiSolver s'engage sur la qualité d'exécution et la vigilance continue. Jamais sur un classement SEO précis ni sur une absence totale de failles. Google reste souverain sur les enchères et les classements, les attaquants évoluent chaque jour.",
   },
   {
     titre: "Honnêteté absolue sur les audits",
+    Icon: BadgeCheck,
     detail:
       "AxiSolver cite les positions exactes qu'il mesure. Pas d'arrondi, pas d'enjolivement, pas d'invention. Si une requête n'est pas classée dans les 20 premiers résultats, il le dit sans détour. Si une erreur d'audit lui est signalée, il reconnaît et refait — jamais de minimisation.",
   },
   {
     titre: "Validation humaine systématique",
+    Icon: MousePointerClick,
     detail:
       "Toute action qui engage de l'argent (campagnes publicitaires) ou qui modifie votre site activement (règles de blocage de sécurité) passe par un bouton Valider dans votre dashboard. AxiSolver prépare, vous décidez.",
   },
   {
     titre: "Interface vivante, pas une boîte noire",
+    Icon: Eye,
     detail:
       "Vos visiteurs voient leur fiche se remplir au fil de la conversation. Ils tapent leur email de leur main. Ils confirment leur demande. Fin du « allô, vous m'avez noté ? ».",
+  },
+];
+
+const BACK_OFFICE: Array<{ titre: string; detail: string; Icon: IconType }> = [
+  {
+    titre: "Un tableau de bord unique pour toute l'entreprise",
+    Icon: LayoutDashboard,
+    detail:
+      "Vous accédez à votre back office AxiSolver depuis n'importe quel navigateur. Vue d'ensemble du mois en cours, visiteurs reçus, tickets ouverts, tickets fermés, interlocuteurs sollicités. Un seul endroit pour tout voir.",
+  },
+  {
+    titre: "Paramétrage sans ligne de code",
+    Icon: Sliders,
+    detail:
+      "Le ton, les options d'accueil cliquables, les sujets sensibles à éviter, la voix, les langues acceptées — tout se règle depuis une interface visuelle. Les modifications sont actives immédiatement sur votre site, sans redéploiement.",
+  },
+  {
+    titre: "Vous définissez votre équipe et leurs périmètres",
+    Icon: Users,
+    detail:
+      "Ajoutez vos collaborateurs, précisez le périmètre de chacun (commercial, support, SAV, direction, comptabilité). AxiSolver connaît votre organigramme et sait vers qui pousser chaque dossier.",
+  },
+  {
+    titre: "Routage intelligent des alertes",
+    Icon: Route,
+    detail:
+      "Chaque ticket est classé par thème (devis, SAV, technique, administratif, carrière…), par urgence (froid / tiède / chaud / urgent) et dirigé vers le bon interlocuteur. Un visiteur furieux d'un bug de livraison ? Alerte immédiate à votre responsable logistique. Un prospect chaud sur un gros projet ? Mail au commercial dédié avec le dossier complet.",
+  },
+  {
+    titre: "Journal consultable de chaque conversation",
+    Icon: History,
+    detail:
+      "Toutes les conversations sont archivées, consultables par mot-clé, par thème, par date ou par interlocuteur. Vous pouvez relire une interaction six mois après, voir ce qui a été dit et promis, comprendre pourquoi un lead n'a pas été converti.",
+  },
+  {
+    titre: "Modes de notification au choix",
+    Icon: Bell,
+    detail:
+      "Email, SMS, notification push, appel vocal — à vous de dire comment chacun de vos collaborateurs souhaite être alerté selon le niveau d'urgence. Un responsable commercial reçoit un SMS pour un lead chaud, un mail pour un froid, une alerte hebdomadaire pour les tièdes.",
+  },
+  {
+    titre: "Rapports hebdomadaires et mensuels téléchargeables",
+    Icon: BarChart3,
+    detail:
+      "Chaque semaine, chaque mois, votre rapport d'activité est généré automatiquement : volume de conversations, taux de résolution autonome, tickets transmis, résultats de la veille SEO, alertes sécurité, lecture Analytics. Format PDF prêt à partager en comité.",
+  },
+  {
+    titre: "Intégration avec vos outils existants",
+    Icon: Plug,
+    detail:
+      "CRM, logiciel de ticketing, boîte mail partagée, calendrier — AxiSolver se branche sur ce qui existe déjà chez vous. Pas besoin de migrer vos équipes vers un nouvel outil. Les tickets qualifiés atterrissent là où vos collaborateurs ont déjà leurs habitudes de travail.",
   },
 ];
 
@@ -138,108 +209,28 @@ export default function Page() {
             </h2>
           </div>
 
-          <div className="space-y-10">
+          <div className="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-2">
             {DOCTRINE.map((d) => (
               <article
                 key={d.titre}
                 className="border-t border-zinc-800 pt-6"
               >
-                <h3 className="text-xl font-semibold tracking-tight text-white md:text-2xl">
-                  {d.titre}
-                </h3>
-                <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-300 md:text-base">
-                  {d.detail}
-                </p>
+                <div className="flex items-start gap-4">
+                  <d.Icon
+                    className="mt-1 h-8 w-8 flex-shrink-0 text-amber-400"
+                    strokeWidth={1.5}
+                  />
+                  <div>
+                    <h3 className="text-xl font-semibold tracking-tight text-white md:text-2xl">
+                      {d.titre}
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-300 md:text-base">
+                      {d.detail}
+                    </p>
+                  </div>
+                </div>
               </article>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── INSTALLATION ─────────── */}
-      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-28">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-14 max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              Installation
-            </p>
-            <h2 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
-              Deux chemins pour l&apos;installer.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-            <article className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-7">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Chemin recommandé — 80 % des cas
-              </p>
-              <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
-                Souscription directe sur axisolver.app
-              </h3>
-              <ol className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-300 md:text-base">
-                <li>
-                  <span className="font-mono text-amber-400">1.</span>{" "}
-                  Choix de votre formule et volumétrie sur la page
-                  paramétrage et tarifs
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">2.</span>{" "}
-                  AXI d&apos;onboarding vous interroge 15 à 30
-                  minutes à l&apos;oral ou à l&apos;écrit : métier,
-                  ton, services, sujets sensibles
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">3.</span>{" "}
-                  AXI parcourt votre site public, vos documents, vos
-                  CGV, votre FAQ, apprend votre métier
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">4.</span>{" "}
-                  Vous récupérez un snippet JavaScript à coller dans
-                  le head de votre site (3 lignes, comme Google
-                  Analytics)
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">5.</span>{" "}
-                  AxiSolver prend la parole dès le premier visiteur
-                </li>
-              </ol>
-            </article>
-
-            <article className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-7">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Chemin accompagné — projets complexes
-              </p>
-              <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
-                Intégration dédiée via Ataraxis Bridge
-              </h3>
-              <ol className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-300 md:text-base">
-                <li>
-                  <span className="font-mono text-amber-400">1.</span>{" "}
-                  Audit préalable approfondi de votre site, de votre
-                  métier et de vos processus
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">2.</span>{" "}
-                  Scope personnalisé des 6 missions selon vos besoins
-                  réels
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">3.</span>{" "}
-                  Intégration dédiée (branchement CRM, SSO, outils
-                  métier, flux spécifiques)
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">4.</span>{" "}
-                  Formation de vos équipes à la réception des dossiers
-                  qualifiés
-                </li>
-                <li>
-                  <span className="font-mono text-amber-400">5.</span>{" "}
-                  Suivi d&apos;optimisation sur 3 mois
-                </li>
-              </ol>
-            </article>
           </div>
         </div>
       </section>
@@ -342,115 +333,27 @@ export default function Page() {
           </div>
 
           <div className="grid grid-cols-1 gap-x-10 gap-y-10 md:grid-cols-2">
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Un tableau de bord unique pour toute l&apos;entreprise
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                Vous accédez à votre back office AxiSolver depuis
-                n&apos;importe quel navigateur. Vue d&apos;ensemble
-                du mois en cours, visiteurs reçus, tickets ouverts,
-                tickets fermés, interlocuteurs sollicités. Un seul
-                endroit pour tout voir.
-              </p>
-            </article>
-
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Paramétrage sans ligne de code
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                Le ton, les options d&apos;accueil cliquables, les
-                sujets sensibles à éviter, la voix, les langues
-                acceptées — tout se règle depuis une interface
-                visuelle. Les modifications sont actives
-                immédiatement sur votre site, sans redéploiement.
-              </p>
-            </article>
-
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Vous définissez votre équipe et leurs périmètres
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                Ajoutez vos collaborateurs, précisez le périmètre de
-                chacun (commercial, support, SAV, direction,
-                comptabilité). AxiSolver connaît votre
-                organigramme et sait vers qui pousser chaque dossier.
-              </p>
-            </article>
-
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Routage intelligent des alertes
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                Chaque ticket est classé par thème (devis, SAV,
-                technique, administratif, carrière…), par urgence
-                (froid / tiède / chaud / urgent) et dirigé vers le
-                bon interlocuteur. Un visiteur furieux d&apos;un bug
-                de livraison ? Alerte immédiate à votre
-                responsable logistique. Un prospect chaud sur un gros
-                projet ? Mail au commercial dédié avec le dossier
-                complet.
-              </p>
-            </article>
-
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Journal consultable de chaque conversation
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                Toutes les conversations sont archivées, consultables
-                par mot-clé, par thème, par date ou par
-                interlocuteur. Vous pouvez relire une interaction
-                six mois après, voir ce qui a été dit et promis,
-                comprendre pourquoi un lead n&apos;a pas été
-                converti.
-              </p>
-            </article>
-
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Modes de notification au choix
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                Email, SMS, notification push, appel vocal — à vous
-                de dire comment chacun de vos collaborateurs
-                souhaite être alerté selon le niveau d&apos;urgence.
-                Un responsable commercial reçoit un SMS pour un lead
-                chaud, un mail pour un froid, une alerte
-                hebdomadaire pour les tièdes.
-              </p>
-            </article>
-
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Rapports hebdomadaires et mensuels téléchargeables
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                Chaque semaine, chaque mois, votre rapport
-                d&apos;activité est généré automatiquement : volume
-                de conversations, taux de résolution autonome,
-                tickets transmis, résultats de la veille SEO, alertes
-                sécurité, lecture Analytics. Format PDF prêt à
-                partager en comité.
-              </p>
-            </article>
-
-            <article className="border-t border-zinc-800 pt-6">
-              <h3 className="text-xl font-semibold tracking-tight text-white">
-                Intégration avec vos outils existants
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-                CRM, logiciel de ticketing, boîte mail partagée,
-                calendrier — AxiSolver se branche sur ce qui existe
-                déjà chez vous. Pas besoin de migrer vos équipes
-                vers un nouvel outil. Les tickets qualifiés
-                atterrissent là où vos collaborateurs ont déjà
-                leurs habitudes de travail.
-              </p>
-            </article>
+            {BACK_OFFICE.map((b) => (
+              <article
+                key={b.titre}
+                className="border-t border-zinc-800 pt-6"
+              >
+                <div className="flex items-start gap-4">
+                  <b.Icon
+                    className="mt-1 h-8 w-8 flex-shrink-0 text-amber-400"
+                    strokeWidth={1.5}
+                  />
+                  <div>
+                    <h3 className="text-xl font-semibold tracking-tight text-white">
+                      {b.titre}
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                      {b.detail}
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>

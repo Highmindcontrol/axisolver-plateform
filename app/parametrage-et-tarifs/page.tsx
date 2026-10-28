@@ -161,6 +161,98 @@ export default function Page() {
       {/* ─────────── QUESTIONNAIRE GUIDÉ ─────────── */}
       <Questionnaire />
 
+      {/* ─────────── INSTALLATION — deux chemins ─────────── */}
+      <section className="border-t border-zinc-900 bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-14 max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Installation
+            </p>
+            <h2 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
+              Deux chemins pour l&apos;installer.
+            </h2>
+            <p className="mt-6 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+              La formule que vous choisissez ici détermine ensuite votre
+              parcours d&apos;installation : simple et autonome pour la
+              grande majorité des cas, accompagné pour les configurations
+              particulières.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Installation simple — 80 % des cas
+              </p>
+              <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                Souscription directe depuis cette page
+              </h3>
+              <ol className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-300 md:text-base">
+                <li>
+                  <span className="font-mono text-amber-400">1.</span>{" "}
+                  Vous choisissez votre formule et votre volumétrie dans
+                  le simulateur ci-dessus
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">2.</span>{" "}
+                  Un AXI d&apos;onboarding vous interroge 15 à 30 minutes
+                  à l&apos;oral ou à l&apos;écrit : métier, ton, services,
+                  sujets sensibles
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">3.</span>{" "}
+                  AxiSolver parcourt votre site public, vos documents,
+                  vos CGV, votre FAQ, apprend votre métier
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">4.</span>{" "}
+                  Vous récupérez un snippet JavaScript à coller dans le
+                  head de votre site (3 lignes, comme Google Analytics)
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">5.</span>{" "}
+                  AxiSolver prend la parole dès le premier visiteur
+                </li>
+              </ol>
+            </article>
+
+            <article className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Installation accompagnée — cas particuliers
+              </p>
+              <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                Intégration dédiée via Ataraxis Bridge
+              </h3>
+              <ol className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-300 md:text-base">
+                <li>
+                  <span className="font-mono text-amber-400">1.</span>{" "}
+                  Audit préalable approfondi de votre site, de votre
+                  métier et de vos processus
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">2.</span>{" "}
+                  Scope personnalisé des 6 missions selon vos besoins
+                  réels
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">3.</span>{" "}
+                  Branchement CRM, SSO, outils métier, flux spécifiques
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">4.</span>{" "}
+                  Formation de vos équipes à la réception des dossiers
+                  qualifiés
+                </li>
+                <li>
+                  <span className="font-mono text-amber-400">5.</span>{" "}
+                  Suivi d&apos;optimisation sur 3 mois
+                </li>
+              </ol>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────── ONGLETS : Pour bien comprendre / Nos sources ─────────── */}
       <OngletsInformations />
 
