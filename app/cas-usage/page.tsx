@@ -311,19 +311,20 @@ export default function PageCasUsage() {
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
                       Taux d&apos;engagement observé
                     </p>
-                    <p className="mt-3 flex items-baseline gap-3">
-                      <span className="font-mono text-5xl font-semibold tracking-tight text-white md:text-6xl">
+                    <p className="mt-4 flex items-baseline gap-3">
+                      <span className="font-mono text-6xl font-semibold tracking-tight text-white md:text-7xl">
                         {s.tauxEngagement.valeur.toLocaleString("fr-FR", {
                           minimumFractionDigits: 1,
                           maximumFractionDigits: 1,
                         })}
-                        <span className="text-3xl text-zinc-400">%</span>
-                      </span>
-                      <span className="text-sm text-zinc-400">
-                        des visiteurs
+                        <span className="text-4xl text-amber-300">%</span>
                       </span>
                     </p>
-                    <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+                    <p className="mt-4 text-xl font-medium leading-snug text-zinc-200 md:text-2xl">
+                      des visiteurs engagent une conversation avec
+                      AxiSolver.
+                    </p>
+                    <p className="mt-5 text-xs leading-relaxed text-zinc-500">
                       {s.tauxEngagement.source}
                     </p>
                   </div>

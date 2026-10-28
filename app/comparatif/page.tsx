@@ -178,7 +178,7 @@ export default function PageComparatif() {
         >
           <div
             aria-hidden
-            className="absolute inset-0 bg-gradient-to-b from-zinc-950/85 via-zinc-950/40 to-zinc-950"
+            className="absolute inset-0 bg-gradient-to-b from-zinc-950/55 via-zinc-950/20 to-zinc-950"
           />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(251,191,36,0.08),_transparent_60%)]" />
           <div className="relative mx-auto flex min-h-[640px] max-w-5xl flex-col justify-start px-6 py-24 md:min-h-[760px] md:px-10 md:py-28">
