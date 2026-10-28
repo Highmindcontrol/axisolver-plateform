@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Questionnaire } from "./_questionnaire";
-import { AsideSources } from "./_sources";
+import { OngletsInformations } from "./_onglets-informations";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { SiteHeader } from "@/components/site/header";
 
@@ -23,96 +23,56 @@ export default function Page() {
           >
             <span aria-hidden>←</span> Retour
           </a>
-          <p className="mt-10 text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-            Paramétrage et tarifs
-          </p>
-          <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
-            Choisissez votre AxiSolver,{" "}
-            <span className="text-amber-400">obtenez votre tarif.</span>
-          </h1>
-          <p className="mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-            Trois formules, trois niveaux de voix. Le prix s&apos;ajuste
-            au volume de visiteurs de votre site. Pas de palier caché,
-            pas de surprise.
-          </p>
 
-          {/* Encadré pédagogique « Pour bien comprendre nos tarifs » */}
-          <aside className="mt-12 rounded-2xl border-l-4 border-amber-400 border-y border-r border-zinc-800 bg-zinc-900/60 p-6 md:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-              Pour bien comprendre nos tarifs
-            </p>
-            <div className="mt-5 space-y-4 text-base leading-relaxed text-zinc-200 md:text-lg">
-              <p>
-                Dans le domaine de l&apos;intelligence artificielle,
-                ce qui compte et qui{" "}
-                <span className="font-semibold text-white">
-                  coûte le plus
-                </span>
-                , c&apos;est la{" "}
-                <span className="font-semibold text-white">
-                  diffusion vocale
-                </span>{" "}
-                — en particulier lorsqu&apos;on utilise des voix de
-                haute qualité.
+          <div className="mt-10 grid grid-cols-1 items-start gap-10 md:grid-cols-[1fr_auto] md:gap-14">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+                Paramétrage et tarifs
               </p>
-              <p>
-                C&apos;est pour cette raison que, afin
-                qu&apos;AxiSolver soit accessible à{" "}
-                <span className="font-semibold text-white">
-                  tous les budgets
-                </span>
-                , nous vous le proposons en{" "}
-                <span className="text-amber-300">trois versions</span>{" "}
-                :
-              </p>
-              <ul className="ml-1 space-y-2.5">
-                <li className="flex items-start gap-3">
-                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-                  <span>
-                    la version{" "}
-                    <span className="font-semibold text-white">
-                      sans voix
-                    </span>{" "}
-                    — tout l&apos;écrit, aucune diffusion vocale ;
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-                  <span>
-                    la version avec une{" "}
-                    <span className="font-semibold text-white">
-                      voix de grande qualité
-                    </span>
-                    , mais encore légèrement robotisée ;
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-                  <span>
-                    et les{" "}
-                    <span className="font-semibold text-white">
-                      voix précieuses de chez ElevenLabs
-                    </span>{" "}
-                    — ultra-réalistes, indiscernables d&apos;un
-                    humain.
-                  </span>
-                </li>
-              </ul>
-              <p>
-                Votre tarif sera{" "}
-                <span className="font-semibold text-white">
-                  directement lié à ce choix
-                </span>
-                .
+              <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
+                Choisissez votre AxiSolver,{" "}
+                <span className="text-amber-400">obtenez votre tarif.</span>
+              </h1>
+              <p className="mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+                Trois formules, trois niveaux de voix. Le prix
+                s&apos;ajuste au volume de visiteurs de votre site. Pas
+                de palier caché, pas de surprise.
               </p>
             </div>
-          </aside>
+
+            {/* Pastille promo rotative « À partir de 49 € HT/mois » */}
+            <div
+              aria-label="À partir de 49 euros hors taxe par mois"
+              className="relative mx-auto flex h-36 w-36 flex-shrink-0 items-center justify-center rounded-full bg-amber-400 text-zinc-950 shadow-xl shadow-amber-400/30 md:h-44 md:w-44 lg:h-52 lg:w-52"
+              style={{ transform: "rotate(-8deg)" }}
+            >
+              <div className="pointer-events-none absolute inset-2 rounded-full border-2 border-dashed border-zinc-950/40" />
+              <div className="relative px-3 text-center">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.22em] md:text-[10px]">
+                  À partir de
+                </p>
+                <p className="mt-1 font-mono text-3xl font-bold leading-none tracking-tight md:text-4xl lg:text-5xl">
+                  49 €
+                </p>
+                <p className="mt-1 text-[9px] font-semibold uppercase tracking-[0.22em] md:text-[10px]">
+                  HT / mois
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ─────────── EXPLICATION « POURQUOI 3 FORMULES » ─────────── */}
-      <section className="bg-zinc-900 px-6 py-16 md:px-10 md:py-24">
-        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 md:grid-cols-3 md:gap-14">
+      {/* ─────────── EXPLICATION « POURQUOI 3 FORMULES » (fond ondes dorées) ─────────── */}
+      <section
+        className="relative overflow-hidden bg-zinc-900 bg-cover bg-center bg-no-repeat px-6 py-16 md:px-10 md:py-24"
+        style={{ backgroundImage: "url(/separation-ondes-dorees.png)" }}
+      >
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-zinc-900/85 via-zinc-900/75 to-zinc-900/90"
+        />
+        <div className="relative mx-auto grid max-w-5xl grid-cols-1 gap-10 md:grid-cols-3 md:gap-14">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
               Ce qui coûte
@@ -160,8 +120,8 @@ export default function Page() {
       {/* ─────────── QUESTIONNAIRE GUIDÉ ─────────── */}
       <Questionnaire />
 
-      {/* ─────────── SOURCES DES CHIFFRES ─────────── */}
-      <AsideSources />
+      {/* ─────────── ONGLETS : Pour bien comprendre / Nos sources ─────────── */}
+      <OngletsInformations />
 
       {/* ─────────── FOOTER sobre ─────────── */}
       <footer className="border-t border-zinc-800 bg-zinc-950 px-6 py-10">
