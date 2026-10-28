@@ -289,7 +289,7 @@ export default function Page() {
           {/* Accroche collée à gauche, pas de centrage, pas de max-w serré */}
           <div className="max-w-3xl pl-4 pt-2 pr-6 md:pl-10 md:pt-6">
             <h1 className="text-left text-3xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)] md:text-5xl lg:text-6xl">
-              Votre site internet va prendre{" "}
+              Votre site va prendre{" "}
               <span className="text-amber-400">un sacré coup de jeune</span>…
             </h1>
           </div>
