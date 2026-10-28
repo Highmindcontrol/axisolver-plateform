@@ -3,7 +3,7 @@ import { and, eq, sql } from "drizzle-orm";
 
 import { BandeauActions } from "@/components/dashboard/bandeau-actions";
 import { BandePouls } from "@/components/dashboard/bande-pouls";
-import { TroisEcrans } from "@/components/dashboard/trois-ecrans";
+import { ToggleConversation } from "@/components/dashboard/toggle-conversation";
 import { db } from "@/lib/db";
 import { sites, usageConversations } from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -82,7 +82,7 @@ export default async function PageDashboard() {
         <div className="relative z-10 flex flex-col">
           <BandePouls titreConversation={null} siteFocus={null} />
           <div className="flex flex-col gap-4 px-6 py-10 md:px-14 lg:px-16">
-            <TroisEcrans prenom={prenomCap} sites={sitesChantier} />
+            <ToggleConversation prenom={prenomCap} sites={sitesChantier} />
           </div>
         </div>
       </div>

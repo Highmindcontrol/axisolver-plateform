@@ -78,8 +78,8 @@ export function BandeauActions({
 
   return (
     <>
-      <div className="border border-slate-300/60 bg-slate-100/80 px-5 py-3 shadow-[0_1px_2px_0_rgba(15,23,42,0.06)]">
-        <div className="flex flex-wrap items-center justify-end gap-2">
+      <div className="border-t border-slate-300/60 bg-slate-100/80 px-6 py-4 shadow-[0_1px_2px_0_rgba(15,23,42,0.06)] md:px-14 lg:px-16">
+        <div className="flex flex-wrap items-center justify-start gap-2.5">
           {items.map(({ cle, label, icone: Icone, actif }) => {
             const estOuvert = ouvert === cle;
             return (
@@ -96,13 +96,13 @@ export function BandeauActions({
                     ? undefined
                     : "Bientôt disponible — en cours d'implémentation"
                 }
-                className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
                   estOuvert
                     ? "border-slate-900 bg-slate-900 text-white"
-                    : "border-slate-200 bg-white/80 text-slate-700 hover:border-slate-900 hover:bg-slate-900 hover:text-white"
-                } disabled:hover:border-slate-200 disabled:hover:bg-white/80 disabled:hover:text-slate-700`}
+                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-900 hover:bg-slate-900 hover:text-white"
+                } disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-700`}
               >
-                <Icone className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                <Icone className="h-4 w-4" strokeWidth={2} aria-hidden />
                 {label}
               </button>
             );
