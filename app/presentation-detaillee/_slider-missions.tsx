@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
+  LayoutDashboard,
   MessageCircle,
   Search,
   ShieldCheck,
@@ -351,6 +352,78 @@ const MISSIONS_SLIDES: Mission[] = [
       "Garde-fou absolu : aucune dépense déclenchée sans validation humaine depuis votre tableau de bord.",
       "Après 90 jours de validation réussie, option « carte blanche » dans un budget que vous plafonnez vous-même.",
       "Rotation A/B/n automatique sur les variantes qui performent, pause immédiate des campagnes qui gaspillent.",
+    ],
+  },
+  {
+    slug: "interface",
+    categorie: "Interface",
+    titreMain: "Une interface immersive,",
+    titreAccent: "pensée pour la concentration.",
+    pitch: (
+      <>
+        Oubliez la petite bulle de chat perdue dans un coin. Quand un
+        visiteur ouvre AxiSolver, il entre dans un{" "}
+        <span className="font-semibold text-white">
+          véritable espace de dialogue
+        </span>{" "}
+        — centré, calme, cadré. Trois territoires qui bougent ensemble au
+        rythme de l&apos;échange : le contexte à gauche, la conversation
+        au centre, la fiche visiteur qui se remplit à droite.
+      </>
+    ),
+    Icon: LayoutDashboard,
+    image: "/presentation-interface-immersive.png",
+    cards: [
+      {
+        titre: "Un modal centré, pas une bulle de coin",
+        description:
+          "AxiSolver s'ouvre en plein cœur de la page, dans un cadre généreux. Le visiteur est au centre de l'attention — comme face à un interlocuteur qui prend le temps.",
+      },
+      {
+        titre: "Panneau contextuel adaptable",
+        description:
+          "À gauche, le contexte s'adapte à votre site : fiche produit Shopify avec miniatures, dossier client, immobilier avec photos du bien. Un territoire qui aide à la décision.",
+      },
+      {
+        titre: "Fiche visiteur en direct",
+        description:
+          "À droite, les informations recueillies se structurent sous ses yeux : visiteur, centre d'intérêt, intentions, profil enrichi. Transparence totale, zéro boîte noire.",
+      },
+    ],
+    tarifsHeader: "Combien coûte une interface conversationnelle sur-mesure",
+    tarifsSubtitle:
+      "AxiSolver livre un modal immersif, paramétrable à votre identité, sans ligne de code.",
+    tarifs: [
+      {
+        label: "Développement UI custom (interface conversationnelle)",
+        detail:
+          "Spec + design + dev front + intégration backend, projet complet",
+        prix: "15 000 à 50 000 €",
+      },
+      {
+        label: "UX / UI designer freelance senior",
+        detail: "Design seul, prototype Figma, 10 à 20 jours",
+        prix: "6 000 à 15 000 €",
+      },
+      {
+        label: "Agence design + développement",
+        detail: "Prestation clé en main, de la recherche utilisateur au livré",
+        prix: "20 000 à 80 000 €",
+      },
+      {
+        label: "Chatbot classique avec habillage custom",
+        detail: "Setup Intercom/Zendesk + personnalisation CSS + intégrations",
+        prix: "5 000 à 15 000 € + abonnement",
+      },
+    ],
+    resumeAxisolver:
+      "Modal plein cadre · 3 territoires qui dialoguent · fond aurore boréale · entièrement paramétrable à votre identité",
+    bulletsDetailles: [
+      "Fond aurore boréale apaisant : voiles de couleur qui glissent très lentement, pensés pour ne pas distraire.",
+      "Entièrement paramétrable à votre identité : logo, couleurs, questions d'accueil, ton de voix.",
+      "Habillage sur-mesure posé avec vous pendant la session de réglage, avant mise en ligne.",
+      "Le visiteur voit sa fiche se remplir en direct — il tape son email de sa main, confirme sa demande. Fin du « allô, vous m'avez noté ? ».",
+      "Référence AXI-XXXX copiable à la clôture : chaque conversation devient un dossier traçable.",
     ],
   },
 ];
