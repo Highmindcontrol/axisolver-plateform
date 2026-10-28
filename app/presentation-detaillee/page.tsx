@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ShieldCheck, Search, Target } from "lucide-react";
+import { ShieldCheck, Search, Target, MessageCircle } from "lucide-react";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { SiteHeader } from "@/components/site/header";
 import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
@@ -61,6 +61,60 @@ function IconShieldCheck({ className }: IconProps) {
     </svg>
   );
 }
+
+const MISSIONS_ACCUEIL: Array<{ titre: string; description: string }> = [
+  {
+    titre: "Comprend chaque visiteur, dans sa langue",
+    description:
+      "Voix ou écrit, français, anglais, espagnol, allemand, italien, portugais, néerlandais. AxiSolver reformule la vraie demande, pas juste des mots-clés. Jour, nuit, dimanche compris.",
+  },
+  {
+    titre: "Résout seul ou qualifie proprement",
+    description:
+      "La majorité des demandes se résout sans intervention humaine. Pour les autres, un dossier qualifié part vers votre équipe : prénom, email, téléphone, résumé, niveau d'urgence.",
+  },
+  {
+    titre: "Transforme chaque conversation en action",
+    description:
+      "Prospect chaud ajouté au CRM, commande passée, rendez-vous planifié, information délivrée. Pas de bulle qui meurt sans suite. Chaque visite devient un résultat traçable.",
+  },
+];
+
+const TARIFS_ACCUEIL: Array<{
+  label: string;
+  detail: string;
+  prix: string;
+}> = [
+  {
+    label: "Standardiste / accueil téléphonique à temps plein",
+    detail:
+      "Poste à mi-carrière en France, salaire brut + charges employeur, 8 h / jour, 5 j / 7",
+    prix: "2 800 à 3 800 €/mois",
+  },
+  {
+    label: "Chargé de clientèle digital interne",
+    detail:
+      "Répond au chat, aux emails, qualifie les demandes. Poste junior-confirmé.",
+    prix: "3 200 à 4 500 €/mois",
+  },
+  {
+    label: "Service client externalisé (agence)",
+    detail:
+      "Facturation à la conversation ou au forfait mensuel, horaires limités",
+    prix: "1 500 à 5 000 €/mois",
+  },
+  {
+    label: "Permanence téléphonique partagée",
+    detail: "Services type Pretik, Preachat, avec forfait appels/mois",
+    prix: "300 à 1 500 €/mois",
+  },
+  {
+    label: "Chatbot classique (Intercom, Zendesk, Hubspot)",
+    detail:
+      "Abonnement SaaS + nécessite une configuration humaine et un modérateur",
+    prix: "50 à 500 €/mois + main-d'œuvre",
+  },
+];
 
 const MISSIONS_SECURITE: Array<{ titre: string; description: string }> = [
   {
@@ -400,6 +454,120 @@ export default function Page() {
             pas de promesse marketing — le détail de chaque capacité,
             de chaque ligne rouge, de chaque garde-fou.
           </p>
+        </div>
+      </section>
+
+      {/* ─────────── Section Accueil utilisateurs ─────────── */}
+      <section className="border-b border-zinc-900 bg-zinc-950">
+        <div className="mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+              Accueil des utilisateurs
+            </p>
+            <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
+              Chaque visiteur reçu, qualifié,{" "}
+              <span className="text-amber-400">
+                transformé en résultat.
+              </span>
+            </h2>
+            <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+              AxiSolver prend la parole dès qu&apos;un visiteur arrive sur
+              votre site — en voix ou à l&apos;écrit, dans toutes les
+              langues européennes. Il comprend, résout, qualifie, et{" "}
+              <span className="font-semibold text-white">
+                transforme chaque conversation en action concrète
+              </span>{" "}
+              : réponse délivrée, prospect ajouté au CRM, commande passée,
+              rendez-vous planifié.
+            </p>
+          </div>
+
+          <div className="mt-16 grid grid-cols-1 gap-6 md:mt-20 md:grid-cols-3">
+            {MISSIONS_ACCUEIL.map((m) => (
+              <article
+                key={m.titre}
+                className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7 md:p-8"
+              >
+                <MessageCircle
+                  className="h-9 w-9 text-amber-400"
+                  strokeWidth={1.5}
+                />
+                <h3 className="mt-5 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  {m.titre}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-zinc-300 md:text-base">
+                  {m.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:h-72"
+          style={{
+            backgroundImage:
+              "url(/presentation-accueil-axi-orchestre.png)",
+          }}
+          aria-hidden
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+        </div>
+
+        <div className="mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-32">
+          <div className="mt-16 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
+            <div className="border-b border-zinc-800 bg-zinc-950/80 px-6 py-5 md:px-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Combien coûte un vrai accueil 24/7
+              </p>
+              <h3 className="mt-2 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                AxiSolver est présent jour, nuit, dimanche, en toutes
+                langues, sans arrêt maladie.
+              </h3>
+            </div>
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-zinc-800">
+                  <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-8">
+                    Solution
+                  </th>
+                  <th className="px-4 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-6">
+                    Prix marché
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {TARIFS_ACCUEIL.map((t, i) => (
+                  <tr
+                    key={t.label}
+                    className={i % 2 === 0 ? "bg-zinc-900/30" : "bg-transparent"}
+                  >
+                    <td className="px-6 py-5 text-zinc-200 md:px-8">
+                      <p className="font-medium">{t.label}</p>
+                      <p className="mt-1 text-xs text-zinc-500">{t.detail}</p>
+                    </td>
+                    <td className="px-4 py-5 text-right font-mono font-semibold text-white md:px-6">
+                      {t.prix}
+                    </td>
+                  </tr>
+                ))}
+                <tr className="bg-amber-400/10">
+                  <td className="px-6 py-5 md:px-8">
+                    <p className="font-semibold text-amber-300">
+                      AxiSolver (toutes formules)
+                    </p>
+                    <p className="mt-1 text-xs text-zinc-400">
+                      Accueil 24/7 · voix et écrit · toutes langues
+                      européennes · qualification + routage CRM
+                    </p>
+                  </td>
+                  <td className="px-4 py-5 text-right font-mono text-lg font-bold text-amber-300 md:px-6">
+                    inclus
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
