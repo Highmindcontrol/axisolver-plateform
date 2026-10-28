@@ -337,16 +337,16 @@ Les 3 formules AxiSolver standalone (prix fondateur, pack vs standalone +50 %) :
 
 | Nom produit | Prix mensuel HT | Features |
 |---|---|---|
-| AxiSolver Starter | 39 € | 1 site, 500 conversations/mois, essai 14j |
-| AxiSolver Pro | 59 € | 3 sites, 2 500 conv/mois, essai 14j, voix premium, « Propulsé par » masquable |
-| AxiSolver Business | 149 € | 10 sites, 15 000 conv/mois, SLA 99,9 %, onboarding dédié |
+| AxiSolver Text Only | 49 € | 1 site, 500 conv/mois, écrit seul, essai 14j sans CB |
+| AxiSolver Classique | 69 € | 1 site, 400 conv/mois vocales, voix Azure, essai 14j sans CB |
+| AxiSolver Premium | 99 € | 1 site, 300 conv/mois vocales, voix ElevenLabs, SLA 99,9 %, essai 14j sans CB |
 
 - [ ] Stripe Dashboard → **Products** → créer les 3 produits
 - [ ] Pour chaque produit, créer un **price récurrent mensuel** en EUR, HT (taxe gérée via Stripe Tax)
 - [ ] Noter les 3 `price_id` (format `price_XXXXXX`) et les poser sur Vercel :
-  - `STRIPE_PRICE_ID_STARTER`
-  - `STRIPE_PRICE_ID_PRO`
-  - `STRIPE_PRICE_ID_BUSINESS`
+  - `STRIPE_PRICE_ID_TEXT` (AxiSolver Text Only — 49 € HT/mois)
+  - `STRIPE_PRICE_ID_CLASSIQUE` (AxiSolver Classique Azure — 69 € HT/mois)
+  - `STRIPE_PRICE_ID_PREMIUM` (AxiSolver Premium ElevenLabs — 99 € HT/mois)
 
 ### 8.3 — Clés API Stripe sur Vercel
 

@@ -584,9 +584,9 @@ export const rateLimitsChat = pgTable(
 /* ─── Facturation Stripe (LOT K) ────────────────────────────────── */
 
 export const planAbonnementEnum = pgEnum("plan_abonnement", [
-  "starter",
-  "pro",
-  "business",
+  "text",
+  "classique",
+  "premium",
 ]);
 
 export const statutAbonnementEnum = pgEnum("statut_abonnement", [

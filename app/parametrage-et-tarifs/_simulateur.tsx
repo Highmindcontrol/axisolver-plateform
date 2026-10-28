@@ -39,7 +39,7 @@ const FORMULES: Formule[] = [
     sousTitre: "Toutes les missions. Juste l'écrit.",
     voix: "Écrit uniquement",
     abonnementBase: 49,
-    conversationsIncluses: 300,
+    conversationsIncluses: 500,
     prixConversationSupp: 0.1,
     points: [
       "Les six missions AxiSolver",
@@ -54,7 +54,7 @@ const FORMULES: Formule[] = [
     sousTitre: "Voix neuronale premium Azure.",
     voix: "Voix neuronale Azure",
     abonnementBase: 69,
-    conversationsIncluses: 200,
+    conversationsIncluses: 400,
     prixConversationSupp: 0.2,
     points: [
       "Les six missions AxiSolver",
@@ -69,7 +69,7 @@ const FORMULES: Formule[] = [
     sousTitre: "La voix bluffante ElevenLabs.",
     voix: "Voix ultra-réaliste ElevenLabs",
     abonnementBase: 99,
-    conversationsIncluses: 100,
+    conversationsIncluses: 300,
     prixConversationSupp: 0.45,
     points: [
       "Les six missions AxiSolver",

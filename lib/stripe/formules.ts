@@ -1,16 +1,20 @@
 /**
  * Catalogue des formules AxiSolver standalone.
  *
- * Doctrine fondateur « pack vs standalone » : les prix standalone sont
- * plus élevés que les équivalents en pack AxiHub. Starter 39€ / Pro 59€
- * / Business 149€ par mois HT. Essai 14 jours sans CB sur Starter et
- * Pro, Business en démo + onboarding.
+ * Grille 3 niveaux calée sur le type de voix synthétique (voir
+ * doctrine 28 oct 2026) :
+ *   - Text Only (49€) : les 6 missions sans voix TTS
+ *   - Classique (69€) : voix neuronale Azure
+ *   - Premium (99€) : voix ultra-réaliste ElevenLabs
+ *
+ * Essai 14 jours sans CB sur les 3 formules, avec garde-fous :
+ * 50 pages crawl max + 500 conv max + 15 min TTS max pendant l'essai.
  *
  * Les stripe_price_id doivent être posés dans Vercel comme variables
  * d'env après la création des produits dans Stripe Dashboard.
  */
 
-export type SlugPlan = "starter" | "pro" | "business";
+export type SlugPlan = "text" | "classique" | "premium";
 
 export type Formule = {
   slug: SlugPlan;
@@ -26,65 +30,68 @@ export type Formule = {
 };
 
 export const FORMULES: Record<SlugPlan, Formule> = {
-  starter: {
-    slug: "starter",
-    nom: "AxiSolver Starter",
+  text: {
+    slug: "text",
+    nom: "AxiSolver Text Only",
     description:
-      "Pour un site unique avec un trafic modéré. Idéal pour tester AxiSolver en conditions réelles.",
-    prixMensuelHt: 39,
-    priceIdVar: "STRIPE_PRICE_ID_STARTER",
+      "Toutes les missions AxiSolver sans la voix synthétique. L'intelligence et la veille complètes, en écrit uniquement.",
+    prixMensuelHt: 49,
+    priceIdVar: "STRIPE_PRICE_ID_TEXT",
     nbSitesMax: 1,
     nbConversationsMoisMax: 500,
     features: [
       "1 site",
       "500 conversations / mois",
+      "Les 6 missions AxiSolver (SEO + Analytics + Shield + Ads inclus)",
+      "Chat écrit multilingue",
       "Base de connaissances URL + PDF",
       "Rapports quotidiens par email",
-      "Audits mensuels SEO + Shield + Ads",
       "Shield widget (rate limit + anti injection)",
     ],
     essaiJours: 14,
     cta: "Démarrer l'essai 14 jours",
   },
-  pro: {
-    slug: "pro",
-    nom: "AxiSolver Pro",
+  classique: {
+    slug: "classique",
+    nom: "AxiSolver Classique",
     description:
-      "Pour agences, consultants et PME multi-sites. Supprime la mention « Propulsé par AxiSolver » du widget.",
-    prixMensuelHt: 59,
-    priceIdVar: "STRIPE_PRICE_ID_PRO",
-    nbSitesMax: 3,
-    nbConversationsMoisMax: 2500,
+      "Les 6 missions AxiSolver avec la voix neuronale Azure. Qualité vocale professionnelle, toutes langues européennes.",
+    prixMensuelHt: 69,
+    priceIdVar: "STRIPE_PRICE_ID_CLASSIQUE",
+    nbSitesMax: 1,
+    nbConversationsMoisMax: 400,
     features: [
-      "3 sites",
-      "2 500 conversations / mois",
-      "Tout Starter inclus",
+      "1 site",
+      "400 conversations vocales / mois",
+      "Tout Text Only inclus",
+      "Voix neuronale Azure",
+      "Qualité vocale professionnelle",
       "Mention « Propulsé par » masquable",
-      "Voix premium ElevenLabs",
       "Support prioritaire par email",
     ],
     essaiJours: 14,
     cta: "Démarrer l'essai 14 jours",
   },
-  business: {
-    slug: "business",
-    nom: "AxiSolver Business",
+  premium: {
+    slug: "premium",
+    nom: "AxiSolver Premium",
     description:
-      "Pour les groupes multi-marques et les volumes importants. SLA + onboarding dédié.",
-    prixMensuelHt: 149,
-    priceIdVar: "STRIPE_PRICE_ID_BUSINESS",
-    nbSitesMax: 10,
-    nbConversationsMoisMax: 15000,
+      "Les 6 missions AxiSolver avec la voix ElevenLabs ultra-réaliste. Idéal pour sites premium et marques fortes.",
+    prixMensuelHt: 99,
+    priceIdVar: "STRIPE_PRICE_ID_PREMIUM",
+    nbSitesMax: 1,
+    nbConversationsMoisMax: 300,
     features: [
-      "10 sites",
-      "15 000 conversations / mois",
-      "Tout Pro inclus",
+      "1 site",
+      "300 conversations vocales / mois",
+      "Tout Classique inclus",
+      "Voix ultra-réaliste ElevenLabs",
+      "Rendu indiscernable d'un humain",
       "SLA 99,9 %",
       "Onboarding dédié",
-      "Support téléphone + Slack partagé",
     ],
-    essaiJours: 0,
-    cta: "Demander une démo",
+    essaiJours: 14,
+    cta: "Démarrer l'essai 14 jours",
   },
 };
 

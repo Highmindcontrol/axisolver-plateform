@@ -18,14 +18,14 @@ export default function PageTarifs() {
         <p className="mx-auto mt-4 max-w-xl text-sm text-slate-600">
           Tous les plans incluent la base de connaissances, les rapports
           quotidiens, les audits SEO/Shield/Ads et le Shield widget.
-          Essai gratuit 14 jours sans engagement sur Starter et Pro.
+          Essai gratuit 14 jours sans carte bancaire sur les 3 formules.
         </p>
       </header>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {(Object.keys(FORMULES) as SlugPlan[]).map((slug) => {
           const f = FORMULES[slug];
-          const estPro = slug === "pro";
+          const estPro = slug === "classique";
           return (
             <div
               key={slug}

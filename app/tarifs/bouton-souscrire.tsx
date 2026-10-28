@@ -11,7 +11,7 @@ export function BoutonSouscrire({
   cta,
   variant = "primaire",
 }: {
-  plan: "starter" | "pro" | "business";
+  plan: "text" | "classique" | "premium";
   cta: string;
   variant?: "primaire" | "secondaire";
 }) {
