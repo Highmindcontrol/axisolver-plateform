@@ -1,15 +1,24 @@
 import { redirect } from "next/navigation";
-import { and, eq, sql } from "drizzle-orm";
+import Link from "next/link";
+import { eq } from "drizzle-orm";
+import { Plus, Sparkles } from "lucide-react";
 
-import { BandeauActions } from "@/components/dashboard/bandeau-actions";
-import { HeaderSites } from "@/components/dashboard/header-sites";
-import { ToggleConversation } from "@/components/dashboard/toggle-conversation";
 import { db } from "@/lib/db";
-import { siteConfigs, sites, usageConversations } from "@/lib/db/schema";
+import { sites } from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * /dashboard — redirection intelligente.
+ *
+ * - Au moins 1 site → redirect vers /dashboard/sites/[premier-slug].
+ * - 0 site → page de bienvenue invitant à créer le premier site.
+ *
+ * AxiSolver est intrinsèquement scopé à un site, il n'y a donc pas
+ * de « vue générale » pertinente. Le switcher du header assure la
+ * navigation entre sites.
+ */
 export default async function PageDashboard() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -17,88 +26,54 @@ export default async function PageDashboard() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
-  const bucketMois = formatterBucketMois(new Date());
+  const [premierSite] = await db
+    .select({ slug: sites.slug })
+    .from(sites)
+    .where(eq(sites.ownerUserId, user.id))
+    .orderBy(sites.creeLe)
+    .limit(1);
 
-  const [mesSites, agregats, conversationsParSite] = await Promise.all([
-    db
-      .select({
-        id: sites.id,
-        slug: sites.slug,
-        nomEntreprise: sites.nomEntreprise,
-        domainePrincipal: sites.domainePrincipal,
-        proprieteVerifieeLe: sites.proprieteVerifieeLe,
-        branding: siteConfigs.branding,
-      })
-      .from(sites)
-      .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
-      .where(eq(sites.ownerUserId, user.id))
-      .orderBy(sites.creeLe),
-    db
-      .select({
-        total: sql<number>`coalesce(sum(${usageConversations.nbConversations}), 0)::int`,
-      })
-      .from(usageConversations)
-      .where(
-        and(
-          eq(usageConversations.userId, user.id),
-          eq(usageConversations.bucketMois, bucketMois),
-        ),
-      ),
-    db
-      .select({
-        siteId: usageConversations.siteId,
-        total: sql<number>`coalesce(sum(${usageConversations.nbConversations}), 0)::int`,
-      })
-      .from(usageConversations)
-      .where(
-        and(
-          eq(usageConversations.userId, user.id),
-          eq(usageConversations.bucketMois, bucketMois),
-        ),
-      )
-      .groupBy(usageConversations.siteId),
-  ]);
-
-  const compteParSite = new Map<string, number>();
-  for (const r of conversationsParSite) {
-    compteParSite.set(r.siteId, r.total);
+  if (premierSite) {
+    redirect(`/dashboard/sites/${premierSite.slug}`);
   }
 
-  const sitesChantier = mesSites.map((s) => ({
-    slug: s.slug,
-    nomEntreprise: s.nomEntreprise,
-    domainePrincipal: s.domainePrincipal,
-    verifie: s.proprieteVerifieeLe !== null,
-    conversationsMois: compteParSite.get(s.id) ?? 0,
-  }));
-
-  const sitesHeader = mesSites.map((s) => ({
-    slug: s.slug,
-    nomEntreprise: s.nomEntreprise,
-    couleur: s.branding?.couleurPrincipale ?? "#4f46e5",
-  }));
-
+  // Page d'accueil « 0 site ».
   const prenom = user.email?.split("@")[0] ?? null;
   const prenomCap = prenom
     ? prenom.charAt(0).toUpperCase() + prenom.slice(1)
     : null;
 
   return (
-    <div className="flex flex-col">
-      <HeaderSites prenom={prenomCap} sites={sitesHeader} />
+    <div className="relative flex min-h-[70vh] flex-col items-center justify-center overflow-hidden px-6 py-16 text-center md:px-14">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-slate-50 to-violet-50" />
+        <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 h-80 w-80 rounded-full bg-violet-300/25 blur-3xl" />
+      </div>
 
-      <ToggleConversation prenom={prenomCap} sites={sitesChantier} />
-
-      <BandeauActions
-        nbSites={mesSites.length}
-        conversationsCeMois={agregats[0]?.total ?? 0}
-      />
+      <div className="relative z-10 max-w-xl">
+        <span
+          className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-white shadow-lg shadow-indigo-500/30"
+          aria-hidden
+        >
+          <Sparkles className="h-5 w-5" strokeWidth={2.2} />
+        </span>
+        <h1 className="mt-6 text-3xl font-semibold tracking-tight text-slate-900">
+          Bienvenue{prenomCap ? ` ${prenomCap}` : ""}.
+        </h1>
+        <p className="mt-4 text-base leading-relaxed text-slate-600">
+          Pour démarrer, enregistrez votre premier site. Vous pourrez
+          en gérer jusqu&apos;à trois depuis cette interface, avec des
+          crédits de conversation partagés entre tous.
+        </p>
+        <Link
+          href="/dashboard/sites/nouveau"
+          className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-indigo-500/20 transition-all hover:brightness-110"
+        >
+          <Plus className="h-4 w-4" strokeWidth={2.5} aria-hidden />
+          Créer mon premier site
+        </Link>
+      </div>
     </div>
   );
-}
-
-function formatterBucketMois(d: Date): string {
-  const annee = d.getUTCFullYear();
-  const mois = String(d.getUTCMonth() + 1).padStart(2, "0");
-  return `${annee}-${mois}`;
 }

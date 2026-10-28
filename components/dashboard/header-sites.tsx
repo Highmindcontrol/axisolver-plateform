@@ -10,20 +10,17 @@ type SiteSwitcher = {
   couleur: string;
 };
 
-const COULEUR_GENERAL = "#4f46e5";
-
 /**
  * Header switcher sites — reproduction du <HeaderEcosystemes> AxiHub.
  *
- * « Bonjour François · Vous gérez X site(s) · [Général] [Site 1] [Site 2]
- * [+ Nouveau site] ». Chaque site a sa couleur signature (branding.
- * couleurPrincipale). Pastille active = fond plein, inactives = fond
- * blanc avec texte dans la couleur.
+ * « Bonjour François · vous gérez X site(s) · [Site 1] [Site 2] [+ Nouveau
+ * site] ». Chaque site a sa couleur signature (branding.couleurPrincipale).
+ * Onglet actif = fond plein de la couleur, inactifs = texte dans la couleur
+ * sur fond blanc.
  *
- * En V1 les onglets pointent vers /dashboard (Général) ou vers
- * /dashboard/sites/[slug] (vue site). Le toggle AXI et le reste des
- * widgets suivent naturellement — même pattern qu'AxiHub pour les
- * écosystèmes.
+ * Pas d'onglet « Général » — chaque action AxiSolver est intrinsèquement
+ * scopée à un site. À l'arrivée sur /dashboard, l'utilisateur est
+ * automatiquement redirigé vers son premier site.
  */
 export function HeaderSites({
   prenom,
@@ -57,13 +54,6 @@ export function HeaderSites({
 
       <div className="flex flex-wrap items-stretch gap-2">
         <nav className="flex items-stretch divide-x divide-slate-200 overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm">
-          <OngletSite
-            href="/dashboard"
-            actif={slugActif === null}
-            couleur={COULEUR_GENERAL}
-            icone={<Globe className="h-4 w-4" strokeWidth={2.2} />}
-            label="Général"
-          />
           {sites.map((s) => (
             <OngletSite
               key={s.slug}
