@@ -172,23 +172,35 @@ export default function PageComparatif() {
       <SiteHeader />
       <main className="min-h-screen bg-zinc-950 text-white">
         {/* ─── Hero ─── */}
-        <section className="relative overflow-hidden border-b border-zinc-900">
+        <section
+          className="relative overflow-hidden border-b border-zinc-900 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url(/hero-comparatif-axi-triomphe.png)" }}
+        >
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-gradient-to-b from-zinc-950/85 via-zinc-950/40 to-zinc-950"
+          />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(251,191,36,0.08),_transparent_60%)]" />
-          <div className="relative mx-auto max-w-5xl px-6 py-24 text-center md:px-10 md:py-32">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              Comparatif
-            </p>
-            <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.1] tracking-tight md:text-6xl">
-              AxiSolver face aux{" "}
-              <span className="text-amber-400">chatbots classiques</span>.
-            </h1>
-            <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-              Les Intercom, Crisp, Drift, Hubspot Chat ont été construits
-              il y a 10 ans pour un monde pré-IA. Ils ont ajouté de
-              l&apos;intelligence après coup — comme on repeint une
-              vieille voiture. AxiSolver est né IA. Voici ce que ça
-              change concrètement.
-            </p>
+          <div className="relative mx-auto flex min-h-[640px] max-w-5xl flex-col justify-start px-6 py-24 md:min-h-[760px] md:px-10 md:py-28">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+                Comparatif
+              </p>
+              <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.85)] md:text-6xl lg:text-7xl">
+                AxiSolver face aux{" "}
+                <span className="text-amber-400">
+                  chatbots classiques
+                </span>
+                .
+              </h1>
+              <p className="mt-7 max-w-xl text-base leading-relaxed text-zinc-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)] md:text-lg">
+                Les Intercom, Crisp, Drift, Hubspot Chat ont été
+                construits il y a 10 ans pour un monde pré-IA. Ils ont
+                ajouté de l&apos;intelligence après coup — comme on
+                repeint une vieille voiture. AxiSolver est né IA. Voici
+                ce que ça change concrètement.
+              </p>
+            </div>
           </div>
         </section>
 
