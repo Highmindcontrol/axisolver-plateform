@@ -496,26 +496,23 @@ export function SliderMissions() {
 
       {/* Contenu du slide actif */}
       <div key={mission.slug} className="animate-[fadeIn_300ms_ease-out]">
-        {/* Image agrandie avec titre superposé, collée directement sous la nav */}
+        {/* Image agrandie, collée directement sous la nav */}
         <div
-          className="relative flex h-[320px] w-full items-end bg-cover bg-center bg-no-repeat md:h-[480px] lg:h-[560px]"
+          className="h-[320px] w-full bg-cover bg-center bg-no-repeat md:h-[480px] lg:h-[560px]"
           style={{ backgroundImage: `url(${mission.image})` }}
-        >
-          <div
-            aria-hidden
-            className="absolute inset-0 bg-gradient-to-b from-zinc-950/40 via-zinc-950/10 to-zinc-950/90"
-          />
-          <div className="relative mx-auto w-full max-w-5xl px-6 pb-12 text-center md:px-10 md:pb-16">
-            <h2 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white drop-shadow-[0_4px_14px_rgba(0,0,0,0.9)] md:text-5xl lg:text-6xl">
+          aria-hidden
+        />
+
+        {/* Titre + descriptif + 3 cards */}
+        <div className="mx-auto max-w-6xl px-6 md:px-10">
+          <div className="mx-auto mt-14 max-w-4xl text-center md:mt-16">
+            <h2 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
               {mission.titreMain}{" "}
               <span className="text-amber-400">{mission.titreAccent}</span>
             </h2>
           </div>
-        </div>
 
-        {/* Descriptif + 3 cards */}
-        <div className="mx-auto max-w-6xl px-6 md:px-10">
-          <p className="mx-auto mt-14 max-w-3xl text-center text-base leading-relaxed text-zinc-300 md:mt-16 md:text-lg">
+          <p className="mx-auto mt-8 max-w-3xl text-center text-base leading-relaxed text-zinc-300 md:mt-10 md:text-lg">
             {mission.pitch}
           </p>
 
