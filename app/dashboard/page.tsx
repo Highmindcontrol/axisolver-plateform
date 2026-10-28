@@ -2,10 +2,10 @@ import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 
 import { BandeauActions } from "@/components/dashboard/bandeau-actions";
-import { PanneauAccueil } from "@/components/dashboard/panneau-accueil";
+import { HeaderSites } from "@/components/dashboard/header-sites";
 import { ToggleConversation } from "@/components/dashboard/toggle-conversation";
 import { db } from "@/lib/db";
-import { sites, usageConversations } from "@/lib/db/schema";
+import { siteConfigs, sites, usageConversations } from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -27,8 +27,10 @@ export default async function PageDashboard() {
         nomEntreprise: sites.nomEntreprise,
         domainePrincipal: sites.domainePrincipal,
         proprieteVerifieeLe: sites.proprieteVerifieeLe,
+        branding: siteConfigs.branding,
       })
       .from(sites)
+      .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
       .where(eq(sites.ownerUserId, user.id))
       .orderBy(sites.creeLe),
     db
@@ -70,6 +72,12 @@ export default async function PageDashboard() {
     conversationsMois: compteParSite.get(s.id) ?? 0,
   }));
 
+  const sitesHeader = mesSites.map((s) => ({
+    slug: s.slug,
+    nomEntreprise: s.nomEntreprise,
+    couleur: s.branding?.couleurPrincipale ?? "#4f46e5",
+  }));
+
   const prenom = user.email?.split("@")[0] ?? null;
   const prenomCap = prenom
     ? prenom.charAt(0).toUpperCase() + prenom.slice(1)
@@ -77,14 +85,14 @@ export default async function PageDashboard() {
 
   return (
     <div className="flex flex-col">
+      <HeaderSites prenom={prenomCap} sites={sitesHeader} />
+
       <ToggleConversation prenom={prenomCap} sites={sitesChantier} />
 
       <BandeauActions
         nbSites={mesSites.length}
         conversationsCeMois={agregats[0]?.total ?? 0}
       />
-
-      <PanneauAccueil prenom={prenomCap} nbSites={mesSites.length} />
     </div>
   );
 }
