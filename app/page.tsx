@@ -311,7 +311,7 @@ export default function Page() {
                 Six territoires simultanés.
               </span>
             </h2>
-            <p className="mt-6 text-lg font-medium tracking-tight text-amber-300 md:text-xl">
+            <p className="mt-6 text-2xl font-semibold tracking-tight text-white md:text-3xl">
               Aucun équivalent sur le marché.
             </p>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-zinc-400 md:text-lg">
