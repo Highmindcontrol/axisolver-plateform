@@ -23,7 +23,13 @@
  * d'env après la création des produits dans Stripe Dashboard.
  */
 
-export type SlugPlan = "text-s" | "text-l" | "premium-s" | "premium-l";
+export type SlugPlan =
+  | "text-s"
+  | "text-l"
+  | "premium-s"
+  | "premium-l"
+  | "pack-web-s"
+  | "pack-web-l";
 
 export type Formule = {
   slug: SlugPlan;
@@ -128,6 +134,48 @@ export const FORMULES: Record<SlugPlan, Formule> = {
       "500 conversations vocales / mois",
       "Tout Premium S inclus",
       "Volume adapté aux sites à forte audience",
+      "Pack supp. de 100 conv à 20 € HT",
+    ],
+    essaiJours: 0,
+    cta: "Souscrire maintenant",
+  },
+  "pack-web-s": {
+    slug: "pack-web-s",
+    nom: "Pack Web Marketing 300",
+    description:
+      "AxiLanding (5 landing pages créées par AXI) + AxiSolver Premium déployé sur les 5 pages. Quota 300 conversations mutualisées, pour prospects sans site existant.",
+    prixMensuelHt: 149,
+    priceIdVar: "STRIPE_PRICE_ID_PACK_WEB_S",
+    nbSitesMax: 5,
+    nbConversationsMoisMax: 300,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
+    features: [
+      "5 landing pages créées par AxiLanding (IA + 3-4 modèles éprouvés)",
+      "AxiSolver Premium déployé sur les 5 pages",
+      "300 conversations vocales mutualisées / mois",
+      "Voix ElevenLabs ultra-réaliste",
+      "Textes, boutons et structure générés automatiquement",
+      "Pack supp. de 100 conv à 20 € HT",
+    ],
+    essaiJours: 0,
+    cta: "Souscrire maintenant",
+  },
+  "pack-web-l": {
+    slug: "pack-web-l",
+    nom: "Pack Web Marketing 500",
+    description:
+      "AxiLanding (5 landing pages créées par AXI) + AxiSolver Premium déployé sur les 5 pages. Quota 500 conversations mutualisées, pour campagnes à fort trafic.",
+    prixMensuelHt: 199,
+    priceIdVar: "STRIPE_PRICE_ID_PACK_WEB_L",
+    nbSitesMax: 5,
+    nbConversationsMoisMax: 500,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
+    features: [
+      "Tout Pack Web Marketing 300 inclus",
+      "500 conversations vocales mutualisées / mois",
+      "Volume adapté aux campagnes publicitaires actives",
       "Pack supp. de 100 conv à 20 € HT",
     ],
     essaiJours: 0,

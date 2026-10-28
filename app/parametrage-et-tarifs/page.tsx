@@ -237,6 +237,122 @@ export default function Page() {
         </div>
       </section>
 
+      {/* ─────────── PACK WEB MARKETING (sans site existant) ─────────── */}
+      <section className="border-t border-zinc-900 bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
+        <div className="mx-auto max-w-6xl">
+          <div className="rounded-3xl border border-amber-400/30 bg-gradient-to-br from-zinc-900 via-amber-400/5 to-zinc-900 p-8 md:p-14">
+            <div className="mx-auto max-w-3xl text-center">
+              <span className="inline-flex items-center gap-2 rounded-full bg-amber-400 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-950">
+                Vous n&apos;avez pas encore de site&nbsp;?
+              </span>
+              <h2 className="mt-6 text-balance text-3xl font-semibold leading-tight tracking-tight text-white md:text-5xl">
+                Pack Web Marketing —{" "}
+                <span className="text-amber-400">
+                  5 landing pages + AxiSolver, clé en main.
+                </span>
+              </h2>
+              <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+                Idéal pour lancer un produit, une offre ou une campagne.
+                AxiLanding crée 5 landing pages optimisées sur la base
+                des meilleurs modèles de vente qu&apos;AXI connaît —
+                textes, structure, boutons positionnés automatiquement.
+                AxiSolver Premium s&apos;y déploie et accueille vos
+                visiteurs avec la voix ElevenLabs.
+              </p>
+            </div>
+
+            <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+              {[
+                {
+                  nom: "Pack Web Marketing 300",
+                  prix: 149,
+                  prixNormal: 199,
+                  conv: 300,
+                  phare: true,
+                  desc:
+                    "Démarrage parfait pour une campagne, un lancement produit, un test marché.",
+                },
+                {
+                  nom: "Pack Web Marketing 500",
+                  prix: 199,
+                  prixNormal: 269,
+                  conv: 500,
+                  phare: false,
+                  desc:
+                    "Pour les campagnes publicitaires actives qui amènent du trafic sur les 5 pages.",
+                },
+              ].map((p) => (
+                <article
+                  key={p.nom}
+                  className={`relative rounded-2xl border p-7 md:p-8 ${
+                    p.phare
+                      ? "border-amber-400/60 bg-zinc-950/70 shadow-lg shadow-amber-400/10"
+                      : "border-zinc-700/60 bg-zinc-950/55"
+                  }`}
+                >
+                  {p.phare && (
+                    <span className="absolute -top-3 right-6 inline-flex rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-950">
+                      Phare
+                    </span>
+                  )}
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                    5 landing pages · Voix ElevenLabs
+                  </p>
+                  <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
+                    {p.nom}
+                  </h3>
+                  <p className="mt-2 flex items-baseline gap-2">
+                    <span className="font-mono text-4xl font-semibold tracking-tight text-white">
+                      {p.prix} €
+                    </span>
+                    <span className="text-sm text-zinc-400">HT / mois</span>
+                  </p>
+                  <p className="mt-1 flex items-baseline gap-2 text-xs text-zinc-500">
+                    <span>Tarif normal</span>
+                    <span className="font-mono text-sm text-zinc-200 line-through decoration-amber-400 decoration-[2.5px]">
+                      {p.prixNormal} €
+                    </span>
+                  </p>
+                  <p className="mt-5 text-sm leading-relaxed text-zinc-300">
+                    {p.desc}
+                  </p>
+                  <ul className="mt-6 space-y-2.5 text-sm text-zinc-300">
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                      <span>
+                        5 landing pages créées par AxiLanding (IA +
+                        modèles éprouvés)
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                      <span>AxiSolver Premium sur les 5 pages</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                      <span>
+                        {p.conv} conversations mutualisées sur les 5 pages
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
+                      <span>Pack supp. de 100 conv à 20 € HT</span>
+                    </li>
+                  </ul>
+                </article>
+              ))}
+            </div>
+
+            <p className="mx-auto mt-10 max-w-3xl text-center text-sm leading-relaxed text-zinc-400">
+              Les landing pages se régénèrent et se réécrivent à la
+              demande depuis votre dashboard. Pas de frais de création,
+              pas de prestataire externe. Les conversations non
+              consommées se reportent jusqu&apos;à 3 mois.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ─────────── SIMULATEUR / QUESTIONNAIRE DE RECOMMANDATION ─────────── */}
       <Simulateur />
 

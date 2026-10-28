@@ -588,6 +588,8 @@ export const planAbonnementEnum = pgEnum("plan_abonnement", [
   "text-l",
   "premium-s",
   "premium-l",
+  "pack-web-s",
+  "pack-web-l",
 ]);
 
 export const statutAbonnementEnum = pgEnum("statut_abonnement", [

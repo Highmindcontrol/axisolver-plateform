@@ -21,7 +21,13 @@
 
 import { SECTEURS, type SlugSecteur, type Secteur } from "./secteurs";
 
-export type SlugFormule = "text-s" | "text-l" | "premium-s" | "premium-l";
+export type SlugFormule =
+  | "text-s"
+  | "text-l"
+  | "premium-s"
+  | "premium-l"
+  | "pack-web-s"
+  | "pack-web-l";
 
 export type UsagePrincipal =
   | "support"
@@ -109,6 +115,30 @@ export const FORMULES: Formule[] = [
     trafic: "Grand (≥ 10 000 visiteurs/mois)",
     prixMensuelHt: 129,
     prixNormalFuturHt: 169,
+    conversationsIncluses: 500,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
+  },
+  {
+    slug: "pack-web-s",
+    nom: "Pack Web Marketing 300",
+    sousTitre: "5 landing pages + AxiSolver Premium, clé en main.",
+    voix: "ElevenLabs",
+    trafic: "Petit (< 10 000 visiteurs/mois)",
+    prixMensuelHt: 149,
+    prixNormalFuturHt: 199,
+    conversationsIncluses: 300,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
+  },
+  {
+    slug: "pack-web-l",
+    nom: "Pack Web Marketing 500",
+    sousTitre: "5 landing pages + AxiSolver Premium, pour campagnes à fort trafic.",
+    voix: "ElevenLabs",
+    trafic: "Grand (≥ 10 000 visiteurs/mois)",
+    prixMensuelHt: 199,
+    prixNormalFuturHt: 269,
     conversationsIncluses: 500,
     prixPackSuppHt: 20,
     volumeConvPackSupp: 100,

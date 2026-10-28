@@ -1654,10 +1654,10 @@ function PanneauEstimationTarif({
 }) {
   type SlugFormule = "text-s" | "text-l" | "premium-s" | "premium-l";
   const nomsFormules: Record<SlugFormule, string> = {
-    "text-s": "AxiSolver Text Only — Petit",
-    "text-l": "AxiSolver Text Only — Grand",
-    "premium-s": "AxiSolver Premium — Petit",
-    "premium-l": "AxiSolver Premium — Grand",
+    "text-s": "AxiSolver Text Only 300",
+    "text-l": "AxiSolver Text Only 500",
+    "premium-s": "AxiSolver Premium 300",
+    "premium-l": "AxiSolver Premium 500",
   };
   const voixFormules: Record<SlugFormule, string> = {
     "text-s": "Écrit seul · < 10 000 visiteurs/mois",
