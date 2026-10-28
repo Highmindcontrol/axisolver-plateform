@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
+import { ComparatifTarifaire } from "./_comparatif-tarifaire";
 
 export const metadata = {
   title: "AxiSolver vs les chatbots classiques — Comparatif",
@@ -669,6 +670,9 @@ export default function PageComparatif() {
             </div>
           </div>
         </section>
+
+        {/* ─── Comparatif tarifaire par mission (onglets) ─── */}
+        <ComparatifTarifaire />
 
         {/* ─── CTA ─── */}
         <section className="py-20 md:py-28">

@@ -464,64 +464,9 @@ export function SliderMissions() {
           </div>
         </div>
 
-        {/* Tableau tarifaire */}
+        {/* Dans le détail — bullets techniques */}
         <div className="mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-32">
-          <div className="mt-14 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
-            <div className="border-b border-zinc-800 bg-zinc-950/80 px-6 py-5 md:px-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                {mission.tarifsHeader}
-              </p>
-              <h3 className="mt-2 text-xl font-semibold tracking-tight text-white md:text-2xl">
-                {mission.tarifsSubtitle}
-              </h3>
-            </div>
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-8">
-                    Solution
-                  </th>
-                  <th className="px-4 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-6">
-                    Prix marché
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="text-sm">
-                {mission.tarifs.map((t, i) => (
-                  <tr
-                    key={t.label}
-                    className={
-                      i % 2 === 0 ? "bg-zinc-900/30" : "bg-transparent"
-                    }
-                  >
-                    <td className="px-6 py-5 text-zinc-200 md:px-8">
-                      <p className="font-medium">{t.label}</p>
-                      <p className="mt-1 text-xs text-zinc-500">{t.detail}</p>
-                    </td>
-                    <td className="px-4 py-5 text-right font-mono font-semibold text-white md:px-6">
-                      {t.prix}
-                    </td>
-                  </tr>
-                ))}
-                <tr className="bg-amber-400/10">
-                  <td className="px-6 py-5 md:px-8">
-                    <p className="font-semibold text-amber-300">
-                      AxiSolver (toutes formules)
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-400">
-                      {mission.resumeAxisolver}
-                    </p>
-                  </td>
-                  <td className="px-4 py-5 text-right font-mono text-lg font-bold text-amber-300 md:px-6">
-                    inclus
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Dans le détail — bullets techniques */}
-          <div className="mt-12 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-7 md:p-10">
+          <div className="mt-14 rounded-2xl border border-zinc-800 bg-zinc-900/30 p-7 md:p-10">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
               Dans le détail
             </p>
