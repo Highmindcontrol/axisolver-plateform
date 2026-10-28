@@ -198,44 +198,6 @@ const CAPACITES: Array<{
   },
 ];
 
-const COMPARATIF: Array<{ dimension: string; chatbot: string; solver: string }> = [
-  {
-    dimension: "Compréhension",
-    chatbot: "Décroche sur un mot-clé.",
-    solver: "Lit le vrai problème et le reformule.",
-  },
-  {
-    dimension: "Résolution",
-    chatbot: "Ne résout rien, bascule vers un humain.",
-    solver: "Résout seul la majorité des demandes.",
-  },
-  {
-    dimension: "Humain quand il faut",
-    chatbot: "Formulaire vide, bot en boucle.",
-    solver: "Dossier qualifié, référence AXI générée.",
-  },
-  {
-    dimension: "Visibilité du travail",
-    chatbot: "Bulle fermée, boîte noire.",
-    solver: "Interface vivante — la fiche visiteur se remplit en direct.",
-  },
-  {
-    dimension: "Veille technique",
-    chatbot: "Aucune.",
-    solver: "SEO, sécurité, Analytics, Ads intelligents, bouclier défensif.",
-  },
-  {
-    dimension: "Mémoire",
-    chatbot: "Aucune, session à session.",
-    solver: "Historique conservé, brief matinal à l'équipe.",
-  },
-  {
-    dimension: "Mise en route",
-    chatbot: "Plusieurs semaines de configuration.",
-    solver: "Snippet dans le head, quelques heures d'éducation.",
-  },
-];
-
 const FEATURES_SIGNATURE: Array<{
   Icon: (p: IconProps) => React.JSX.Element;
   titre: string;
@@ -429,53 +391,6 @@ export default function Page() {
                   {f.description}
                 </p>
               </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────── COMPARATIF ─────────── */}
-      <section className="bg-zinc-900 px-6 py-20 md:px-10 md:py-32">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-14 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              Comparaison
-            </p>
-            <h2
-              className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl"
-            >
-              Chatbot classique{" "}
-              <span className="text-amber-400">vs</span> AxiSolver
-            </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-zinc-400">
-              Les chatbots filtrent et bloquent. AxiSolver résout, veille
-              et transforme.
-            </p>
-          </div>
-
-          <div className="overflow-hidden rounded-sm border border-zinc-800">
-            <div className="grid grid-cols-12 bg-zinc-950 px-6 py-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-300">
-              <div className="col-span-4">Dimension</div>
-              <div className="col-span-4">Chatbot classique</div>
-              <div className="col-span-4">AxiSolver</div>
-            </div>
-            {COMPARATIF.map((row, i) => (
-              <div
-                key={row.dimension}
-                className={`grid grid-cols-1 gap-4 bg-zinc-900 px-6 py-5 md:grid-cols-12 md:gap-6 ${
-                  i !== 0 ? "border-t border-zinc-800" : ""
-                }`}
-              >
-                <div className="font-semibold tracking-tight text-amber-300 md:col-span-4">
-                  {row.dimension}
-                </div>
-                <div className="text-sm text-zinc-500 line-through decoration-zinc-700 md:col-span-4">
-                  {row.chatbot}
-                </div>
-                <div className="text-sm font-medium text-white md:col-span-4">
-                  {row.solver}
-                </div>
-              </div>
             ))}
           </div>
         </div>

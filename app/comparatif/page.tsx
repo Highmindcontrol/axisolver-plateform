@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { ArrowRight, Check, Minus, X } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Minus,
+  X,
+  Target,
+  ShieldCheck,
+  Search,
+  Sparkles,
+} from "lucide-react";
 import { SiteHeader } from "@/components/site/header";
 
 export const metadata = {
@@ -55,6 +64,38 @@ const CAPABILITIES: Capability[] = [
     hubspot: false,
   },
   {
+    label: "Préparation autonome de vos campagnes Ads (AdWords, AdSense)",
+    axisolver: true,
+    intercom: false,
+    crisp: false,
+    drift: false,
+    hubspot: false,
+  },
+  {
+    label: "Interface vivante : la fiche visiteur se remplit en direct",
+    axisolver: true,
+    intercom: false,
+    crisp: false,
+    drift: false,
+    hubspot: false,
+  },
+  {
+    label: "Résolution autonome : dossier qualifié, référence AXI générée",
+    axisolver: true,
+    intercom: "partiel",
+    crisp: false,
+    drift: "partiel",
+    hubspot: "partiel",
+  },
+  {
+    label: "Mémoire conversationnelle + brief matinal à votre équipe",
+    axisolver: true,
+    intercom: "partiel",
+    crisp: false,
+    drift: false,
+    hubspot: "partiel",
+  },
+  {
     label: "Rapports quotidiens avec opportunités détectées",
     axisolver: true,
     intercom: "partiel",
@@ -96,6 +137,35 @@ const CAPABILITIES: Capability[] = [
   },
 ];
 
+const EXCLUSIVITES: Array<{
+  Icon: typeof ShieldCheck;
+  titre: string;
+  description: string;
+  badge: string;
+}> = [
+  {
+    Icon: ShieldCheck,
+    titre: "Protège votre site, en continu",
+    description:
+      "Audit sécurité à l'installation, surveillance 24/7, blocage temps réel des bots, injections et intrusions. Comme un antivirus actif — mais pour votre présence en ligne tout entière.",
+    badge: "Autonomie totale",
+  },
+  {
+    Icon: Search,
+    titre: "Pilote votre SEO, sans vous solliciter",
+    description:
+      "Audit initial, re-check hebdomadaire, détection des pages de fuite, parcours brisés, opportunités de mots-clés. Un rapport mensuel narratif. Vous découvrez les problèmes réglés, pas ceux à régler.",
+    badge: "Vigile silencieux",
+  },
+  {
+    Icon: Target,
+    titre: "Prépare vos campagnes Ads, jusqu'à validation",
+    description:
+      "AxiSolver monte vos campagnes AdWords et AdSense : audience, mots-clés, créatives, budget. Vous validez d'un clic. Après 90 jours de confiance, option « carte blanche » dans un plafond que vous fixez.",
+    badge: "Jusqu'au clic final",
+  },
+];
+
 export default function PageComparatif() {
   return (
     <>
@@ -118,6 +188,65 @@ export default function PageComparatif() {
               l&apos;intelligence après coup — comme on repeint une
               vieille voiture. AxiSolver est né IA. Voici ce que ça
               change concrètement.
+            </p>
+          </div>
+        </section>
+
+        {/* ─── Ce que personne d'autre ne fait ─── */}
+        <section className="border-b border-zinc-900 bg-gradient-to-b from-zinc-950 via-zinc-900/60 to-zinc-950 py-20 md:py-28">
+          <div className="mx-auto max-w-6xl px-6 md:px-10">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+                Ce que personne d&apos;autre ne fait
+              </p>
+              <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight md:text-5xl">
+                Un chatbot répond.{" "}
+                <span className="text-amber-400">
+                  AxiSolver travaille pour vous pendant que vous dormez.
+                </span>
+              </h2>
+              <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+                Les autres solutions s&apos;arrêtent à la conversation.
+                AxiSolver fait trois métiers de plus — en autonomie, sans
+                vous solliciter, et vous présente le résultat chaque matin.
+                Trois missions que vous confieriez à trois prestataires
+                différents, chacun facturé 500 à 2&nbsp;000&nbsp;€ par
+                mois.
+              </p>
+            </div>
+
+            <div className="mt-16 grid grid-cols-1 gap-6 md:mt-20 md:grid-cols-3">
+              {EXCLUSIVITES.map((e) => (
+                <article
+                  key={e.titre}
+                  className="group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 p-8 transition-all hover:border-amber-400/40 hover:bg-zinc-900/60"
+                >
+                  <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-amber-400/5 blur-2xl transition-opacity group-hover:bg-amber-400/15" />
+                  <e.Icon
+                    className="h-10 w-10 text-amber-400"
+                    strokeWidth={1.5}
+                  />
+                  <h3 className="mt-6 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                    {e.titre}
+                  </h3>
+                  <p className="mt-4 text-sm leading-relaxed text-zinc-400 md:text-base">
+                    {e.description}
+                  </p>
+                  <p className="mt-6 inline-flex items-center gap-2 rounded-full bg-amber-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-300">
+                    <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+                    {e.badge}
+                  </p>
+                </article>
+              ))}
+            </div>
+
+            <p className="mx-auto mt-14 max-w-3xl text-center text-sm italic leading-relaxed text-zinc-500">
+              Aucun autre acteur du marché ne cumule ces trois autonomies
+              dans un seul produit. Les chatbots classiques se concentrent
+              sur la conversation. Les outils SEO se concentrent sur le
+              SEO. Les régies Ads se concentrent sur les Ads. AxiSolver est
+              le premier à tout orchestrer, en autonomie, pour un seul
+              tarif.
             </p>
           </div>
         </section>
