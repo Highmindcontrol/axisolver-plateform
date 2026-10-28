@@ -167,6 +167,65 @@ const EXCLUSIVITES: Array<{
 ];
 
 
+const TARIFS_INTERFACE: Array<{ label: string; detail: string; prix: string }> = [
+  {
+    label: "Développement UI custom (interface conversationnelle)",
+    detail: "Spec + design + dev front + intégration backend, projet complet",
+    prix: "15 000 à 50 000 €",
+  },
+  {
+    label: "UX / UI designer freelance senior",
+    detail: "Design seul, prototype Figma, 10 à 20 jours",
+    prix: "6 000 à 15 000 €",
+  },
+  {
+    label: "Agence design + développement",
+    detail: "Prestation clé en main, de la recherche utilisateur au livré",
+    prix: "20 000 à 80 000 €",
+  },
+  {
+    label: "Chatbot classique avec habillage custom",
+    detail: "Setup Intercom/Zendesk + personnalisation CSS + intégrations",
+    prix: "5 000 à 15 000 € + abonnement",
+  },
+];
+
+const TARIFS_BASE_CONNAISSANCES: Array<{
+  label: string;
+  detail: string;
+  prix: string;
+}> = [
+  {
+    label: "Rédacteur FAQ / scripts chatbot interne",
+    detail:
+      "Poste junior, rédige et maintient les réponses — chaque nouvelle offre produit demande une mise à jour",
+    prix: "2 000 à 4 000 €/mois",
+  },
+  {
+    label: "Agence rédaction scripts chatbot",
+    detail: "Prestation one-shot d'écriture des arbres de dialogue + maintenance",
+    prix: "5 000 à 15 000 € + maintenance",
+  },
+  {
+    label: "Chatbot classique à arbres de dialogue",
+    detail:
+      "Botnation, Pandorabot, Landbot : abonnement + main-d'œuvre pour construire chaque scénario",
+    prix: "50 à 500 €/mois + config",
+  },
+  {
+    label: "Outil de knowledge base pure (Guru, Notion AI)",
+    detail:
+      "Base de connaissances pour l'équipe interne, à rédiger manuellement",
+    prix: "15 à 50 €/user/mois",
+  },
+  {
+    label: "Développement RAG custom (crawler + embeddings + LLM)",
+    detail:
+      "Pipeline complet d'extraction, découpage, vectorisation, recherche sémantique",
+    prix: "20 000 à 80 000 €",
+  },
+];
+
 export default function PageComparatif() {
   return (
     <>
@@ -321,6 +380,293 @@ export default function PageComparatif() {
               évoluer son produit — n&apos;hésitez pas à vérifier les
               dernières spécificités sur leur site.
             </p>
+          </div>
+        </section>
+
+        {/* ─── Section Interface ─── */}
+        <section className="border-b border-zinc-900 bg-zinc-950">
+          <div className="mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+                Interface
+              </p>
+              <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
+                Une petite bulle de coin.{" "}
+                <span className="text-amber-400">Ou un vrai espace de dialogue.</span>
+              </h2>
+              <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+                Les chatbots classiques se contentent d&apos;une{" "}
+                <span className="font-semibold text-white">
+                  bulle minuscule
+                </span>{" "}
+                tassée en bas à droite. AxiSolver s&apos;ouvre en{" "}
+                <span className="font-semibold text-white">
+                  plein cœur de la page
+                </span>{" "}
+                — un modal immersif à 3 territoires qui dialoguent : contexte à
+                gauche, conversation au centre, fiche visiteur à droite.
+              </p>
+            </div>
+
+            <div className="mt-16 grid grid-cols-1 gap-6 md:mt-20 md:grid-cols-2">
+              <article className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7 md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                  Chatbot classique
+                </p>
+                <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  Petite bulle en bas à droite
+                </h3>
+                <ul className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Fenêtre 320×480 px, écrasée dans un coin</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Scrolling vertical qui tasse les anciens messages</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Aucune contextualisation (pas de fiche produit, pas d&apos;image)</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Boîte noire : le visiteur ne voit pas ce qui est retenu</span>
+                  </li>
+                </ul>
+              </article>
+
+              <article className="rounded-2xl border border-amber-400/40 bg-zinc-900/60 p-7 shadow-lg shadow-amber-400/10 md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-widest text-amber-300">
+                  AxiSolver
+                </p>
+                <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  Modal immersif plein écran
+                </h3>
+                <ul className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-200 md:text-base">
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>Modal centré, cadre généreux, respirations</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>3 territoires qui dialoguent, pas de scrolling frustrant</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>Panneau contextuel : fiche produit Shopify, dossier client, bien immobilier</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>Fiche visiteur en direct : transparence totale sur ce qui est retenu</span>
+                  </li>
+                </ul>
+              </article>
+            </div>
+          </div>
+
+          <div
+            className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:h-72"
+            style={{ backgroundImage: "url(/presentation-interface-immersive.png)" }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+          </div>
+
+          <div className="mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-32">
+            <div className="mt-16 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
+              <div className="border-b border-zinc-800 bg-zinc-950/80 px-6 py-5 md:px-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                  Combien coûte une interface conversationnelle sur-mesure
+                </p>
+                <h3 className="mt-2 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  AxiSolver livre un modal immersif paramétrable à votre
+                  identité, sans ligne de code.
+                </h3>
+              </div>
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-800">
+                    <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-8">
+                      Solution
+                    </th>
+                    <th className="px-4 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-6">
+                      Prix marché
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TARIFS_INTERFACE.map((t, i) => (
+                    <tr key={t.label} className={i % 2 === 0 ? "bg-zinc-900/30" : "bg-transparent"}>
+                      <td className="px-6 py-5 text-zinc-200 md:px-8">
+                        <p className="font-medium">{t.label}</p>
+                        <p className="mt-1 text-xs text-zinc-500">{t.detail}</p>
+                      </td>
+                      <td className="px-4 py-5 text-right font-mono font-semibold text-white md:px-6">
+                        {t.prix}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-amber-400/10">
+                    <td className="px-6 py-5 md:px-8">
+                      <p className="font-semibold text-amber-300">
+                        AxiSolver (toutes formules)
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-400">
+                        Modal plein cadre · 3 territoires · fond aurore boréale · paramétrage identité complet
+                      </p>
+                    </td>
+                    <td className="px-4 py-5 text-right font-mono text-lg font-bold text-amber-300 md:px-6">
+                      inclus
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Section Base de connaissances ─── */}
+        <section className="border-b border-zinc-900 bg-zinc-950">
+          <div className="mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+                Base de connaissances
+              </p>
+              <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
+                Écrire chaque réponse à la main.{" "}
+                <span className="text-amber-400">Ou laisser AxiSolver absorber votre site.</span>
+              </h2>
+              <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+                Les chatbots classiques fonctionnent par{" "}
+                <span className="font-semibold text-white">
+                  arbres de dialogue
+                </span>{" "}
+                : il faut rédiger chaque réponse, chaque scénario, chaque relance.
+                AxiSolver{" "}
+                <span className="font-semibold text-white">
+                  crawle automatiquement votre site
+                </span>{" "}
+                et ingère vos PDF. Chaque réponse qu&apos;il donne cite la page
+                ou le document précis d&apos;où elle vient.
+              </p>
+            </div>
+
+            <div className="mt-16 grid grid-cols-1 gap-6 md:mt-20 md:grid-cols-2">
+              <article className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7 md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                  Chatbot classique à arbres
+                </p>
+                <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  Chaque réponse rédigée à la main
+                </h3>
+                <ul className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-400 md:text-base">
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Un rédacteur FAQ dédié ou une agence pour construire les scripts</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Chaque nouvelle offre produit = mise à jour manuelle</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Hors scénario : impasse ou renvoi humain</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <X className="mt-0.5 h-5 w-5 flex-shrink-0 text-rose-700" strokeWidth={2.4} />
+                    <span>Aucune traçabilité des sources de l&apos;information</span>
+                  </li>
+                </ul>
+              </article>
+
+              <article className="rounded-2xl border border-amber-400/40 bg-zinc-900/60 p-7 shadow-lg shadow-amber-400/10 md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-widest text-amber-300">
+                  AxiSolver
+                </p>
+                <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  Absorbe votre site + vos PDF
+                </h3>
+                <ul className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-200 md:text-base">
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>Crawl auto à l&apos;installation, re-crawl mensuel. Zéro script à rédiger</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>Ingestion PDF : CGV, catalogue, mode d&apos;emploi, docs réglementaires</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>Embeddings vectorisés, recherche sémantique haute précision</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <Check className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400" strokeWidth={2.8} />
+                    <span>Chaque réponse cite sa source. Garde-fou honnêteté : jamais d&apos;invention</span>
+                  </li>
+                </ul>
+              </article>
+            </div>
+          </div>
+
+          <div
+            className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:h-72"
+            style={{ backgroundImage: "url(/presentation-base-connaissances-axi.png)" }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+          </div>
+
+          <div className="mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-32">
+            <div className="mt-16 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
+              <div className="border-b border-zinc-800 bg-zinc-950/80 px-6 py-5 md:px-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                  Combien coûte une base de connaissances pour chatbot
+                </p>
+                <h3 className="mt-2 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  AxiSolver absorbe tout seul : votre site et vos documents
+                  deviennent sa mémoire opérationnelle.
+                </h3>
+              </div>
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-800">
+                    <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-8">
+                      Solution
+                    </th>
+                    <th className="px-4 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-6">
+                      Prix marché
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {TARIFS_BASE_CONNAISSANCES.map((t, i) => (
+                    <tr key={t.label} className={i % 2 === 0 ? "bg-zinc-900/30" : "bg-transparent"}>
+                      <td className="px-6 py-5 text-zinc-200 md:px-8">
+                        <p className="font-medium">{t.label}</p>
+                        <p className="mt-1 text-xs text-zinc-500">{t.detail}</p>
+                      </td>
+                      <td className="px-4 py-5 text-right font-mono font-semibold text-white md:px-6">
+                        {t.prix}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-amber-400/10">
+                    <td className="px-6 py-5 md:px-8">
+                      <p className="font-semibold text-amber-300">
+                        AxiSolver (toutes formules)
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-400">
+                        Crawl automatique · ingestion PDF · embeddings · chaque réponse sourcée · re-crawl mensuel
+                      </p>
+                    </td>
+                    <td className="px-4 py-5 text-right font-mono text-lg font-bold text-amber-300 md:px-6">
+                      inclus
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 

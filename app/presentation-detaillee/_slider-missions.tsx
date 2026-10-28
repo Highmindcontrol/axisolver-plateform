@@ -2,10 +2,8 @@
 
 import { useState } from "react";
 import {
-  BookOpen,
   ChevronLeft,
   ChevronRight,
-  LayoutDashboard,
   MessageCircle,
   Search,
   ShieldCheck,
@@ -120,90 +118,6 @@ const MISSIONS_SLIDES: Mission[] = [
     ],
   },
   {
-    slug: "base-connaissances",
-    categorie: "Base de connaissances",
-    titreMain: "AxiSolver connaît votre site,",
-    titreAccent: "sans que vous ayez à l'écrire.",
-    pitch: (
-      <>
-        À l&apos;installation, AxiSolver{" "}
-        <span className="font-semibold text-white">
-          crawle automatiquement votre site
-        </span>{" "}
-        et ingère les PDF que vous lui donnez — CGV, catalogue, mode
-        d&apos;emploi, documentation technique, fiche produit. Chaque
-        réponse qu&apos;il donne à un visiteur{" "}
-        <span className="font-semibold text-white">
-          cite la page ou le document précis
-        </span>{" "}
-        d&apos;où elle vient. Aucun script à rédiger, aucun arbre de
-        décision à construire.
-      </>
-    ),
-    Icon: BookOpen,
-    image: "/presentation-base-connaissances-axi.png",
-    cards: [
-      {
-        titre: "Crawl automatique de votre site",
-        description:
-          "AxiSolver parcourt toutes vos pages, suit le sitemap, extrait les textes utiles. Re-crawl mensuel pour détecter les nouveautés. Rien à configurer.",
-      },
-      {
-        titre: "Ingestion de vos PDF",
-        description:
-          "Déposez vos CGV, catalogues, modes d'emploi, documents réglementaires. AxiSolver les lit, les découpe, les vectorise. Prêt à répondre en quelques minutes.",
-      },
-      {
-        titre: "Chaque réponse sourcée",
-        description:
-          "AxiSolver cite la page ou le document d'où vient l'information. Le visiteur sait d'où ça vient, votre équipe peut vérifier, zéro boîte noire.",
-      },
-    ],
-    tarifsHeader: "Combien coûte une base de connaissances pour chatbot",
-    tarifsSubtitle:
-      "AxiSolver absorbe tout seul : votre site et vos documents deviennent sa mémoire opérationnelle.",
-    tarifs: [
-      {
-        label: "Rédacteur FAQ / scripts chatbot interne",
-        detail:
-          "Poste junior, rédige et maintient les réponses — chaque nouvelle offre produit demande une mise à jour",
-        prix: "2 000 à 4 000 €/mois",
-      },
-      {
-        label: "Agence rédaction scripts chatbot",
-        detail: "Prestation one-shot d'écriture des arbres de dialogue + maintenance",
-        prix: "5 000 à 15 000 € + maintenance",
-      },
-      {
-        label: "Chatbot classique à arbres de dialogue",
-        detail:
-          "Botnation, Pandorabot, Landbot : abonnement + main-d'œuvre pour construire chaque scénario",
-        prix: "50 à 500 €/mois + config",
-      },
-      {
-        label: "Outil de knowledge base pure (Guru, Notion AI)",
-        detail: "Base de connaissances pour l'équipe interne, à rédiger manuellement",
-        prix: "15 à 50 €/user/mois",
-      },
-      {
-        label: "Développement RAG custom (crawler + embeddings + LLM)",
-        detail:
-          "Pipeline complet d'extraction, découpage, vectorisation, recherche sémantique — projet d'ingénierie",
-        prix: "20 000 à 80 000 €",
-      },
-    ],
-    resumeAxisolver:
-      "Crawl automatique · ingestion PDF · embeddings vectorisés · chaque réponse sourcée · re-crawl mensuel",
-    bulletsDetailles: [
-      "Embeddings vectorisés via OpenAI, recherche sémantique haute précision (pgvector + Supabase).",
-      "Support natif PDF (y compris scannés avec OCR si demandé) + URLs externes à ajouter manuellement.",
-      "Mise à jour continue : chaque modification de page détectée au re-crawl mensuel, re-vectorisation automatique.",
-      "Base évolutive : vous ajoutez vos propres documents à tout moment depuis votre dashboard.",
-      "Chaque citation est traçable : le visiteur peut suivre un lien vers la page source si vous l'activez.",
-      "Garde-fou honnêteté : si AxiSolver ne trouve pas l'information dans sa base, il le dit clairement — jamais d'invention.",
-    ],
-  },
-  {
     slug: "seo",
     categorie: "Référencement",
     titreMain: "Fini le chaos SEO.",
@@ -288,81 +202,6 @@ const MISSIONS_SLIDES: Mission[] = [
     ],
   },
   {
-    slug: "securite",
-    categorie: "Sécurité",
-    titreMain: "Partenaire supplémentaire de la",
-    titreAccent: "sécurité de votre site.",
-    pitch: (
-      <>
-        AxiSolver ne remplace pas vos antivirus de site, votre firewall ou
-        votre hébergeur sécurisé. Il vient en{" "}
-        <span className="font-semibold text-white">renfort permanent</span>{" "}
-        — avec une veille continue que personne d&apos;autre ne fait au
-        prix d&apos;un abonnement mensuel. Comme un second rempart,
-        discret et actif en arrière-plan.
-      </>
-    ),
-    Icon: ShieldCheck,
-    image: "/comparatif-securite-axi-bouclier.png",
-    cards: [
-      {
-        titre: "Audit continu de votre site",
-        description:
-          "Détection des failles connues, CVE actives sur vos plugins et dépendances, versions obsolètes, certificats expirés. Vous êtes alerté avant que ça devienne un problème.",
-      },
-      {
-        titre: "Headers manquants, scripts tiers",
-        description:
-          "Vérification des headers de sécurité (CSP, HSTS, X-Frame-Options), audit des scripts tiers chargés par votre site, détection de fuites de données silencieuses.",
-      },
-      {
-        titre: "Shield widget temps réel",
-        description:
-          "Rate limiting + anti-prompt-injection côté widget. Blocage automatique des bots qui tentent d'abuser de votre AxiSolver. Zéro intervention requise.",
-      },
-    ],
-    tarifsHeader: "Combien coûte une sécurité de site professionnelle",
-    tarifsSubtitle:
-      "AxiSolver ajoute sa couche de veille pour une fraction de ces budgets.",
-    tarifs: [
-      {
-        label: "Sucuri Website Security Platform",
-        detail: "Scan + firewall + nettoyage malware, offres Basic à Business",
-        prix: "20 à 50 €/mois",
-      },
-      {
-        label: "Wordfence Premium (WordPress)",
-        detail: "Firewall WAF + scan + alerte temps réel + support premium",
-        prix: "10 à 25 €/mois",
-      },
-      {
-        label: "Pentest ponctuel (annuel)",
-        detail: "Audit complet par un cabinet spécialisé, périmètre PME",
-        prix: "3 000 à 15 000 €",
-      },
-      {
-        label: "Consultant sécurité externe",
-        detail: "Mission ponctuelle, tarif journalier marché français",
-        prix: "500 à 1 200 €/jour",
-      },
-      {
-        label: "Audit RGPD complet",
-        detail: "Vérification conformité données personnelles + registre",
-        prix: "2 500 à 8 000 €",
-      },
-    ],
-    resumeAxisolver:
-      "Audit sécurité initial · surveillance 24/7 · rapport mensuel · blocage temps réel",
-    bulletsDetailles: [
-      "Scan initial complet : failles, CVE actives, plugins obsolètes, headers manquants, certificats expirés.",
-      "Alerte immédiate si régression détectée, avec procédure de correction à chaque alerte.",
-      "Côté widget : détection temps réel des prompt injections, bots agressifs, scraping, comportements anormaux.",
-      "Côté serveur (si vous donnez accès à vos logs) : détection des tentatives d'intrusion — bruteforce, SQL injection, path traversal.",
-      "Alerte en langage humain : « Hier à 3h47, 847 tentatives de login sur /admin depuis 12 IPs — voulez-vous que je les bloque ? ».",
-      "Après validation, règles de blocage exécutées en autonomie. Preuve de propriété DNS requise avant toute action côté serveur.",
-    ],
-  },
-  {
     slug: "ads",
     categorie: "Publicité en ligne",
     titreMain: "Agence Ads ? Freelance traffic manager ?",
@@ -440,75 +279,78 @@ const MISSIONS_SLIDES: Mission[] = [
     ],
   },
   {
-    slug: "interface",
-    categorie: "Interface",
-    titreMain: "Une interface immersive,",
-    titreAccent: "pensée pour la concentration.",
+    slug: "securite",
+    categorie: "Sécurité",
+    titreMain: "Partenaire supplémentaire de la",
+    titreAccent: "sécurité de votre site.",
     pitch: (
       <>
-        Oubliez la petite bulle de chat perdue dans un coin. Quand un
-        visiteur ouvre AxiSolver, il entre dans un{" "}
-        <span className="font-semibold text-white">
-          véritable espace de dialogue
-        </span>{" "}
-        — centré, calme, cadré. Trois territoires qui bougent ensemble au
-        rythme de l&apos;échange : le contexte à gauche, la conversation
-        au centre, la fiche visiteur qui se remplit à droite.
+        AxiSolver ne remplace pas vos antivirus de site, votre firewall ou
+        votre hébergeur sécurisé. Il vient en{" "}
+        <span className="font-semibold text-white">renfort permanent</span>{" "}
+        — avec une veille continue que personne d&apos;autre ne fait au
+        prix d&apos;un abonnement mensuel. Comme un second rempart,
+        discret et actif en arrière-plan.
       </>
     ),
-    Icon: LayoutDashboard,
-    image: "/presentation-interface-immersive.png",
+    Icon: ShieldCheck,
+    image: "/comparatif-securite-axi-bouclier.png",
     cards: [
       {
-        titre: "Un modal centré, pas une bulle de coin",
+        titre: "Audit continu de votre site",
         description:
-          "AxiSolver s'ouvre en plein cœur de la page, dans un cadre généreux. Le visiteur est au centre de l'attention — comme face à un interlocuteur qui prend le temps.",
+          "Détection des failles connues, CVE actives sur vos plugins et dépendances, versions obsolètes, certificats expirés. Vous êtes alerté avant que ça devienne un problème.",
       },
       {
-        titre: "Panneau contextuel adaptable",
+        titre: "Headers manquants, scripts tiers",
         description:
-          "À gauche, le contexte s'adapte à votre site : fiche produit Shopify avec miniatures, dossier client, immobilier avec photos du bien. Un territoire qui aide à la décision.",
+          "Vérification des headers de sécurité (CSP, HSTS, X-Frame-Options), audit des scripts tiers chargés par votre site, détection de fuites de données silencieuses.",
       },
       {
-        titre: "Fiche visiteur en direct",
+        titre: "Shield widget temps réel",
         description:
-          "À droite, les informations recueillies se structurent sous ses yeux : visiteur, centre d'intérêt, intentions, profil enrichi. Transparence totale, zéro boîte noire.",
+          "Rate limiting + anti-prompt-injection côté widget. Blocage automatique des bots qui tentent d'abuser de votre AxiSolver. Zéro intervention requise.",
       },
     ],
-    tarifsHeader: "Combien coûte une interface conversationnelle sur-mesure",
+    tarifsHeader: "Combien coûte une sécurité de site professionnelle",
     tarifsSubtitle:
-      "AxiSolver livre un modal immersif, paramétrable à votre identité, sans ligne de code.",
+      "AxiSolver ajoute sa couche de veille pour une fraction de ces budgets.",
     tarifs: [
       {
-        label: "Développement UI custom (interface conversationnelle)",
-        detail:
-          "Spec + design + dev front + intégration backend, projet complet",
-        prix: "15 000 à 50 000 €",
+        label: "Sucuri Website Security Platform",
+        detail: "Scan + firewall + nettoyage malware, offres Basic à Business",
+        prix: "20 à 50 €/mois",
       },
       {
-        label: "UX / UI designer freelance senior",
-        detail: "Design seul, prototype Figma, 10 à 20 jours",
-        prix: "6 000 à 15 000 €",
+        label: "Wordfence Premium (WordPress)",
+        detail: "Firewall WAF + scan + alerte temps réel + support premium",
+        prix: "10 à 25 €/mois",
       },
       {
-        label: "Agence design + développement",
-        detail: "Prestation clé en main, de la recherche utilisateur au livré",
-        prix: "20 000 à 80 000 €",
+        label: "Pentest ponctuel (annuel)",
+        detail: "Audit complet par un cabinet spécialisé, périmètre PME",
+        prix: "3 000 à 15 000 €",
       },
       {
-        label: "Chatbot classique avec habillage custom",
-        detail: "Setup Intercom/Zendesk + personnalisation CSS + intégrations",
-        prix: "5 000 à 15 000 € + abonnement",
+        label: "Consultant sécurité externe",
+        detail: "Mission ponctuelle, tarif journalier marché français",
+        prix: "500 à 1 200 €/jour",
+      },
+      {
+        label: "Audit RGPD complet",
+        detail: "Vérification conformité données personnelles + registre",
+        prix: "2 500 à 8 000 €",
       },
     ],
     resumeAxisolver:
-      "Modal plein cadre · 3 territoires qui dialoguent · fond aurore boréale · entièrement paramétrable à votre identité",
+      "Audit sécurité initial · surveillance 24/7 · rapport mensuel · blocage temps réel",
     bulletsDetailles: [
-      "Fond aurore boréale apaisant : voiles de couleur qui glissent très lentement, pensés pour ne pas distraire.",
-      "Entièrement paramétrable à votre identité : logo, couleurs, questions d'accueil, ton de voix.",
-      "Habillage sur-mesure posé avec vous pendant la session de réglage, avant mise en ligne.",
-      "Le visiteur voit sa fiche se remplir en direct — il tape son email de sa main, confirme sa demande. Fin du « allô, vous m'avez noté ? ».",
-      "Référence AXI-XXXX copiable à la clôture : chaque conversation devient un dossier traçable.",
+      "Scan initial complet : failles, CVE actives, plugins obsolètes, headers manquants, certificats expirés.",
+      "Alerte immédiate si régression détectée, avec procédure de correction à chaque alerte.",
+      "Côté widget : détection temps réel des prompt injections, bots agressifs, scraping, comportements anormaux.",
+      "Côté serveur (si vous donnez accès à vos logs) : détection des tentatives d'intrusion — bruteforce, SQL injection, path traversal.",
+      "Alerte en langage humain : « Hier à 3h47, 847 tentatives de login sur /admin depuis 12 IPs — voulez-vous que je les bloque ? ».",
+      "Après validation, règles de blocage exécutées en autonomie. Preuve de propriété DNS requise avant toute action côté serveur.",
     ],
   },
 ];
