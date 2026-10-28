@@ -35,7 +35,7 @@ export async function SiteHeader() {
             width={2172}
             height={724}
             priority
-            className="h-6 w-auto md:h-7"
+            className="h-10 w-auto md:h-12"
           />
         </Link>
 
@@ -47,17 +47,17 @@ export async function SiteHeader() {
             Présentation détaillée
           </Link>
           <Link
+            href="/comparatif"
+            className="hidden rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:inline-block md:text-base"
+          >
+            Comparatif
+          </Link>
+          <Link
             href="/parametrage-et-tarifs"
             className="rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:text-base"
           >
             Tarifs
           </Link>
-          <a
-            href="https://axihub.live"
-            className="hidden rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:inline-block md:text-base"
-          >
-            AxiHub
-          </a>
           {utilisateurConnecte ? (
             <Link
               href="/dashboard"
