@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { NavLinks } from "./nav-links";
 
 /**
  * Header de navigation globale axisolver.app — sticky, fond noir
@@ -40,30 +41,7 @@ export async function SiteHeader() {
         </Link>
 
         <nav className="flex items-center gap-1 md:gap-2">
-          <Link
-            href="/"
-            className="hidden rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:inline-block md:text-base"
-          >
-            Accueil
-          </Link>
-          <Link
-            href="/presentation-detaillee"
-            className="hidden rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:inline-block md:text-base"
-          >
-            Présentation détaillée
-          </Link>
-          <Link
-            href="/cas-usage"
-            className="hidden rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:inline-block md:text-base"
-          >
-            Cas d&apos;usage
-          </Link>
-          <Link
-            href="/comparatif"
-            className="hidden rounded-full px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-900 hover:text-amber-300 md:inline-block md:text-base"
-          >
-            Comparatif
-          </Link>
+          <NavLinks />
           {utilisateurConnecte ? (
             <Link
               href="/dashboard"

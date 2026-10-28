@@ -396,11 +396,8 @@ export function SliderMissions() {
       {/* Contenu du slide actif */}
       <div key={mission.slug} className="animate-[fadeIn_300ms_ease-out]">
         {/* Titre seul au-dessus du bandeau image */}
-        <div className="mx-auto max-w-5xl px-6 pt-16 text-center md:px-10 md:pt-24">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-            {mission.categorie}
-          </p>
-          <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
+        <div className="mx-auto max-w-5xl px-6 pt-12 text-center md:px-10 md:pt-16">
+          <h2 className="text-balance text-3xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl">
             {mission.titreMain}{" "}
             <span className="text-amber-400">{mission.titreAccent}</span>
           </h2>

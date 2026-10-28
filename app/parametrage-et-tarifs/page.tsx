@@ -17,14 +17,7 @@ export default function Page() {
       {/* ─────────── HERO ─────────── */}
       <section className="relative overflow-hidden border-b border-zinc-900 bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
         <div className="mx-auto max-w-5xl">
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 transition-colors hover:text-amber-300"
-          >
-            <span aria-hidden>←</span> Retour
-          </a>
-
-          <div className="mt-10 grid grid-cols-1 items-start gap-10 md:grid-cols-[1fr_auto] md:gap-14">
+          <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-[1fr_auto] md:gap-14">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
                 Paramétrage et tarifs

@@ -218,21 +218,9 @@ export default function Page() {
       <SiteHeader />
 
       {/* ─────────── HERO court centré au-dessus du slider ─────────── */}
-      <section className="bg-zinc-950 px-6 pt-10 md:px-10 md:pt-14">
-        <div className="mx-auto max-w-5xl">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500 transition-colors hover:text-amber-300"
-          >
-            <span aria-hidden>←</span> Retour
-          </Link>
-        </div>
-
-        <div className="mx-auto mt-12 max-w-5xl text-center md:mt-16">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-            Présentation détaillée
-          </p>
-          <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
+      <section className="bg-zinc-950 px-6 pt-8 md:px-10 md:pt-10">
+        <div className="mx-auto max-w-5xl text-center">
+          <h1 className="text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
             Tout ce qu&apos;AxiSolver{" "}
             <span className="text-amber-400">fait.</span>
           </h1>
