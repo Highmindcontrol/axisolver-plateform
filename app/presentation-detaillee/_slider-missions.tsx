@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
@@ -116,6 +117,90 @@ const MISSIONS_SLIDES: Mission[] = [
       "Chaque ticket est clôturé avec une référence AXI-XXXX copiable, utilisable comme identifiant de dossier côté équipe.",
       "Jamais de prix ferme ni de date confirmée annoncés par AxiSolver — il propose, votre équipe arbitre.",
       "Hors scope (climat, politique, question médicale ou juridique personnalisée) : il recadre poliment et revient à votre métier.",
+    ],
+  },
+  {
+    slug: "base-connaissances",
+    categorie: "Base de connaissances",
+    titreMain: "AxiSolver connaît votre site,",
+    titreAccent: "sans que vous ayez à l'écrire.",
+    pitch: (
+      <>
+        À l&apos;installation, AxiSolver{" "}
+        <span className="font-semibold text-white">
+          crawle automatiquement votre site
+        </span>{" "}
+        et ingère les PDF que vous lui donnez — CGV, catalogue, mode
+        d&apos;emploi, documentation technique, fiche produit. Chaque
+        réponse qu&apos;il donne à un visiteur{" "}
+        <span className="font-semibold text-white">
+          cite la page ou le document précis
+        </span>{" "}
+        d&apos;où elle vient. Aucun script à rédiger, aucun arbre de
+        décision à construire.
+      </>
+    ),
+    Icon: BookOpen,
+    image: "/presentation-base-connaissances-axi.png",
+    cards: [
+      {
+        titre: "Crawl automatique de votre site",
+        description:
+          "AxiSolver parcourt toutes vos pages, suit le sitemap, extrait les textes utiles. Re-crawl mensuel pour détecter les nouveautés. Rien à configurer.",
+      },
+      {
+        titre: "Ingestion de vos PDF",
+        description:
+          "Déposez vos CGV, catalogues, modes d'emploi, documents réglementaires. AxiSolver les lit, les découpe, les vectorise. Prêt à répondre en quelques minutes.",
+      },
+      {
+        titre: "Chaque réponse sourcée",
+        description:
+          "AxiSolver cite la page ou le document d'où vient l'information. Le visiteur sait d'où ça vient, votre équipe peut vérifier, zéro boîte noire.",
+      },
+    ],
+    tarifsHeader: "Combien coûte une base de connaissances pour chatbot",
+    tarifsSubtitle:
+      "AxiSolver absorbe tout seul : votre site et vos documents deviennent sa mémoire opérationnelle.",
+    tarifs: [
+      {
+        label: "Rédacteur FAQ / scripts chatbot interne",
+        detail:
+          "Poste junior, rédige et maintient les réponses — chaque nouvelle offre produit demande une mise à jour",
+        prix: "2 000 à 4 000 €/mois",
+      },
+      {
+        label: "Agence rédaction scripts chatbot",
+        detail: "Prestation one-shot d'écriture des arbres de dialogue + maintenance",
+        prix: "5 000 à 15 000 € + maintenance",
+      },
+      {
+        label: "Chatbot classique à arbres de dialogue",
+        detail:
+          "Botnation, Pandorabot, Landbot : abonnement + main-d'œuvre pour construire chaque scénario",
+        prix: "50 à 500 €/mois + config",
+      },
+      {
+        label: "Outil de knowledge base pure (Guru, Notion AI)",
+        detail: "Base de connaissances pour l'équipe interne, à rédiger manuellement",
+        prix: "15 à 50 €/user/mois",
+      },
+      {
+        label: "Développement RAG custom (crawler + embeddings + LLM)",
+        detail:
+          "Pipeline complet d'extraction, découpage, vectorisation, recherche sémantique — projet d'ingénierie",
+        prix: "20 000 à 80 000 €",
+      },
+    ],
+    resumeAxisolver:
+      "Crawl automatique · ingestion PDF · embeddings vectorisés · chaque réponse sourcée · re-crawl mensuel",
+    bulletsDetailles: [
+      "Embeddings vectorisés via OpenAI, recherche sémantique haute précision (pgvector + Supabase).",
+      "Support natif PDF (y compris scannés avec OCR si demandé) + URLs externes à ajouter manuellement.",
+      "Mise à jour continue : chaque modification de page détectée au re-crawl mensuel, re-vectorisation automatique.",
+      "Base évolutive : vous ajoutez vos propres documents à tout moment depuis votre dashboard.",
+      "Chaque citation est traçable : le visiteur peut suivre un lien vers la page source si vous l'activez.",
+      "Garde-fou honnêteté : si AxiSolver ne trouve pas l'information dans sa base, il le dit clairement — jamais d'invention.",
     ],
   },
   {
