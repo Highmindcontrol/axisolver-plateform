@@ -217,8 +217,8 @@ export default function Page() {
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       <SiteHeader />
 
-      {/* ─────────── HERO ─────────── */}
-      <section className="border-b border-zinc-900 bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
+      {/* ─────────── HERO court centré au-dessus du slider ─────────── */}
+      <section className="bg-zinc-950 px-6 pt-10 md:px-10 md:pt-14">
         <div className="mx-auto max-w-5xl">
           <Link
             href="/"
@@ -226,20 +226,16 @@ export default function Page() {
           >
             <span aria-hidden>←</span> Retour
           </Link>
-          <p className="mt-10 text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+        </div>
+
+        <div className="mx-auto mt-12 max-w-5xl text-center md:mt-16">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
             Présentation détaillée
           </p>
-          <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
-            Tout ce qu&apos;AxiSolver fait,{" "}
-            <span className="text-amber-400">
-              et tout ce qu&apos;il ne fait pas.
-            </span>
+          <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
+            Tout ce qu&apos;AxiSolver{" "}
+            <span className="text-amber-400">fait.</span>
           </h1>
-          <p className="mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-            Un seul produit, six missions, une doctrine stricte. Ici,
-            pas de promesse marketing — le détail de chaque capacité,
-            de chaque ligne rouge, de chaque garde-fou.
-          </p>
         </div>
       </section>
 
@@ -496,8 +492,8 @@ export default function Page() {
               Les six lignes rouges
             </p>
             <h2 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-5xl">
-              Ce qu&apos;AxiSolver{" "}
-              <span className="text-amber-400">ne fait jamais.</span>
+              …et tout ce qu&apos;AxiSolver{" "}
+              <span className="text-amber-400">ne fait pas.</span>
             </h2>
             <p className="mt-6 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
               AxiSolver est éduqué pour la mission accueil visiteur.

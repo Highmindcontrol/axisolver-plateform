@@ -344,20 +344,20 @@ export function SliderMissions() {
       className="border-b border-zinc-900 bg-zinc-950"
       aria-label="Missions AxiSolver"
     >
-      {/* Barre de navigation sticky au-dessus du contenu */}
-      <div className="sticky top-[65px] z-20 border-b border-zinc-900 bg-zinc-950/95 backdrop-blur-sm md:top-[73px]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 md:px-10">
+      {/* Barre de navigation : pleine largeur, fond amber subtle, sticky */}
+      <div className="sticky top-[65px] z-20 border-y border-amber-400/30 bg-gradient-to-b from-zinc-900 via-amber-400/5 to-zinc-900 shadow-lg shadow-amber-400/5 backdrop-blur-sm md:top-[73px]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-6 md:px-10 md:py-8">
           <button
             type="button"
             onClick={precedent}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/60 text-zinc-300 transition-colors hover:border-amber-400/40 hover:text-amber-300"
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-amber-400/40 bg-zinc-950/60 text-amber-300 transition-all hover:border-amber-400 hover:bg-amber-400 hover:text-zinc-950 md:h-14 md:w-14"
             aria-label="Mission précédente"
           >
-            <ChevronLeft className="h-5 w-5" strokeWidth={2} />
+            <ChevronLeft className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2.2} />
           </button>
 
-          {/* Pastilles indicateurs */}
-          <div className="flex items-center gap-2">
+          {/* Pastilles indicateurs — plus grosses, plus visibles */}
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
             {MISSIONS_SLIDES.map((m, i) => {
               const estActif = i === index;
               return (
@@ -365,19 +365,18 @@ export function SliderMissions() {
                   key={m.slug}
                   type="button"
                   onClick={() => setIndex(i)}
-                  className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest transition-all md:px-4 md:text-xs ${
+                  className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold uppercase tracking-widest transition-all md:gap-2.5 md:px-6 md:py-3 md:text-sm ${
                     estActif
-                      ? "bg-amber-400 text-zinc-950"
-                      : "border border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-amber-400/40 hover:text-amber-300"
+                      ? "bg-amber-400 text-zinc-950 shadow-lg shadow-amber-400/30"
+                      : "border border-amber-400/30 bg-zinc-950/50 text-zinc-200 hover:border-amber-400 hover:bg-amber-400/10 hover:text-amber-300"
                   }`}
                   aria-pressed={estActif}
                 >
                   <m.Icon
-                    className="hidden h-3.5 w-3.5 md:inline-block"
+                    className="h-4 w-4 md:h-5 md:w-5"
                     strokeWidth={2}
                   />
-                  <span className="hidden md:inline">{m.categorie}</span>
-                  <span className="md:hidden">{i + 1}</span>
+                  <span className="hidden sm:inline">{m.categorie}</span>
                 </button>
               );
             })}
@@ -386,10 +385,10 @@ export function SliderMissions() {
           <button
             type="button"
             onClick={suivant}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900/60 text-zinc-300 transition-colors hover:border-amber-400/40 hover:text-amber-300"
+            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-amber-400/40 bg-zinc-950/60 text-amber-300 transition-all hover:border-amber-400 hover:bg-amber-400 hover:text-zinc-950 md:h-14 md:w-14"
             aria-label="Mission suivante"
           >
-            <ChevronRight className="h-5 w-5" strokeWidth={2} />
+            <ChevronRight className="h-6 w-6 md:h-7 md:w-7" strokeWidth={2.2} />
           </button>
         </div>
       </div>
