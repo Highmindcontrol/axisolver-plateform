@@ -216,6 +216,64 @@ const TARIFS_SECURITE: Array<{
   },
 ];
 
+const MISSIONS_SEO: Array<{ titre: string; description: string }> = [
+  {
+    titre: "Audit initial + re-check hebdomadaire",
+    description:
+      "AxiSolver scanne votre site à l'installation, puis chaque semaine. Mots-clés, structure, balises, maillage interne, performance Core Web Vitals. Tout est documenté.",
+  },
+  {
+    titre: "Pages de fuite et parcours brisés",
+    description:
+      "Détection des pages qui perdent les visiteurs, des 404 silencieuses, des redirections cassées, des liens morts. Chaque fuite identifiée est une opportunité de revenu récupérée.",
+  },
+  {
+    titre: "Rapport mensuel narratif",
+    description:
+      "Pas un dashboard de métriques indigeste : un rapport mensuel en français qui raconte votre progression, les actions prioritaires, et le travail déjà fait par AxiSolver.",
+  },
+];
+
+const TARIFS_SEO: Array<{
+  label: string;
+  detail: string;
+  prix: string;
+}> = [
+  {
+    label: "Agence SEO (full service)",
+    detail:
+      "Mission mensuelle avec audits, contenu, netlinking, suivi positions",
+    prix: "1 500 à 5 000 €/mois",
+  },
+  {
+    label: "Consultant SEO freelance senior",
+    detail: "Mission continue 2-3 jours/mois, marché français",
+    prix: "800 à 2 500 €/mois",
+  },
+  {
+    label: "Audit SEO ponctuel",
+    detail: "Audit technique + stratégique one-shot par un consultant",
+    prix: "1 500 à 5 000 €",
+  },
+  {
+    label: "Logiciels dédiés (Semrush, Ahrefs, Moz Pro)",
+    detail:
+      "Abonnement SaaS pour recherche de mots-clés, backlinks, suivi positions",
+    prix: "100 à 400 €/mois",
+  },
+  {
+    label: "Salarié SEO Manager interne",
+    detail:
+      "Poste junior à mi-carrière, salaire brut + charges employeur",
+    prix: "3 000 à 5 000 €/mois",
+  },
+  {
+    label: "Rédacteur SEO freelance",
+    detail: "Contenu optimisé publié mensuellement sur votre blog",
+    prix: "500 à 2 000 €/mois",
+  },
+];
+
 const MISSIONS_ADS: Array<{ titre: string; description: string }> = [
   {
     titre: "Montage complet de vos campagnes",
@@ -534,6 +592,126 @@ export default function PageComparatif() {
                       <p className="mt-1 text-xs text-zinc-400">
                         Audit sécurité initial · surveillance 24/7 ·
                         rapport mensuel · blocage temps réel
+                      </p>
+                    </td>
+                    <td className="px-4 py-5 text-right font-mono text-lg font-bold text-amber-300 md:px-6">
+                      inclus
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Section SEO ─── */}
+        <section className="border-b border-zinc-900 bg-zinc-950">
+          <div className="mx-auto max-w-6xl px-6 pt-24 md:px-10 md:pt-32">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+                Référencement
+              </p>
+              <h2 className="mt-5 text-balance text-3xl font-semibold leading-[1.1] tracking-tight text-white md:text-5xl lg:text-6xl">
+                Fini le chaos SEO.{" "}
+                <span className="text-amber-400">
+                  AxiSolver orchestre tout.
+                </span>
+              </h2>
+              <p className="mx-auto mt-7 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
+                Mots-clés, contenu, netlinking, indexation, performance,
+                suivi des positions… Faire du SEO sérieusement, c&apos;est{" "}
+                <span className="font-semibold text-white">
+                  un métier à temps plein
+                </span>{" "}
+                ou une agence spécialisée. AxiSolver automatise la veille,
+                détecte les failles, et vous présente chaque mois un
+                rapport clair pour décider.
+              </p>
+            </div>
+
+            <div className="mt-16 grid grid-cols-1 gap-6 md:mt-20 md:grid-cols-3">
+              {MISSIONS_SEO.map((m) => (
+                <article
+                  key={m.titre}
+                  className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7 md:p-8"
+                >
+                  <Search
+                    className="h-9 w-9 text-amber-400"
+                    strokeWidth={1.5}
+                  />
+                  <h3 className="mt-5 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                    {m.titre}
+                  </h3>
+                  <p className="mt-3 text-sm leading-relaxed text-zinc-300 md:text-base">
+                    {m.description}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          {/* Bandeau image chaos SEO vs AXI */}
+          <div
+            className="relative mt-16 h-56 w-full bg-cover bg-center bg-no-repeat md:mt-20 md:h-72"
+            style={{
+              backgroundImage: "url(/comparatif-seo-chaos-vs-axi.png)",
+            }}
+            aria-hidden
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/30 via-transparent to-zinc-950/60" />
+          </div>
+
+          <div className="mx-auto max-w-6xl px-6 pb-24 md:px-10 md:pb-32">
+            {/* Comparatif tarifaire SEO */}
+            <div className="mt-16 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40">
+              <div className="border-b border-zinc-800 bg-zinc-950/80 px-6 py-5 md:px-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                  Combien coûte un vrai SEO suivi
+                </p>
+                <h3 className="mt-2 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  AxiSolver automatise la veille et vous présente les
+                  priorités chaque mois.
+                </h3>
+              </div>
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-zinc-800">
+                    <th className="px-6 py-4 text-left text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-8">
+                      Solution
+                    </th>
+                    <th className="px-4 py-4 text-right text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 md:px-6">
+                      Prix marché
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {TARIFS_SEO.map((t, i) => (
+                    <tr
+                      key={t.label}
+                      className={
+                        i % 2 === 0 ? "bg-zinc-900/30" : "bg-transparent"
+                      }
+                    >
+                      <td className="px-6 py-5 text-zinc-200 md:px-8">
+                        <p className="font-medium">{t.label}</p>
+                        <p className="mt-1 text-xs text-zinc-500">
+                          {t.detail}
+                        </p>
+                      </td>
+                      <td className="px-4 py-5 text-right font-mono font-semibold text-white md:px-6">
+                        {t.prix}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="bg-amber-400/10">
+                    <td className="px-6 py-5 md:px-8">
+                      <p className="font-semibold text-amber-300">
+                        AxiSolver (toutes formules)
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-400">
+                        Audit SEO initial · re-check hebdomadaire ·
+                        détection pages de fuite · rapport mensuel
+                        narratif
                       </p>
                     </td>
                     <td className="px-4 py-5 text-right font-mono text-lg font-bold text-amber-300 md:px-6">
