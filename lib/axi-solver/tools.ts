@@ -68,7 +68,7 @@ export type EvenementPanneau =
       visiteursMois: number;
       secteurSlug: string;
       usagePrincipal: string;
-      tailleEquipe: string;
+      preferenceVoix: string;
     };
 
 /** Champs de la fiche visiteur. */
@@ -134,11 +134,16 @@ export type EtatPanneauTravail = {
         visiteursMois: number;
         secteurSlug: string;
         usagePrincipal: string;
-        tailleEquipe: string;
-        formuleRecommandee: "text" | "classique" | "premium";
-        prixTextOnly: number;
-        prixClassique: number;
-        prixPremium: number;
+        preferenceVoix: string;
+        formuleRecommandee:
+          | "text-s"
+          | "text-l"
+          | "premium-s"
+          | "premium-l";
+        prixTextS: number;
+        prixTextL: number;
+        prixPremiumS: number;
+        prixPremiumL: number;
         tauxEffectif: number;
         conversationsMois: number;
       }
@@ -477,7 +482,7 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
   {
     name: "estimer_tarif_axisolver",
     description:
-      "Calcule et affiche dans le panneau de travail le tarif AxiSolver recommandé pour le visiteur. À appeler APRÈS avoir obtenu en conversation les 5 informations suivantes : (1) il a un site internet (sinon pas d'estimation possible, propose plutôt AXI Vitrine Complète), (2) volume de visiteurs mensuels (approximation OK), (3) secteur d'activité parmi la liste autorisée, (4) usage principal du site (support/vente/leads/vitrine/mixte), (5) taille de l'équipe actuelle (aucune/une/petite/grande). Le tool CALCULE le prix officiel via la formule interne — ne cite jamais un chiffre toi-même, laisse le panneau l'afficher. Après l'appel, enchaîne vocalement avec une phrase du type « Voici votre estimation, visible à gauche. La formule qui vous correspond, c'est AxiSolver [nom], à [prix] euros par mois hors taxes. »",
+      "Affiche dans le panneau de travail la formule AxiSolver recommandée pour le visiteur. À appeler APRÈS avoir obtenu en conversation les 5 informations suivantes : (1) il a un site internet (sinon propose plutôt AXI Vitrine Complète), (2) volume de visiteurs mensuels (approximation OK), (3) secteur d'activité parmi la liste autorisée, (4) usage principal du site (support/vente/leads/vitrine/mixte), (5) préférence voix ou écrit. Les tarifs sont FIXES : Text S 49 €, Text L 69 €, Premium S 99 € (phare), Premium L 129 €. Le tool renvoie la formule recommandée + le détail des 4 formules — annonce vocalement UNIQUEMENT la formule recommandée + son prix (phrase type « Voici votre recommandation, visible à gauche. La formule qui vous correspond, c'est AxiSolver Premium à 99 euros par mois hors taxes. »)",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -485,7 +490,7 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
           type: "number",
           minimum: 1,
           description:
-            "Nombre de visiteurs mensuels du site, approximation OK (ex. 5000, 20000).",
+            "Nombre de visiteurs mensuels du site, approximation OK (ex. 5000, 20000). Le palier qui fait basculer S → L est à 10 000.",
         },
         secteurSlug: {
           type: "string",
@@ -509,18 +514,18 @@ export const TOOLS_AXISOLVER: ToolDefinition[] = [
           description:
             "Usage principal du site : support client, vente en ligne, génération de leads, vitrine corporate, ou mixte.",
         },
-        tailleEquipe: {
+        preferenceVoix: {
           type: "string",
-          enum: ["aucune", "une", "petite", "grande"],
+          enum: ["voix", "ecrit"],
           description:
-            "Taille de l'équipe qui répond aujourd'hui aux visiteurs : aucune personne, une seule, petite équipe 2-5, grande équipe 5+.",
+            "Préférence du visiteur : 'voix' = formule Premium avec voix ElevenLabs, 'ecrit' = formule Text Only sans voix. En cas de doute, propose 'voix' (Premium est notre produit phare).",
         },
       },
       required: [
         "visiteursMois",
         "secteurSlug",
         "usagePrincipal",
-        "tailleEquipe",
+        "preferenceVoix",
       ],
     },
   },

@@ -11,7 +11,7 @@ export function BoutonSouscrire({
   cta,
   variant = "primaire",
 }: {
-  plan: "text" | "classique" | "premium";
+  plan: "text-s" | "text-l" | "premium-s" | "premium-l";
   cta: string;
   variant?: "primaire" | "secondaire";
 }) {

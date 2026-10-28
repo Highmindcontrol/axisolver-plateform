@@ -1,33 +1,38 @@
 /**
- * Logique de tarification AxiSolver partagée.
+ * Logique de recommandation AxiSolver partagée (grille 2×2
+ * voix × trafic, doctrine 28 oct 2026).
  *
  * Utilisée par :
- *   - le questionnaire guidé public (/parametrage-et-tarifs)
- *   - l'ancien simulateur à sliders (/parametrage-et-tarifs/_simulateur.tsx)
- *   - le tool AXI `estimer_tarif_axisolver` quand le visiteur passe par le widget
+ *   - le simulateur / questionnaire public /parametrage-et-tarifs
+ *   - le tool AXI `estimer_tarif_axisolver` quand le visiteur
+ *     passe par le widget
  *
- * Logique :
- *   taux effectif = taux typique du secteur × multiplicateur usage
- *   conversations/mois = visiteurs × taux / 100
- *   prix = abonnement de base + (conversations - incluses) × prix_supplément
+ * La grille a 4 formules (voir lib/stripe/formules.ts). Cette
+ * fonction NE calcule PAS de prix dynamique — les prix sont fixes
+ * et affichés sur les cartes publiques. Elle se contente de
+ * recommander LAQUELLE des 4 formules convient le mieux au profil
+ * du visiteur, selon 3 signaux :
+ *   1. Type de site (secteur) → détermine le taux d'engagement
+ *   2. Volume de visiteurs mensuels → détermine le palier S / L
+ *   3. Préférence vocale (binaire) → détermine Text ou Premium
+ *
+ * Palier soft à 10 000 visiteurs/mois (conseil, pas contrainte).
  */
 
 import { SECTEURS, type SlugSecteur, type Secteur } from "./secteurs";
 
-export type SlugFormule = "text" | "classique" | "premium";
+export type SlugFormule = "text-s" | "text-l" | "premium-s" | "premium-l";
 
 export type UsagePrincipal =
-  | "support" // Support client / SAV / aide
-  | "vente" // Vente en ligne (e-commerce)
-  | "leads" // Génération / qualification de leads (B2B, services)
-  | "vitrine" // Présence corporate, pas de vente directe
-  | "mixte"; // Plusieurs usages combinés
+  | "support"
+  | "vente"
+  | "leads"
+  | "vitrine"
+  | "mixte";
 
-export type TailleEquipe =
-  | "aucune" // Personne pour répondre aujourd'hui
-  | "une" // 1 personne (le dirigeant ou un.e assistant.e)
-  | "petite" // 2 à 5 personnes
-  | "grande"; // Plus de 5 personnes
+export type TailleEquipe = "aucune" | "une" | "petite" | "grande";
+
+export type PreferenceVoix = "voix" | "ecrit";
 
 /** Profil complet collecté par le questionnaire ou par AXI. */
 export type ProfilProspect = {
@@ -37,64 +42,70 @@ export type ProfilProspect = {
   secteurSlug: SlugSecteur;
   usagePrincipal: UsagePrincipal;
   tailleEquipe: TailleEquipe;
+  preferenceVoix: PreferenceVoix;
 };
+
+/** Palier de trafic qui fait basculer S → L. */
+export const PALIER_TRAFIC = 10000;
 
 export type Formule = {
   slug: SlugFormule;
   nom: string;
   sousTitre: string;
-  voix: string;
-  abonnementBase: number;
+  voix: "Écrit seul" | "ElevenLabs";
+  trafic: "Petit (< 10 000 visiteurs/mois)" | "Grand (≥ 10 000 visiteurs/mois)";
+  prixMensuelHt: number;
   conversationsIncluses: number;
-  prixConversationSupp: number;
-  points: string[];
+  prixPackSuppHt: number;
+  volumeConvPackSupp: number;
+  phare?: boolean;
 };
 
 export const FORMULES: Formule[] = [
   {
-    slug: "text",
-    nom: "AxiSolver Text Only",
-    sousTitre: "L'essentiel sans la voix.",
-    voix: "Écrit uniquement",
-    abonnementBase: 39,
-    conversationsIncluses: 200,
-    prixConversationSupp: 0.08,
-    points: [
-      "Les six missions AxiSolver",
-      "Chat écrit multilingue",
-      "Compréhension et résolution complètes",
-      "Aucune voix synthétique",
-    ],
+    slug: "text-s",
+    nom: "AxiSolver Text Only — Petit",
+    sousTitre: "L'essentiel écrit, pour les sites qui démarrent.",
+    voix: "Écrit seul",
+    trafic: "Petit (< 10 000 visiteurs/mois)",
+    prixMensuelHt: 49,
+    conversationsIncluses: 300,
+    prixPackSuppHt: 10,
+    volumeConvPackSupp: 100,
   },
   {
-    slug: "classique",
-    nom: "AxiSolver Classique",
-    sousTitre: "Voix neuronale premium Azure.",
-    voix: "Voix neuronale Azure",
-    abonnementBase: 59,
-    conversationsIncluses: 150,
-    prixConversationSupp: 0.35,
-    points: [
-      "Les six missions AxiSolver",
-      "Chat écrit + voix synthétique Azure",
-      "Qualité vocale professionnelle",
-      "Toutes langues européennes",
-    ],
+    slug: "text-l",
+    nom: "AxiSolver Text Only — Grand",
+    sousTitre: "L'essentiel écrit, pour les sites à forte audience.",
+    voix: "Écrit seul",
+    trafic: "Grand (≥ 10 000 visiteurs/mois)",
+    prixMensuelHt: 69,
+    conversationsIncluses: 500,
+    prixPackSuppHt: 10,
+    volumeConvPackSupp: 100,
   },
   {
-    slug: "premium",
-    nom: "AxiSolver Premium",
-    sousTitre: "La voix bluffante ElevenLabs.",
-    voix: "Voix ultra-réaliste ElevenLabs",
-    abonnementBase: 149,
-    conversationsIncluses: 100,
-    prixConversationSupp: 1.8,
-    points: [
-      "Les six missions AxiSolver",
-      "Chat écrit + voix ElevenLabs",
-      "Rendu vocal indiscernable d'un humain",
-      "Idéal pour sites premium et marques fortes",
-    ],
+    slug: "premium-s",
+    nom: "AxiSolver Premium — Petit",
+    sousTitre: "La voix ElevenLabs, pour la majorité des sites.",
+    voix: "ElevenLabs",
+    trafic: "Petit (< 10 000 visiteurs/mois)",
+    prixMensuelHt: 99,
+    conversationsIncluses: 300,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
+    phare: true,
+  },
+  {
+    slug: "premium-l",
+    nom: "AxiSolver Premium — Grand",
+    sousTitre: "La voix ElevenLabs, pour les sites qui scalent.",
+    voix: "ElevenLabs",
+    trafic: "Grand (≥ 10 000 visiteurs/mois)",
+    prixMensuelHt: 129,
+    conversationsIncluses: 500,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
   },
 ];
 
@@ -104,15 +115,15 @@ export const FORMULES: Formule[] = [
  * son widget beaucoup moins qu'un portail support actif.
  */
 const MULTIPLICATEUR_USAGE: Record<UsagePrincipal, number> = {
-  support: 1.4, // Besoin fort → engagement supérieur
-  vente: 1.0, // Baseline secteur
-  leads: 1.1, // Prospect pré-chaud, cherche info
-  vitrine: 0.5, // Visiteur passif, peu de besoin exprimé
-  mixte: 1.0, // Baseline secteur
+  support: 1.4,
+  vente: 1.0,
+  leads: 1.1,
+  vitrine: 0.5,
+  mixte: 1.0,
 };
 
 export function getFormule(slug: SlugFormule): Formule {
-  return FORMULES.find((f) => f.slug === slug) ?? FORMULES[1];
+  return FORMULES.find((f) => f.slug === slug) ?? FORMULES[2];
 }
 
 export function getSecteur(slug: SlugSecteur): Secteur {
@@ -121,7 +132,6 @@ export function getSecteur(slug: SlugSecteur): Secteur {
 
 /**
  * Taux d'utilisation effectif, en pourcentage.
- * Combine le taux du secteur et l'usage principal du site.
  */
 export function tauxEffectif(
   secteurSlug: SlugSecteur,
@@ -129,7 +139,6 @@ export function tauxEffectif(
 ): number {
   const secteur = getSecteur(secteurSlug);
   const taux = secteur.tauxUtilisation * MULTIPLICATEUR_USAGE[usage];
-  // Garde-fou : jamais plus de 40 % (hors contexte exceptionnel)
   return Math.min(40, Math.max(0.1, Number(taux.toFixed(2))));
 }
 
@@ -140,57 +149,22 @@ export function conversationsEstimees(
   return Math.ceil(visiteursMois * (tauxPct / 100));
 }
 
-export function calculerPrix(
-  formule: Formule,
-  visiteursMois: number,
-  tauxPct: number,
-): number {
-  const conv = conversationsEstimees(visiteursMois, tauxPct);
-  const sup = Math.max(0, conv - formule.conversationsIncluses);
-  return Math.round(formule.abonnementBase + sup * formule.prixConversationSupp);
-}
-
 /**
- * Formule recommandée selon le profil complet.
+ * Formule recommandée pour le profil donné.
  *
- * DOCTRINE COMMERCIALE 25 oct 2026 (François) :
- *   La puissance d'AxiSolver, c'est la voix. On ne propose JAMAIS
- *   Text Only d'office. L'utilisateur qui veut Text Only doit le
- *   signaler explicitement (budget serré, allergie à la voix).
- *   Défaut quasi-systématique : AxiSolver Classique.
+ * Logique :
+ *   1. Préférence voix → axe Text ou Premium
+ *   2. Volume visiteurs vs palier 10 000 → axe S ou L
  *
- * Heuristique nouvelle :
- *   - Gros volume (> 1 000 conv/mois) ET secteur premium
- *     (e-commerce premium, médical-juridique, immobilier) → Premium
- *   - Support client fort ET gros volume → Premium
- *   - Tous les autres cas → Classique (défaut doctrinal)
- *   - Text Only n'est jamais renvoyé par cette fonction. L'utilisateur
- *     qui le choisit explicitement le fera via l'UI (badge « option
- *     budget serré ») ou via AXI en conversation sur signal explicite.
+ * Le volume est un soft-indicator : si le prospect a 11 000 visiteurs,
+ * on lui conseille le palier Grand, mais rien ne l'empêche de prendre
+ * Petit et de payer des packs supplémentaires si le dépassement est
+ * faible. Le dashboard l'alertera si son usage réel dépasse son forfait.
  */
 export function recommanderFormule(profil: ProfilProspect): SlugFormule {
-  const taux = tauxEffectif(profil.secteurSlug, profil.usagePrincipal);
-  const conv = conversationsEstimees(profil.visiteursMois, taux);
-
-  const premiumSecteurs: SlugSecteur[] = [
-    "ecommerce-premium",
-    "medical-juridique",
-    "immobilier",
-  ];
-
-  // Premium : grosses PME avec vrai volume ET contexte à forte valeur
-  if (profil.usagePrincipal === "support" && conv > 1000) return "premium";
-  if (premiumSecteurs.includes(profil.secteurSlug) && conv > 500) return "premium";
-  if (profil.visiteursMois > 30000 && premiumSecteurs.includes(profil.secteurSlug)) {
-    return "premium";
-  }
-
-  // Défaut doctrinal : Classique dans tous les autres cas.
-  // Même pour les petits volumes ou les vitrines passives, on
-  // propose Classique à l'écran — les 20 € de différence vs Text
-  // Only sont facilement justifiables, et c'est au client de
-  // demander Text Only s'il préfère économiser.
-  return "classique";
+  const base = profil.preferenceVoix === "voix" ? "premium" : "text";
+  const taille = profil.visiteursMois >= PALIER_TRAFIC ? "l" : "s";
+  return `${base}-${taille}` as SlugFormule;
 }
 
 export function formaterEuros(n: number): string {
@@ -206,7 +180,6 @@ export function formaterVisiteurs(n: number): string {
   return n.toLocaleString("fr-FR");
 }
 
-/** Libellé lisible pour chaque usage principal. */
 export const LIBELLES_USAGE: Record<UsagePrincipal, string> = {
   support: "Support client / SAV / aide",
   vente: "Vente en ligne (e-commerce)",
@@ -215,7 +188,6 @@ export const LIBELLES_USAGE: Record<UsagePrincipal, string> = {
   mixte: "Plusieurs usages combinés",
 };
 
-/** Libellé lisible pour chaque taille d'équipe. */
 export const LIBELLES_EQUIPE: Record<TailleEquipe, string> = {
   aucune: "Personne, pour l'instant",
   une: "Une personne (moi, ou un.e assistant.e)",
@@ -223,7 +195,11 @@ export const LIBELLES_EQUIPE: Record<TailleEquipe, string> = {
   grande: "Une vraie équipe (plus de 5 personnes)",
 };
 
-/** Fourchettes prédéfinies de volume de visiteurs mensuels. */
+export const LIBELLES_VOIX: Record<PreferenceVoix, string> = {
+  voix: "Avec voix (ElevenLabs ultra-réaliste)",
+  ecrit: "Écrit uniquement (sans voix synthétique)",
+};
+
 export const RANGES_VISITEURS: Array<{
   slug: string;
   libelle: string;

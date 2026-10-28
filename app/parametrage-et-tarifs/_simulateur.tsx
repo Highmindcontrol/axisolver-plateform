@@ -1,148 +1,71 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BoutonLancerAxiSolver } from "@/components/chat/bouton-lancer";
+import Link from "next/link";
+import { Check, Sparkles } from "lucide-react";
 import { SECTEURS, type SlugSecteur } from "@/lib/axi-solver/secteurs";
+import {
+  FORMULES,
+  PALIER_TRAFIC,
+  conversationsEstimees,
+  getFormule,
+  recommanderFormule,
+  tauxEffectif,
+  type PreferenceVoix,
+  type SlugFormule,
+} from "@/lib/axi-solver/tarification";
 
 /**
- * Simulateur tarifaire AxiSolver — client component.
+ * Simulateur AxiSolver — Option B : questionnaire de recommandation.
  *
- * Modèle :
- *   - Taux d'utilisation (visiteurs qui engagent une conversation)
- *     calibré selon le type d'activité du site (voir lib/secteurs.ts
- *     pour les sources). Peut être ajusté manuellement.
- *   - Text Only : pas de TTS → coût technique faible
- *   - Classique : TTS Azure (voix neuronale) → coût moyen
- *   - Premium : TTS ElevenLabs (voix bluffante) → coût élevé
+ * Les prix sont fixes (49/69/99/129 €) et affichés sur les 4 cartes
+ * en bas. Ce composant aide juste le visiteur à choisir la bonne
+ * formule parmi les 4 selon 3 signaux :
+ *   1. Type de site (secteur)
+ *   2. Volume de visiteurs mensuels (slider)
+ *   3. Voix ou pas voix (toggle)
  *
- * Formule par formule : abonnement de base + supplément proportionnel
- * au volume de conversations au-delà du seuil inclus.
+ * À la fin, affiche la formule recommandée + une marge de confort
+ * (conversations estimées vs quota inclus) + les 3 autres formules
+ * en cartes secondaires.
  */
 
-type SlugFormule = "text" | "classique" | "premium";
-
-type Formule = {
-  slug: SlugFormule;
-  nom: string;
-  sousTitre: string;
-  voix: string;
-  abonnementBase: number; // € HT / mois
-  conversationsIncluses: number;
-  prixConversationSupp: number; // € HT / conversation au-delà du seuil
-  points: string[];
-};
-
-const FORMULES: Formule[] = [
-  {
-    slug: "text",
-    nom: "AxiSolver Text Only",
-    sousTitre: "Toutes les missions. Juste l'écrit.",
-    voix: "Écrit uniquement",
-    abonnementBase: 49,
-    conversationsIncluses: 500,
-    prixConversationSupp: 0.1,
-    points: [
-      "Les six missions AxiSolver",
-      "SEO · Analytics · Shield · Ads intelligents inclus",
-      "Chat écrit multilingue",
-      "Compréhension et résolution complètes",
-    ],
-  },
-  {
-    slug: "classique",
-    nom: "AxiSolver Classique",
-    sousTitre: "Voix neuronale premium Azure.",
-    voix: "Voix neuronale Azure",
-    abonnementBase: 69,
-    conversationsIncluses: 400,
-    prixConversationSupp: 0.2,
-    points: [
-      "Les six missions AxiSolver",
-      "Chat écrit + voix synthétique Azure",
-      "Qualité vocale professionnelle",
-      "Toutes langues européennes",
-    ],
-  },
-  {
-    slug: "premium",
-    nom: "AxiSolver Premium",
-    sousTitre: "La voix bluffante ElevenLabs.",
-    voix: "Voix ultra-réaliste ElevenLabs",
-    abonnementBase: 99,
-    conversationsIncluses: 300,
-    prixConversationSupp: 0.45,
-    points: [
-      "Les six missions AxiSolver",
-      "Chat écrit + voix ElevenLabs",
-      "Rendu vocal indiscernable d'un humain",
-      "Idéal pour sites premium et marques fortes",
-    ],
-  },
-];
-
-function calculerPrix(
-  formule: Formule,
-  visiteursMois: number,
-  tauxPct: number,
-): number {
-  const conversationsMois = Math.ceil(visiteursMois * (tauxPct / 100));
-  const sup = Math.max(0, conversationsMois - formule.conversationsIncluses);
-  const prix = formule.abonnementBase + sup * formule.prixConversationSupp;
-  return Math.round(prix);
-}
-
-function formaterEuros(n: number): string {
-  return `${n.toLocaleString("fr-FR")} €`;
-}
-
-function formaterVisiteurs(n: number): string {
-  if (n >= 1000) {
-    return `${(n / 1000).toLocaleString("fr-FR", {
-      maximumFractionDigits: 1,
-    })} k`;
-  }
-  return n.toLocaleString("fr-FR");
-}
-
 export function Simulateur() {
-  const [visiteurs, setVisiteurs] = useState(5000);
-  const [choix, setChoix] = useState<SlugFormule>("classique");
   const [secteurSlug, setSecteurSlug] = useState<SlugSecteur>("ecommerce");
+  const [visiteurs, setVisiteurs] = useState(5000);
+  const [preferenceVoix, setPreferenceVoix] = useState<PreferenceVoix>("voix");
 
   const secteur = useMemo(
-    () =>
-      SECTEURS.find((s) => s.slug === secteurSlug) ?? SECTEURS[0],
+    () => SECTEURS.find((s) => s.slug === secteurSlug) ?? SECTEURS[0],
     [secteurSlug],
   );
 
-  // Taux ajustable manuellement, initialisé sur la valeur typique
-  // du secteur. Resynchronisé quand le secteur change.
-  const [tauxPct, setTauxPct] = useState(secteur.tauxUtilisation);
-  const [tauxManuel, setTauxManuel] = useState(false);
-
-  // Si l'utilisateur change de secteur, on remet le taux par défaut
-  // du secteur SAUF s'il a explicitement bougé le taux.
-  function changerSecteur(slug: SlugSecteur) {
-    setSecteurSlug(slug);
-    const sec = SECTEURS.find((s) => s.slug === slug);
-    if (sec) {
-      setTauxPct(sec.tauxUtilisation);
-      setTauxManuel(false);
-    }
-  }
-
-  const conversationsEstimees = useMemo(
-    () => Math.ceil(visiteurs * (tauxPct / 100)),
-    [visiteurs, tauxPct],
+  const taux = useMemo(
+    () => tauxEffectif(secteurSlug, "vente"),
+    [secteurSlug],
+  );
+  const conv = useMemo(
+    () => conversationsEstimees(visiteurs, taux),
+    [visiteurs, taux],
   );
 
-  const prixParFormule = useMemo(
+  const slugRecommande = useMemo<SlugFormule>(
     () =>
-      Object.fromEntries(
-        FORMULES.map((f) => [f.slug, calculerPrix(f, visiteurs, tauxPct)]),
-      ) as Record<SlugFormule, number>,
-    [visiteurs, tauxPct],
+      recommanderFormule({
+        aSite: true,
+        visiteursMois: visiteurs,
+        secteurSlug,
+        usagePrincipal: "vente",
+        tailleEquipe: "petite",
+        preferenceVoix,
+      }),
+    [visiteurs, secteurSlug, preferenceVoix],
   );
+
+  const formuleRecommandee = getFormule(slugRecommande);
+  const margeAvecQuota =
+    formuleRecommandee.conversationsIncluses - conv;
+  const dansLeQuota = margeAvecQuota >= 0;
 
   return (
     <section className="bg-zinc-950 px-6 py-20 md:px-10 md:py-28">
@@ -152,26 +75,25 @@ export function Simulateur() {
             Simulateur
           </p>
           <h2 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight text-white md:text-6xl">
-            Votre tarif,{" "}
-            <span className="text-amber-400">en direct.</span>
+            Quelle formule{" "}
+            <span className="text-amber-400">pour vous&nbsp;?</span>
           </h2>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-zinc-300 md:text-lg">
-            Faites bouger le volume de visiteurs mensuels de votre
-            site. Chaque formule s&apos;ajuste. Vous voyez
-            instantanément ce que paie votre site.
+            Trois questions, pas une de plus. AxiSolver vous indique
+            quelle formule des quatre vous correspond, et le volume de
+            conversations auquel vous pouvez vous attendre.
           </p>
         </div>
 
-        {/* ─── Type d'activité ─── */}
+        {/* Question 1 — Secteur */}
         <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 md:p-10">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-            Votre type d&apos;activité
+            1. Quel type de site avez-vous&nbsp;?
           </p>
           <p className="mt-2 text-sm leading-relaxed text-zinc-400 md:max-w-xl">
-            Chaque activité a son propre taux d&apos;utilisation
-            typique. Choisissez celle qui correspond le mieux —
-            AxiSolver pré-remplira le taux moyen observé dans
-            l&apos;industrie pour ce secteur.
+            Chaque activité a son propre taux d&apos;engagement typique.
+            Nous nous basons sur des études publiques (voir l&apos;onglet
+            Sources en bas de page).
           </p>
 
           <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -181,7 +103,7 @@ export function Simulateur() {
                 <button
                   key={s.slug}
                   type="button"
-                  onClick={() => changerSecteur(s.slug)}
+                  onClick={() => setSecteurSlug(s.slug)}
                   className={`rounded-xl border px-4 py-3 text-left text-sm transition-all ${
                     estSelectionne
                       ? "border-amber-400 bg-amber-400/10 text-white"
@@ -205,33 +127,25 @@ export function Simulateur() {
           </div>
 
           <p className="mt-5 rounded-lg border border-zinc-800 bg-zinc-950/40 px-4 py-3 text-xs leading-relaxed text-zinc-400">
-            {secteur.description}{" "}
-            <span className="text-zinc-300">
-              Fourchette typique observée : {secteur.fourchette[0]}%
-              à {secteur.fourchette[1]}%.
-            </span>
+            {secteur.description}
           </p>
         </div>
 
-        {/* ─── Potard volumétrie ─── */}
+        {/* Question 2 — Volume de visiteurs */}
         <div className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 md:p-10">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Volume de visiteurs
+                2. Combien de visiteurs par mois&nbsp;?
               </p>
               <p className="mt-2 text-sm leading-relaxed text-zinc-400 md:max-w-md">
-                Combien de visiteurs mensuels pour votre site ?
-                Avec le secteur{" "}
-                <span className="text-white">« {secteur.nom} »</span>,
-                on estime qu&apos;environ{" "}
-                <span className="text-white">{tauxPct}%</span>{" "}
-                engagent une conversation.
+                Le palier qui fait basculer vers un plus gros forfait est
+                à <span className="text-white">10 000 visiteurs</span>.
               </p>
             </div>
             <div className="text-left md:text-right">
               <p className="font-mono text-4xl font-semibold tracking-tight text-white md:text-5xl">
-                {formaterVisiteurs(visiteurs)}
+                {visiteurs.toLocaleString("fr-FR")}
               </p>
               <p className="mt-1 text-xs uppercase tracking-widest text-zinc-500">
                 Visiteurs / mois
@@ -239,281 +153,271 @@ export function Simulateur() {
             </div>
           </div>
 
-          <div className="mt-8">
-            <input
-              type="range"
-              min={100}
-              max={50000}
-              step={100}
-              value={visiteurs}
-              onChange={(e) => setVisiteurs(Number(e.target.value))}
-              className="w-full accent-amber-400"
-              aria-label="Nombre de visiteurs mensuels"
-            />
-            <div className="mt-2 flex justify-between text-[11px] uppercase tracking-widest text-zinc-500">
-              <span>100</span>
-              <span>50 000</span>
-            </div>
-          </div>
-
-          {/* Ajustement manuel du taux d'utilisation */}
-          <div className="mt-8 border-t border-zinc-800 pt-6">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Taux d&apos;utilisation{" "}
-                {tauxManuel && (
-                  <span className="normal-case tracking-normal text-zinc-500">
-                    (ajusté manuellement)
-                  </span>
-                )}
-              </p>
-              <p className="font-mono text-lg font-semibold text-white">
-                {tauxPct}%
-              </p>
-            </div>
-            <input
-              type="range"
-              min={0.1}
-              max={30}
-              step={0.1}
-              value={tauxPct}
-              onChange={(e) => {
-                setTauxPct(Number(e.target.value));
-                setTauxManuel(true);
-              }}
-              className="mt-3 w-full accent-amber-400"
-              aria-label="Taux d'utilisation en pourcentage"
-            />
-            <div className="mt-2 flex justify-between text-[11px] uppercase tracking-widest text-zinc-500">
-              <span>0,1%</span>
-              <span>30%</span>
-            </div>
+          <input
+            type="range"
+            min={100}
+            max={50000}
+            step={100}
+            value={visiteurs}
+            onChange={(e) => setVisiteurs(Number(e.target.value))}
+            className="mt-8 w-full accent-amber-400"
+            aria-label="Nombre de visiteurs mensuels"
+          />
+          <div className="mt-2 flex justify-between text-[11px] uppercase tracking-widest text-zinc-500">
+            <span>100</span>
+            <span>10 000 ← palier</span>
+            <span>50 000</span>
           </div>
 
           <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/5 px-4 py-1.5 text-xs text-amber-200">
             Soit environ{" "}
             <span className="font-semibold text-white">
-              {conversationsEstimees.toLocaleString("fr-FR")}
+              {conv.toLocaleString("fr-FR")}
             </span>{" "}
-            conversations par mois.
+            conversations/mois sur votre type de site.
           </p>
         </div>
 
-        {/* ─── 3 formules côte à côte ─── */}
-        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-          {FORMULES.map((f) => {
-            const estSelectionne = choix === f.slug;
-            return (
-              <button
-                key={f.slug}
-                type="button"
-                onClick={() => setChoix(f.slug)}
-                className={`group relative overflow-hidden rounded-3xl border p-7 text-left transition-all ${
-                  estSelectionne
-                    ? "border-amber-400 bg-zinc-900 shadow-xl shadow-amber-400/10"
-                    : "border-zinc-800 bg-zinc-900/40 hover:border-amber-400/40 hover:bg-zinc-900"
-                }`}
-                aria-pressed={estSelectionne}
-              >
-                {estSelectionne && (
-                  <span className="absolute right-5 top-5 inline-flex rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-950">
-                    Choisi
-                  </span>
-                )}
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                  {f.voix}
-                </p>
-                <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
-                  {f.nom}
-                </h3>
-                <p className="mt-2 text-sm text-zinc-400">
-                  {f.sousTitre}
-                </p>
+        {/* Question 3 — Préférence voix */}
+        <div className="mt-6 rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6 md:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+            3. Préférez-vous la voix ou l&apos;écrit&nbsp;?
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400 md:max-w-xl">
+            La voix d&apos;AxiSolver est produite par ElevenLabs,
+            indiscernable d&apos;un humain. L&apos;écrit, moins
+            immersif, est plus accessible financièrement.
+          </p>
 
-                <div className="mt-6 flex items-baseline gap-2">
-                  <span className="font-mono text-5xl font-semibold tracking-tight text-white">
-                    {formaterEuros(prixParFormule[f.slug])}
-                  </span>
-                  <span className="text-sm text-zinc-400">
-                    HT / mois
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-zinc-500">
-                  pour {formaterVisiteurs(visiteurs)} visiteurs / mois
-                </p>
-
-                <ul className="mt-6 space-y-2.5 text-sm text-zinc-300">
-                  {f.points.map((p) => (
-                    <li key={p} className="flex items-start gap-2">
-                      <svg
-                        className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.4"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden
-                      >
-                        <path d="m5 12 5 5L20 7" />
-                      </svg>
-                      <span>{p}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <p className="mt-6 text-[11px] uppercase tracking-widest text-zinc-500">
-                  Base : {formaterEuros(f.abonnementBase)} ·{" "}
-                  {f.conversationsIncluses} conversations incluses
-                </p>
-              </button>
-            );
-          })}
+          <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setPreferenceVoix("voix")}
+              className={`rounded-xl border px-5 py-4 text-left text-sm transition-all ${
+                preferenceVoix === "voix"
+                  ? "border-amber-400 bg-amber-400/10 text-white"
+                  : "border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-amber-400/40 hover:bg-zinc-900"
+              }`}
+              aria-pressed={preferenceVoix === "voix"}
+            >
+              <p className="font-semibold">Avec voix</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                ElevenLabs ultra-réaliste. L&apos;expérience bluffante
+                qui engage le plus.
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreferenceVoix("ecrit")}
+              className={`rounded-xl border px-5 py-4 text-left text-sm transition-all ${
+                preferenceVoix === "ecrit"
+                  ? "border-amber-400 bg-amber-400/10 text-white"
+                  : "border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-amber-400/40 hover:bg-zinc-900"
+              }`}
+              aria-pressed={preferenceVoix === "ecrit"}
+            >
+              <p className="font-semibold">Écrit seul</p>
+              <p className="mt-1 text-xs text-zinc-500">
+                Toutes les missions, sans la voix synthétique. Plus
+                accessible, parfait pour la plupart des sites.
+              </p>
+            </button>
+          </div>
         </div>
 
-        {/* ─── Récap et CTA ─── */}
-        <div className="mt-14 rounded-3xl border border-zinc-800 bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 md:p-12">
-          <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-5">
+        {/* Résultat — formule recommandée */}
+        <div className="mt-10 overflow-hidden rounded-3xl border border-amber-400/40 bg-gradient-to-br from-zinc-900 via-amber-400/5 to-zinc-900 p-8 shadow-xl shadow-amber-400/10 md:p-12">
+          <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-5">
             <div className="md:col-span-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Votre formule sélectionnée
+              <p className="inline-flex items-center gap-2 rounded-full bg-amber-400/15 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-amber-300">
+                <Sparkles className="h-3.5 w-3.5" strokeWidth={2.5} />
+                Notre recommandation
               </p>
-              <h3 className="mt-3 text-3xl font-semibold tracking-tight text-white md:text-4xl">
-                {FORMULES.find((f) => f.slug === choix)?.nom}{" "}
-                <span className="text-amber-400">
-                  — {formaterEuros(prixParFormule[choix])}/mois HT
-                </span>
+              <h3 className="mt-5 text-3xl font-semibold tracking-tight text-white md:text-4xl">
+                {formuleRecommandee.nom}
               </h3>
-              <p className="mt-4 max-w-xl text-sm leading-relaxed text-zinc-400">
-                Tarif estimatif sur la base de{" "}
-                {formaterVisiteurs(visiteurs)} visiteurs par mois.
-                Prêt à passer à l&apos;action ? AxiSolver vous
-                explique tout en direct et prend votre souscription.
+              <p className="mt-3 text-base leading-relaxed text-zinc-300 md:text-lg">
+                {formuleRecommandee.sousTitre}
               </p>
+              <ul className="mt-6 space-y-2.5 text-sm text-zinc-200 md:text-base">
+                <li className="flex items-start gap-2.5">
+                  <Check
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400"
+                    strokeWidth={3}
+                  />
+                  <span>{formuleRecommandee.voix}</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Check
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400"
+                    strokeWidth={3}
+                  />
+                  <span>
+                    {formuleRecommandee.conversationsIncluses} conversations
+                    incluses chaque mois
+                  </span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <Check
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400"
+                    strokeWidth={3}
+                  />
+                  <span>
+                    Pack supp. de {formuleRecommandee.volumeConvPackSupp} conv à
+                    la demande : {formuleRecommandee.prixPackSuppHt} € HT
+                    (reportable jusqu&apos;à 3 mois)
+                  </span>
+                </li>
+              </ul>
             </div>
-            <div className="flex flex-col items-start gap-3 md:col-span-2 md:items-center">
-              <BoutonLancerAxiSolver libelle="Parlez à AxiSolver" />
-              <p className="text-[11px] uppercase tracking-widest text-zinc-500">
-                Vocal ou écrit · Toutes langues
+
+            <div className="md:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                Votre tarif
               </p>
+              <p className="mt-3 font-mono text-6xl font-semibold tracking-tight text-amber-400 md:text-7xl">
+                {formuleRecommandee.prixMensuelHt} €
+              </p>
+              <p className="text-sm text-zinc-400">par mois HT · tout inclus</p>
+
+              <div
+                className={`mt-6 rounded-xl border p-4 ${
+                  dansLeQuota
+                    ? "border-emerald-500/30 bg-emerald-500/5"
+                    : "border-amber-500/40 bg-amber-500/10"
+                }`}
+              >
+                <p
+                  className={`text-xs font-semibold uppercase tracking-widest ${
+                    dansLeQuota ? "text-emerald-300" : "text-amber-300"
+                  }`}
+                >
+                  {dansLeQuota ? "Dans le quota" : "Léger dépassement"}
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-zinc-200">
+                  {dansLeQuota ? (
+                    <>
+                      Vous consommerez environ{" "}
+                      <span className="font-semibold text-white">
+                        {conv.toLocaleString("fr-FR")}
+                      </span>{" "}
+                      conversations/mois. Il vous restera {margeAvecQuota}{" "}
+                      conv de marge.
+                    </>
+                  ) : (
+                    <>
+                      Vos{" "}
+                      <span className="font-semibold text-white">
+                        {conv.toLocaleString("fr-FR")}
+                      </span>{" "}
+                      conv estimées dépassent de {Math.abs(margeAvecQuota)} le
+                      quota inclus. Comptez environ{" "}
+                      <span className="font-semibold text-white">
+                        {Math.ceil(
+                          Math.abs(margeAvecQuota) /
+                            formuleRecommandee.volumeConvPackSupp,
+                        ) * formuleRecommandee.prixPackSuppHt}{" "}
+                        €
+                      </span>{" "}
+                      de pack supp. certains mois chargés.
+                    </>
+                  )}
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <Link
+                  href={`/inscription?plan=${formuleRecommandee.slug}`}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-400 px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-zinc-950 shadow-lg shadow-amber-400/20 transition-all hover:bg-amber-300 md:text-base"
+                >
+                  Souscrire maintenant
+                </Link>
+                <p className="mt-3 text-center text-[11px] uppercase tracking-widest text-zinc-500">
+                  14 j d&apos;essai · sans carte bancaire
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ─── Sources des taux d'utilisation ─── */}
-        <aside className="mt-14 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-            D&apos;où viennent nos chiffres ?
+        {/* Les 4 formules côte à côte */}
+        <div className="mt-14">
+          <p className="mb-6 text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+            Les quatre formules
           </p>
-          <p className="mt-4 text-sm leading-relaxed text-zinc-300 md:text-base">
-            Les taux d&apos;utilisation proposés par activité sont
-            calibrés à partir de plusieurs études publiques et
-            rapports de benchmark sur l&apos;usage réel des chatbots
-            et widgets de chat sur les sites web :
-          </p>
-          <ul className="mt-5 space-y-3 text-sm leading-relaxed text-zinc-400 md:text-base">
-            <li className="flex items-start gap-3">
-              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-              <span>
-                <a
-                  href="https://www.smartsupp.com/blog/analysing-5-billion-website-visits-how-ecommerce-customers-use-chat/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-amber-300 hover:text-amber-200"
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {FORMULES.map((f) => {
+              const estRecommandee = f.slug === slugRecommande;
+              return (
+                <article
+                  key={f.slug}
+                  className={`relative overflow-hidden rounded-3xl border p-6 transition-all ${
+                    estRecommandee
+                      ? "border-amber-400 bg-zinc-900 shadow-xl shadow-amber-400/10"
+                      : "border-zinc-800 bg-zinc-900/40"
+                  }`}
                 >
-                  Smartsupp
-                </a>{" "}
-                — « Analysing 5 billion website visits : how ecommerce
-                customers use chat » (2024). Analyse de 5 milliards de
-                visites : 0,84 % des visiteurs engagent une
-                conversation avec un widget réactif typique, base
-                servant de plancher pour les sites éditoriaux et
-                vitrines.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-              <span>
-                <a
-                  href="https://wisepops.com/blog/state-of-visitor-engagement-on-shopify-stores"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-amber-300 hover:text-amber-200"
-                >
-                  Wisepops
-                </a>{" "}
-                — « The State of Visitor Engagement on Shopify Stores ».
-                54 % des boutiques Shopify sont équipées en 2026 (vs
-                24 % en 2018). Fourchette e-commerce 1,5 % à 5 %
-                d&apos;engagement selon le panier moyen et le type de
-                produit.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-              <span>
-                <a
-                  href="https://www.tidio.com/blog/live-chat-statistics/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-amber-300 hover:text-amber-200"
-                >
-                  Tidio
-                </a>{" "}
-                — « Live Chat Statistics » (2024-2025). Les visiteurs
-                qui engagent une conversation sont 2,8 × plus
-                susceptibles de convertir et dépensent 60 % de plus
-                que les non-utilisateurs. Lift de conversion moyen
-                : +20 %.
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-              <span>
-                <a
-                  href="https://www.chatbot.com/blog/chatbot-statistics/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-amber-300 hover:text-amber-200"
-                >
-                  chatbot.com
-                </a>{" "}
-                — « Key Chatbot Statistics » (2026). Widgets réactifs
-                classiques 2-5 % d&apos;engagement, widgets proactifs
-                triggered 8-15 %, pics à 35-40 % sur B2B SaaS avec
-                prompt pertinent (données Drift).
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-amber-400" />
-              <span>
-                <a
-                  href="https://www.zoom.com/en/blog/chatbot-statistics/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-amber-300 hover:text-amber-200"
-                >
-                  Zoom — 65+ chatbot statistics
-                </a>{" "}
-                (2025). Scénarios post-achat et support client :
-                15 % à 30 % des visiteurs engagent une conversation
-                car ils arrivent avec un besoin concret.
-              </span>
-            </li>
-          </ul>
-          <p className="mt-5 text-xs leading-relaxed text-zinc-500">
-            AxiSolver, par son modèle d&apos;ouverture modale
-            plein écran et sa promesse « AXI qui résout vraiment »,
-            se positionne en haut de fourchette vs un chatbot
-            classique. Les chiffres par défaut représentent une
-            estimation prudente — l&apos;usage réel se mesurera
-            avec les premiers mois de production.
-          </p>
-        </aside>
+                  {estRecommandee && (
+                    <span className="absolute right-4 top-4 inline-flex rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-950">
+                      Recommandé
+                    </span>
+                  )}
+                  {f.phare && !estRecommandee && (
+                    <span className="absolute right-4 top-4 inline-flex rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-amber-300">
+                      Phare
+                    </span>
+                  )}
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-300">
+                    {f.voix}
+                  </p>
+                  <h3 className="mt-3 text-lg font-semibold tracking-tight text-white md:text-xl">
+                    {f.nom}
+                  </h3>
+                  <p className="mt-5 flex items-baseline gap-1.5">
+                    <span className="font-mono text-4xl font-semibold tracking-tight text-white">
+                      {f.prixMensuelHt} €
+                    </span>
+                    <span className="text-xs text-zinc-400">HT/mois</span>
+                  </p>
+                  <ul className="mt-5 space-y-2 text-xs text-zinc-300 md:text-sm">
+                    <li className="flex items-start gap-2">
+                      <Check
+                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-400"
+                        strokeWidth={3}
+                      />
+                      <span>
+                        {f.conversationsIncluses} conv/mois incluses
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check
+                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-400"
+                        strokeWidth={3}
+                      />
+                      <span>
+                        Pack supp. {f.volumeConvPackSupp} conv à{" "}
+                        {f.prixPackSuppHt} €
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check
+                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-400"
+                        strokeWidth={3}
+                      />
+                      <span>{f.trafic}</span>
+                    </li>
+                  </ul>
+                </article>
+              );
+            })}
+          </div>
+        </div>
 
         <p className="mt-10 text-center text-xs text-zinc-500">
-          Les tarifs présentés sont indicatifs et HT. Devis
-          personnalisé à la signature.
+          Palier à {PALIER_TRAFIC.toLocaleString("fr-FR")} visiteurs : conseil
+          du simulateur, pas une contrainte. Vous pouvez prendre S puis
+          basculer vers L à tout moment. Les packs supplémentaires non
+          utilisés se reportent sur 3 mois.
         </p>
       </div>
     </section>

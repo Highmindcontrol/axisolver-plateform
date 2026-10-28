@@ -25,7 +25,7 @@ export default function PageTarifs() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {(Object.keys(FORMULES) as SlugPlan[]).map((slug) => {
           const f = FORMULES[slug];
-          const estPro = slug === "classique";
+          const estPro = slug === "premium-s";
           return (
             <div
               key={slug}

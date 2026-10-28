@@ -1,20 +1,29 @@
 /**
  * Catalogue des formules AxiSolver standalone.
  *
- * Grille 3 niveaux calée sur le type de voix synthétique (voir
- * doctrine 28 oct 2026) :
- *   - Text Only (49€) : les 6 missions sans voix TTS
- *   - Classique (69€) : voix neuronale Azure
- *   - Premium (99€) : voix ultra-réaliste ElevenLabs
+ * Grille 2×2 (voir doctrine 28 oct 2026) : voix oui/non × trafic
+ * petit/grand. La voix neuronale Azure est abandonnée — on garde
+ * ElevenLabs comme seule voix premium, ou pas de voix du tout.
  *
- * Essai 14 jours sans CB sur les 3 formules, avec garde-fous :
+ *   - Text Only S (49 €) : écrit seul, 300 conv/mois
+ *   - Text Only L (69 €) : écrit seul, 500 conv/mois
+ *   - Premium S  (99 €) : voix ElevenLabs, 300 conv/mois — PHARE
+ *   - Premium L (129 €) : voix ElevenLabs, 500 conv/mois
+ *
+ * Le palier à 10 000 visiteurs/mois est un conseil, pas une
+ * contrainte contractuelle — le simulateur recommande, le client
+ * décide. Packs supplémentaires par 100 conv à la demande
+ * (10 € pour Text, 20 € pour Premium), reportables jusqu'à 3 mois
+ * sur le solde non consommé.
+ *
+ * Essai 14 jours sans CB sur les 4 formules, avec garde-fous :
  * 50 pages crawl max + 500 conv max + 15 min TTS max pendant l'essai.
  *
  * Les stripe_price_id doivent être posés dans Vercel comme variables
  * d'env après la création des produits dans Stripe Dashboard.
  */
 
-export type SlugPlan = "text" | "classique" | "premium";
+export type SlugPlan = "text-s" | "text-l" | "premium-s" | "premium-l";
 
 export type Formule = {
   slug: SlugPlan;
@@ -24,71 +33,102 @@ export type Formule = {
   priceIdVar: string;
   nbSitesMax: number;
   nbConversationsMoisMax: number;
+  prixPackSuppHt: number;
+  volumeConvPackSupp: number;
   features: string[];
   essaiJours: number;
   cta: string;
+  phare?: boolean;
 };
 
 export const FORMULES: Record<SlugPlan, Formule> = {
-  text: {
-    slug: "text",
-    nom: "AxiSolver Text Only",
+  "text-s": {
+    slug: "text-s",
+    nom: "AxiSolver Text Only — Petit volume",
     description:
-      "Toutes les missions AxiSolver sans la voix synthétique. L'intelligence et la veille complètes, en écrit uniquement.",
+      "Toutes les missions AxiSolver sans voix synthétique. Pour les sites de moins de 10 000 visiteurs mensuels.",
     prixMensuelHt: 49,
-    priceIdVar: "STRIPE_PRICE_ID_TEXT",
+    priceIdVar: "STRIPE_PRICE_ID_TEXT_S",
     nbSitesMax: 1,
-    nbConversationsMoisMax: 500,
+    nbConversationsMoisMax: 300,
+    prixPackSuppHt: 10,
+    volumeConvPackSupp: 100,
     features: [
       "1 site",
-      "500 conversations / mois",
+      "300 conversations écrites / mois",
       "Les 6 missions AxiSolver (SEO + Analytics + Shield + Ads inclus)",
       "Chat écrit multilingue",
       "Base de connaissances URL + PDF",
       "Rapports quotidiens par email",
       "Shield widget (rate limit + anti injection)",
+      "Pack supp. de 100 conv à 10 € HT",
     ],
     essaiJours: 14,
     cta: "Démarrer l'essai 14 jours",
   },
-  classique: {
-    slug: "classique",
-    nom: "AxiSolver Classique",
+  "text-l": {
+    slug: "text-l",
+    nom: "AxiSolver Text Only — Grand volume",
     description:
-      "Les 6 missions AxiSolver avec la voix neuronale Azure. Qualité vocale professionnelle, toutes langues européennes.",
+      "Toutes les missions AxiSolver sans voix synthétique. Pour les sites au-delà de 10 000 visiteurs mensuels.",
     prixMensuelHt: 69,
-    priceIdVar: "STRIPE_PRICE_ID_CLASSIQUE",
+    priceIdVar: "STRIPE_PRICE_ID_TEXT_L",
     nbSitesMax: 1,
-    nbConversationsMoisMax: 400,
+    nbConversationsMoisMax: 500,
+    prixPackSuppHt: 10,
+    volumeConvPackSupp: 100,
     features: [
       "1 site",
-      "400 conversations vocales / mois",
-      "Tout Text Only inclus",
-      "Voix neuronale Azure",
-      "Qualité vocale professionnelle",
-      "Mention « Propulsé par » masquable",
-      "Support prioritaire par email",
+      "500 conversations écrites / mois",
+      "Tout Text Only S inclus",
+      "Volume adapté aux sites à forte audience",
+      "Pack supp. de 100 conv à 10 € HT",
     ],
     essaiJours: 14,
     cta: "Démarrer l'essai 14 jours",
   },
-  premium: {
-    slug: "premium",
-    nom: "AxiSolver Premium",
+  "premium-s": {
+    slug: "premium-s",
+    nom: "AxiSolver Premium — Petit volume",
     description:
-      "Les 6 missions AxiSolver avec la voix ElevenLabs ultra-réaliste. Idéal pour sites premium et marques fortes.",
+      "Les 6 missions avec la voix ElevenLabs ultra-réaliste. Idéal pour sites de moins de 10 000 visiteurs mensuels.",
     prixMensuelHt: 99,
-    priceIdVar: "STRIPE_PRICE_ID_PREMIUM",
+    priceIdVar: "STRIPE_PRICE_ID_PREMIUM_S",
     nbSitesMax: 1,
     nbConversationsMoisMax: 300,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
+    phare: true,
     features: [
       "1 site",
       "300 conversations vocales / mois",
-      "Tout Classique inclus",
-      "Voix ultra-réaliste ElevenLabs",
-      "Rendu indiscernable d'un humain",
+      "Tout Text Only inclus",
+      "Voix ElevenLabs ultra-réaliste, indiscernable d'un humain",
       "SLA 99,9 %",
       "Onboarding dédié",
+      "Mention « Propulsé par » masquable",
+      "Pack supp. de 100 conv à 20 € HT",
+    ],
+    essaiJours: 14,
+    cta: "Démarrer l'essai 14 jours",
+  },
+  "premium-l": {
+    slug: "premium-l",
+    nom: "AxiSolver Premium — Grand volume",
+    description:
+      "Les 6 missions avec la voix ElevenLabs ultra-réaliste. Pour sites au-delà de 10 000 visiteurs mensuels.",
+    prixMensuelHt: 129,
+    priceIdVar: "STRIPE_PRICE_ID_PREMIUM_L",
+    nbSitesMax: 1,
+    nbConversationsMoisMax: 500,
+    prixPackSuppHt: 20,
+    volumeConvPackSupp: 100,
+    features: [
+      "1 site",
+      "500 conversations vocales / mois",
+      "Tout Premium S inclus",
+      "Volume adapté aux sites à forte audience",
+      "Pack supp. de 100 conv à 20 € HT",
     ],
     essaiJours: 14,
     cta: "Démarrer l'essai 14 jours",

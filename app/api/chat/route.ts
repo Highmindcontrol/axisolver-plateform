@@ -21,14 +21,12 @@ import { verifierQuotaConversations } from "@/lib/stripe/verifier-quotas";
 import { incrementerUsage } from "@/lib/stripe/incrementer-usage";
 import {
   FORMULES,
-  calculerPrix,
   conversationsEstimees,
   getFormule,
   recommanderFormule,
   tauxEffectif,
+  type PreferenceVoix,
   type ProfilProspect,
-  type SlugFormule,
-  type TailleEquipe,
   type UsagePrincipal,
 } from "@/lib/axi-solver/tarification";
 import type { SlugSecteur } from "@/lib/axi-solver/secteurs";
@@ -512,14 +510,14 @@ export async function POST(request: Request) {
                     visiteursMois?: number;
                     secteurSlug?: string;
                     usagePrincipal?: string;
-                    tailleEquipe?: string;
+                    preferenceVoix?: string;
                   };
                   const visiteurs = Number(input.visiteursMois ?? 0);
                   if (
                     !visiteurs ||
                     !input.secteurSlug ||
                     !input.usagePrincipal ||
-                    !input.tailleEquipe
+                    !input.preferenceVoix
                   ) {
                     return {
                       type: "tool_result" as const,
@@ -533,7 +531,8 @@ export async function POST(request: Request) {
                     visiteursMois: visiteurs,
                     secteurSlug: input.secteurSlug as SlugSecteur,
                     usagePrincipal: input.usagePrincipal as UsagePrincipal,
-                    tailleEquipe: input.tailleEquipe as TailleEquipe,
+                    tailleEquipe: "petite",
+                    preferenceVoix: input.preferenceVoix as PreferenceVoix,
                   };
                   const taux = tauxEffectif(
                     profil.secteurSlug,
@@ -544,11 +543,8 @@ export async function POST(request: Request) {
                     taux,
                   );
                   const prix = Object.fromEntries(
-                    FORMULES.map((f) => [
-                      f.slug,
-                      calculerPrix(f, profil.visiteursMois, taux),
-                    ]),
-                  ) as Record<SlugFormule, number>;
+                    FORMULES.map((f) => [f.slug, f.prixMensuelHt]),
+                  ) as Record<string, number>;
                   const recommandeeSlug = recommanderFormule(profil);
                   const recommandee = getFormule(recommandeeSlug);
 
@@ -557,11 +553,15 @@ export async function POST(request: Request) {
                     tool: "estimer_tarif_axisolver",
                     id: b.id,
                     input: {
-                      ...profil,
+                      visiteursMois: profil.visiteursMois,
+                      secteurSlug: profil.secteurSlug,
+                      usagePrincipal: profil.usagePrincipal,
+                      preferenceVoix: profil.preferenceVoix,
                       formuleRecommandee: recommandeeSlug,
-                      prixTextOnly: prix.text,
-                      prixClassique: prix.classique,
-                      prixPremium: prix.premium,
+                      prixTextS: prix["text-s"],
+                      prixTextL: prix["text-l"],
+                      prixPremiumS: prix["premium-s"],
+                      prixPremiumL: prix["premium-l"],
                       tauxEffectif: taux,
                       conversationsMois: conv,
                     },
@@ -570,7 +570,7 @@ export async function POST(request: Request) {
                   return {
                     type: "tool_result" as const,
                     tool_use_id: b.id,
-                    content: `Estimation calculée. Formule recommandée : ${recommandee.nom} à ${prix[recommandeeSlug]} € HT / mois pour ${profil.visiteursMois} visiteurs mensuels (taux retenu ${taux}%, ~${conv} conversations/mois). Autres formules : Text Only ${prix.text} €, Classique ${prix.classique} €, Premium ${prix.premium} €. Annonce vocalement UNIQUEMENT la formule recommandée + son prix. Le visiteur voit le détail dans le panneau à gauche.`,
+                    content: `Recommandation prête. Formule : ${recommandee.nom} à ${recommandee.prixMensuelHt} € HT/mois (${recommandee.conversationsIncluses} conv incluses). Pour ${profil.visiteursMois} visiteurs mensuels sur un ${profil.secteurSlug}, ~${conv} conversations/mois estimées. Les 4 formules : Text S 49€, Text L 69€, Premium S 99€ (phare), Premium L 129€. Annonce vocalement UNIQUEMENT la formule recommandée + son prix. Le visiteur voit le détail dans le panneau à gauche.`,
                   };
                 }
 

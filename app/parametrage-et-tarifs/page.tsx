@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Questionnaire } from "./_questionnaire";
+import { Simulateur } from "./_simulateur";
 import { OngletsInformations } from "./_onglets-informations";
 import { ChatWidget } from "@/components/chat/chat-widget";
 import { SiteHeader } from "@/components/site/header";
@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/site/header";
 export const metadata: Metadata = {
   title: "Paramétrer votre AxiSolver — Tarifs transparents",
   description:
-    "Trois formules AxiSolver (Text Only, Classique, Premium), un simulateur en direct selon le volume de visiteurs de votre site. Choisissez la voix, obtenez votre tarif immédiatement.",
+    "Quatre formules AxiSolver (Text Only et Premium ElevenLabs, en petit ou grand volume). Simulateur de recommandation selon votre type de site et votre trafic.",
 };
 
 export default function Page() {
@@ -68,98 +68,101 @@ export default function Page() {
         <div className="relative mx-auto max-w-6xl">
           <div className="mb-14 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
-              Nos trois forfaits
+              Nos quatre formules
             </p>
             <h2 className="mt-5 text-balance text-3xl font-semibold leading-tight tracking-tight text-white md:text-5xl">
-              Trois voix,{" "}
-              <span className="text-amber-400">une seule intelligence.</span>
+              Voix ou écrit, petit ou grand.{" "}
+              <span className="text-amber-400">
+                Vous choisissez, le reste suit.
+              </span>
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-            {/* Text Only */}
-            <article className="rounded-2xl border border-zinc-700/60 bg-zinc-950/55 p-7 backdrop-blur-sm transition-all hover:border-amber-400/40 md:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Text Only · Sans voix
-              </p>
-              <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
-                AxiSolver Text Only
-              </h3>
-              <p className="mt-2 flex items-baseline gap-1.5">
-                <span className="font-mono text-4xl font-semibold tracking-tight text-white">
-                  49 €
-                </span>
-                <span className="text-sm text-zinc-400">HT / mois</span>
-              </p>
-              <p className="mt-5 text-sm leading-relaxed text-zinc-300">
-                Les six missions AxiSolver en version écrite. Chat
-                multilingue, SEO, Analytics, Shield et Ads intelligents
-                inclus. Aucune diffusion vocale, pour les sites qui
-                privilégient le texte.
-              </p>
-              <p className="mt-5 text-[11px] uppercase tracking-widest text-zinc-500">
-                500 conversations incluses / mois
-              </p>
-            </article>
-
-            {/* Classique Azure */}
-            <article className="rounded-2xl border border-zinc-700/60 bg-zinc-950/55 p-7 backdrop-blur-sm transition-all hover:border-amber-400/40 md:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Classique · Voix Azure
-              </p>
-              <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
-                AxiSolver Classique
-              </h3>
-              <p className="mt-2 flex items-baseline gap-1.5">
-                <span className="font-mono text-4xl font-semibold tracking-tight text-white">
-                  69 €
-                </span>
-                <span className="text-sm text-zinc-400">HT / mois</span>
-              </p>
-              <p className="mt-5 text-sm leading-relaxed text-zinc-300">
-                Les six missions avec la voix neuronale Azure. Qualité
-                professionnelle en toutes langues européennes, légère
-                signature robotique. Le meilleur rapport qualité-prix pour
-                engager vocalement vos visiteurs.
-              </p>
-              <p className="mt-5 text-[11px] uppercase tracking-widest text-zinc-500">
-                400 conversations incluses / mois
-              </p>
-            </article>
-
-            {/* Premium ElevenLabs */}
-            <article className="relative rounded-2xl border border-amber-400/60 bg-zinc-950/70 p-7 shadow-lg shadow-amber-400/10 backdrop-blur-sm md:p-8">
-              <span className="absolute -top-3 right-6 inline-flex rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-950">
-                Phare
-              </span>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
-                Premium · Voix ElevenLabs
-              </p>
-              <h3 className="mt-4 text-2xl font-semibold tracking-tight text-white">
-                AxiSolver Premium
-              </h3>
-              <p className="mt-2 flex items-baseline gap-1.5">
-                <span className="font-mono text-4xl font-semibold tracking-tight text-white">
-                  99 €
-                </span>
-                <span className="text-sm text-zinc-400">HT / mois</span>
-              </p>
-              <p className="mt-5 text-sm leading-relaxed text-zinc-300">
-                La voix ElevenLabs ultra-réaliste, indiscernable d&apos;un
-                humain. Idéal pour les marques fortes et les sites
-                premium qui ne tolèrent aucune signature robotique. Rendu
-                vocal bluffant dès la première phrase.
-              </p>
-              <p className="mt-5 text-[11px] uppercase tracking-widest text-zinc-500">
-                300 conversations incluses / mois
-              </p>
-            </article>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+            {[
+              {
+                nom: "AxiSolver Text Only",
+                sub: "Petit volume · Écrit seul",
+                prix: 49,
+                conv: 300,
+                phare: false,
+                desc:
+                  "Les 6 missions AxiSolver en version écrite. Idéal pour les sites de moins de 10 000 visiteurs mensuels.",
+              },
+              {
+                nom: "AxiSolver Text Only",
+                sub: "Grand volume · Écrit seul",
+                prix: 69,
+                conv: 500,
+                phare: false,
+                desc:
+                  "La version écrite dimensionnée pour les sites à forte audience. Au-delà de 10 000 visiteurs mensuels.",
+              },
+              {
+                nom: "AxiSolver Premium",
+                sub: "Petit volume · Voix ElevenLabs",
+                prix: 99,
+                conv: 300,
+                phare: true,
+                desc:
+                  "La voix ElevenLabs ultra-réaliste pour la majorité des sites. Notre produit phare.",
+              },
+              {
+                nom: "AxiSolver Premium",
+                sub: "Grand volume · Voix ElevenLabs",
+                prix: 129,
+                conv: 500,
+                phare: false,
+                desc:
+                  "La voix ElevenLabs pour les sites qui scalent. Au-delà de 10 000 visiteurs mensuels.",
+              },
+            ].map((f) => (
+              <article
+                key={`${f.nom}-${f.prix}`}
+                className={`relative rounded-2xl border p-7 backdrop-blur-sm transition-all md:p-6 ${
+                  f.phare
+                    ? "border-amber-400/60 bg-zinc-950/70 shadow-lg shadow-amber-400/10"
+                    : "border-zinc-700/60 bg-zinc-950/55 hover:border-amber-400/40"
+                }`}
+              >
+                {f.phare && (
+                  <span className="absolute -top-3 right-6 inline-flex rounded-full bg-amber-400 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-zinc-950">
+                    Phare
+                  </span>
+                )}
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-300">
+                  {f.sub}
+                </p>
+                <h3 className="mt-4 text-xl font-semibold tracking-tight text-white md:text-2xl">
+                  {f.nom}
+                </h3>
+                <p className="mt-2 flex items-baseline gap-1.5">
+                  <span className="font-mono text-4xl font-semibold tracking-tight text-white">
+                    {f.prix} €
+                  </span>
+                  <span className="text-sm text-zinc-400">HT / mois</span>
+                </p>
+                <p className="mt-5 text-sm leading-relaxed text-zinc-300">
+                  {f.desc}
+                </p>
+                <p className="mt-5 text-[11px] uppercase tracking-widest text-zinc-500">
+                  {f.conv} conversations incluses / mois
+                </p>
+              </article>
+            ))}
           </div>
+
+          <p className="mt-10 text-center text-xs leading-relaxed text-zinc-500">
+            Palier à 10 000 visiteurs/mois : conseil, pas une
+            contrainte. Packs supplémentaires de 100 conv à la
+            demande (10 € en Text Only, 20 € en Premium), reportables
+            jusqu&apos;à 3 mois.
+          </p>
         </div>
       </section>
 
-      {/* ─────────── QUESTIONNAIRE GUIDÉ ─────────── */}
-      <Questionnaire />
+      {/* ─────────── SIMULATEUR / QUESTIONNAIRE DE RECOMMANDATION ─────────── */}
+      <Simulateur />
 
       {/* ─────────── INSTALLATION — deux chemins ─────────── */}
       <section className="border-t border-zinc-900 bg-zinc-950 px-6 py-20 md:px-10 md:py-28">

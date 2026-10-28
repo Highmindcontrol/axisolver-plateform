@@ -462,13 +462,14 @@ export function ChatWidget({
         const visiteursMois = Number(input.visiteursMois ?? 0);
         const secteurSlug = String(input.secteurSlug ?? "");
         const usagePrincipal = String(input.usagePrincipal ?? "");
-        const tailleEquipe = String(input.tailleEquipe ?? "");
+        const preferenceVoix = String(input.preferenceVoix ?? "voix");
         const formuleRecommandee = String(
-          input.formuleRecommandee ?? "classique",
-        ) as "text" | "classique" | "premium";
-        const prixTextOnly = Number(input.prixTextOnly ?? 0);
-        const prixClassique = Number(input.prixClassique ?? 0);
-        const prixPremium = Number(input.prixPremium ?? 0);
+          input.formuleRecommandee ?? "premium-s",
+        ) as "text-s" | "text-l" | "premium-s" | "premium-l";
+        const prixTextS = Number(input.prixTextS ?? 0);
+        const prixTextL = Number(input.prixTextL ?? 0);
+        const prixPremiumS = Number(input.prixPremiumS ?? 0);
+        const prixPremiumL = Number(input.prixPremiumL ?? 0);
         const tauxEffectif = Number(input.tauxEffectif ?? 0);
         const conversationsMois = Number(input.conversationsMois ?? 0);
         if (!visiteursMois || !secteurSlug) return;
@@ -479,11 +480,12 @@ export function ChatWidget({
             visiteursMois,
             secteurSlug,
             usagePrincipal,
-            tailleEquipe,
+            preferenceVoix,
             formuleRecommandee,
-            prixTextOnly,
-            prixClassique,
-            prixPremium,
+            prixTextS,
+            prixTextL,
+            prixPremiumS,
+            prixPremiumL,
             tauxEffectif,
             conversationsMois,
           },

@@ -324,11 +324,12 @@ export function PanneauActions({
           visiteursMois={etat.elementActif.visiteursMois}
           secteurSlug={etat.elementActif.secteurSlug}
           usagePrincipal={etat.elementActif.usagePrincipal}
-          tailleEquipe={etat.elementActif.tailleEquipe}
+          preferenceVoix={etat.elementActif.preferenceVoix}
           formuleRecommandee={etat.elementActif.formuleRecommandee}
-          prixTextOnly={etat.elementActif.prixTextOnly}
-          prixClassique={etat.elementActif.prixClassique}
-          prixPremium={etat.elementActif.prixPremium}
+          prixTextS={etat.elementActif.prixTextS}
+          prixTextL={etat.elementActif.prixTextL}
+          prixPremiumS={etat.elementActif.prixPremiumS}
+          prixPremiumL={etat.elementActif.prixPremiumL}
           tauxEffectif={etat.elementActif.tauxEffectif}
           conversationsMois={etat.elementActif.conversationsMois}
         />
@@ -1630,49 +1631,50 @@ function PanneauEstimationTarif({
   visiteursMois,
   secteurSlug,
   usagePrincipal,
-  tailleEquipe,
+  preferenceVoix,
   formuleRecommandee,
-  prixTextOnly,
-  prixClassique,
-  prixPremium,
+  prixTextS,
+  prixTextL,
+  prixPremiumS,
+  prixPremiumL,
   tauxEffectif,
   conversationsMois,
 }: {
   visiteursMois: number;
   secteurSlug: string;
   usagePrincipal: string;
-  tailleEquipe: string;
-  formuleRecommandee: "text" | "classique" | "premium";
-  prixTextOnly: number;
-  prixClassique: number;
-  prixPremium: number;
+  preferenceVoix: string;
+  formuleRecommandee: "text-s" | "text-l" | "premium-s" | "premium-l";
+  prixTextS: number;
+  prixTextL: number;
+  prixPremiumS: number;
+  prixPremiumL: number;
   tauxEffectif: number;
   conversationsMois: number;
 }) {
-  const nomsFormules: Record<"text" | "classique" | "premium", string> = {
-    text: "AxiSolver Text Only",
-    classique: "AxiSolver Classique",
-    premium: "AxiSolver Premium",
+  type SlugFormule = "text-s" | "text-l" | "premium-s" | "premium-l";
+  const nomsFormules: Record<SlugFormule, string> = {
+    "text-s": "AxiSolver Text Only — Petit",
+    "text-l": "AxiSolver Text Only — Grand",
+    "premium-s": "AxiSolver Premium — Petit",
+    "premium-l": "AxiSolver Premium — Grand",
   };
-  const voixFormules: Record<"text" | "classique" | "premium", string> = {
-    text: "Écrit uniquement",
-    classique: "Voix neuronale Azure",
-    premium: "Voix ultra-réaliste ElevenLabs",
+  const voixFormules: Record<SlugFormule, string> = {
+    "text-s": "Écrit seul · < 10 000 visiteurs/mois",
+    "text-l": "Écrit seul · ≥ 10 000 visiteurs/mois",
+    "premium-s": "Voix ElevenLabs · < 10 000 visiteurs/mois",
+    "premium-l": "Voix ElevenLabs · ≥ 10 000 visiteurs/mois",
   };
-  const prixRecommandee =
-    formuleRecommandee === "text"
-      ? prixTextOnly
-      : formuleRecommandee === "classique"
-        ? prixClassique
-        : prixPremium;
-  const autres = (["text", "classique", "premium"] as const).filter(
-    (s) => s !== formuleRecommandee,
-  );
-  const prixAutres: Record<"text" | "classique" | "premium", number> = {
-    text: prixTextOnly,
-    classique: prixClassique,
-    premium: prixPremium,
+  const prixAutres: Record<SlugFormule, number> = {
+    "text-s": prixTextS,
+    "text-l": prixTextL,
+    "premium-s": prixPremiumS,
+    "premium-l": prixPremiumL,
   };
+  const prixRecommandee = prixAutres[formuleRecommandee];
+  const autres = (
+    ["text-s", "text-l", "premium-s", "premium-l"] as const
+  ).filter((s) => s !== formuleRecommandee);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-5">
@@ -1729,7 +1731,7 @@ function PanneauEstimationTarif({
         <p>
           <span className="font-semibold text-slate-800">Base de calcul :</span>{" "}
           secteur {secteurSlug.replace("-", " / ")} · usage {usagePrincipal} ·
-          équipe {tailleEquipe}.
+          préférence {preferenceVoix === "voix" ? "voix" : "écrit seul"}.
         </p>
         <p className="mt-2">
           Tarif indicatif HT. Devis définitif à la signature. Les

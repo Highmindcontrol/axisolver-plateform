@@ -127,7 +127,7 @@ const SCENARIOS: Scenario[] = [
       },
     ],
     recommandation:
-      "AxiSolver Classique (69 €/mois, voix Azure) couvre très largement les sites vitrines et blogs classiques dans ses 400 conversations incluses. Les WooCommerce qui scalent peuvent passer sur Premium si l'image de voix compte.",
+      "AxiSolver Text Only S (49 €/mois, 300 conv) couvre très largement les sites vitrines et blogs sous les 10 000 visiteurs mensuels. Les WooCommerce qui scalent peuvent passer sur Premium S à 99 € pour l'effet voix.",
   },
   {
     slug: "classique",
@@ -174,7 +174,7 @@ const SCENARIOS: Scenario[] = [
       },
     ],
     recommandation:
-      "AxiSolver Text Only (49 €/mois) convient parfaitement aux sites vitrines et portails informatifs. Les SaaS B2B et services passeront sur Classique ou Premium pour l'effet voix sur la qualification de leads.",
+      "AxiSolver Text Only S (49 €/mois) convient parfaitement aux sites vitrines et portails informatifs sous les 10 000 visiteurs. Les SaaS B2B et sites de services passeront sur Premium S (99 €) pour l'effet voix sur la qualification de leads.",
   },
 ];
 

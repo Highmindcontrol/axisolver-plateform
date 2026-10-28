@@ -14,7 +14,7 @@ export async function souscrirePlanAction(
   formData: FormData,
 ): Promise<EtatSouscription> {
   const slug = String(formData.get("plan") ?? "").trim() as SlugPlan;
-  if (!["text", "classique", "premium"].includes(slug)) {
+  if (!["text-s", "text-l", "premium-s", "premium-l"].includes(slug)) {
     return { erreur: "Plan invalide." };
   }
 
