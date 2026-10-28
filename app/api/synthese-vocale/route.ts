@@ -4,23 +4,20 @@ export const dynamic = "force-dynamic";
 /**
  * POST /api/synthese-vocale
  *
- * Synthèse vocale française via Azure AI Speech (voix neurales natives
- * françaises). Fallback automatique sur OpenAI TTS si Azure est en
- * erreur ou non configuré.
+ * Synthèse vocale française avec cascade de providers (28 oct 2026) :
+ *   1. ElevenLabs (voix ultra-réaliste, formule Premium AxiSolver)
+ *   2. Azure AI Speech (voix neurales françaises, fallback)
+ *   3. OpenAI TTS (fallback ultime)
  *
  * Body attendu : { texte: string, voix?: string }
  *
- * Voix françaises natives Azure disponibles :
- *   - fr-FR-HenriNeural (homme, posé, naturel) ← défaut
- *   - fr-FR-DeniseNeural (femme, naturelle)
- *   - fr-FR-JeromeNeural (homme, dynamique)
- *   - fr-FR-RemyMultilingualNeural (homme, voix moderne multilingue)
- *   - fr-FR-AlainNeural (homme, ton informatif)
- *   - fr-FR-CelesteNeural (femme, douce)
- *
- * Pour conserver la compatibilité avec le sélecteur du widget (qui
- * utilise encore les noms OpenAI onyx/echo/nova/etc), on mappe les
- * voix anciennes vers des équivalents français.
+ * Variables d'environnement :
+ *   - ELEVENLABS_API_KEY     : clé API ElevenLabs
+ *   - ELEVENLABS_VOICE_ID    : identifiant de la voix (ex: 21m00Tcm4TlvDq8ikWAM)
+ *   - ELEVENLABS_MODEL_ID    : modèle TTS (défaut: eleven_multilingual_v2)
+ *   - AZURE_SPEECH_KEY       : clé Azure Speech (fallback)
+ *   - AZURE_SPEECH_REGION    : région Azure (fallback)
+ *   - OPENAI_API_KEY         : clé OpenAI (fallback ultime)
  */
 
 export async function POST(request: Request) {
@@ -60,7 +57,55 @@ export async function POST(request: Request) {
       ? voixDemandee
       : VOIX_PAR_DEFAUT;
 
-  // === Tentative Azure TTS (voix françaises natives) === //
+  // === Priorité 1 : ElevenLabs === //
+  const cleElevenLabs = process.env.ELEVENLABS_API_KEY;
+  const voixElevenLabs = process.env.ELEVENLABS_VOICE_ID;
+  if (cleElevenLabs && voixElevenLabs) {
+    try {
+      const modeleElevenLabs =
+        process.env.ELEVENLABS_MODEL_ID ?? "eleven_multilingual_v2";
+      const res = await fetch(
+        `https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voixElevenLabs)}`,
+        {
+          method: "POST",
+          headers: {
+            "xi-api-key": cleElevenLabs,
+            "Content-Type": "application/json",
+            Accept: "audio/mpeg",
+          },
+          body: JSON.stringify({
+            text: texteNettoye,
+            model_id: modeleElevenLabs,
+            voice_settings: {
+              stability: 0.5,
+              similarity_boost: 0.75,
+              style: 0.0,
+              use_speaker_boost: true,
+            },
+          }),
+        },
+      );
+
+      if (res.ok && res.body) {
+        return new Response(res.body, {
+          headers: {
+            "Content-Type": "audio/mpeg",
+            "Cache-Control": "no-cache, no-store",
+          },
+        });
+      }
+
+      const detail = await res.text();
+      console.warn(
+        `[synthese-vocale] ElevenLabs a échoué (${res.status}) : ${detail.slice(0, 200)}`,
+      );
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "fetch ElevenLabs échoué";
+      console.warn(`[synthese-vocale] ElevenLabs exception : ${detail}`);
+    }
+  }
+
+  // === Priorité 2 : Azure TTS (voix françaises natives) === //
   const cleAzure = process.env.AZURE_SPEECH_KEY;
   const regionAzure = process.env.AZURE_SPEECH_REGION;
 
