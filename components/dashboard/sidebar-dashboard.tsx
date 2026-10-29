@@ -3,6 +3,7 @@
 import {
   Compass,
   CreditCard,
+  Crown,
   Home,
   LayoutGrid,
   Sparkles,
@@ -36,6 +37,7 @@ export type SidebarDashboardProps = {
   sites: ReadonlyArray<Site>;
   plan: Plan;
   userEmail: string;
+  estSuperAdmin?: boolean;
 };
 
 /**
@@ -53,6 +55,7 @@ export function SidebarDashboard({
   sites,
   plan,
   userEmail,
+  estSuperAdmin = false,
 }: SidebarDashboardProps) {
   const pathname = usePathname();
   const siteActif = extraireSlugSite(pathname);
@@ -146,6 +149,17 @@ export function SidebarDashboard({
             active={pathname?.includes("/dashboard/votre-compte")}
           />
         </SectionSidebar>
+
+        {estSuperAdmin && (
+          <SectionSidebar titre="Back-office Ataraxis">
+            <SidebarItem
+              href="/dashboard/super-admin"
+              icon={Crown}
+              label="Super-admin"
+              active={pathname?.startsWith("/dashboard/super-admin") ?? false}
+            />
+          </SectionSidebar>
+        )}
       </nav>
 
       <div className="border-t border-slate-300/60 p-3">

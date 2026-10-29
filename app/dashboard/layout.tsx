@@ -5,6 +5,7 @@ import { eq, desc } from "drizzle-orm";
 import { SidebarDashboard } from "@/components/dashboard/sidebar-dashboard";
 import { db } from "@/lib/db";
 import { siteConfigs, sites, stripeSubscriptions } from "@/lib/db/schema";
+import { aAccesSuperAdmin } from "@/lib/services/super-admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
@@ -75,12 +76,15 @@ export default async function LayoutDashboard({
     plan = null;
   }
 
+  const estSuperAdminOuAdmin = await aAccesSuperAdmin(user.id);
+
   return (
     <div className="relative flex min-h-screen bg-slate-50 text-slate-900">
       <SidebarDashboard
         sites={mesSites}
         plan={plan}
         userEmail={user.email ?? ""}
+        estSuperAdmin={estSuperAdminOuAdmin}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">

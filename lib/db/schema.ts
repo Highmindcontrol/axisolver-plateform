@@ -1065,3 +1065,34 @@ export const rapportsQuotidiens = pgTable(
     index("idx_rapports_quotidiens_cree_le").on(t.creeLe),
   ],
 );
+
+/* ─── Rôles plateforme (super-admin AxiSolver) ──────────────────── */
+
+export const rolePlateformeEnum = pgEnum("role_plateforme", [
+  "super_admin",
+  "admin_plateforme",
+  "contributeur",
+]);
+
+export const profilsPlateforme = pgTable(
+  "profils_plateforme",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: rolePlateformeEnum("role").notNull(),
+    notes: text("notes"),
+    creeParUserId: uuid("cree_par_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    majLe: timestamp("maj_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("idx_profils_plateforme_role").on(t.role)],
+);
