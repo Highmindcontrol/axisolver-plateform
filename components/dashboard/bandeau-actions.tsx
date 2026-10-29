@@ -1,12 +1,9 @@
 "use client";
 
 import {
-  BookOpen,
-  BookOpenCheck,
   LineChart,
-  Megaphone,
-  MessageSquareText,
   Search,
+  Settings,
   ShieldCheck,
   Target,
   type LucideIcon,
@@ -52,16 +49,16 @@ export function BandeauActions({
 
   const items: Item[] = [
     {
-      cle: "base-connaissances",
-      label: "Base de connaissances",
-      icone: BookOpen,
-      href: `/dashboard/sites/${siteSlug}/base-connaissances`,
+      cle: "rapports",
+      label: "Rapports quotidiens",
+      icone: LineChart,
+      href: `/dashboard/sites/${siteSlug}/rapports`,
     },
     {
-      cle: "options-accueil",
-      label: "Options d'accueil",
-      icone: Megaphone,
-      href: `/dashboard/sites/${siteSlug}/options-accueil`,
+      cle: "securite",
+      label: "Sécurité",
+      icone: ShieldCheck,
+      href: `/dashboard/sites/${siteSlug}/securite`,
     },
     {
       cle: "seo",
@@ -76,28 +73,10 @@ export function BandeauActions({
       href: `/dashboard/sites/${siteSlug}/ads`,
     },
     {
-      cle: "securite",
-      label: "Sécurité",
-      icone: ShieldCheck,
-      href: `/dashboard/sites/${siteSlug}/securite`,
-    },
-    {
-      cle: "rapports",
-      label: "Rapports",
-      icone: LineChart,
-      href: `/dashboard/sites/${siteSlug}/rapports`,
-    },
-    {
-      cle: "tickets",
-      label: "Conversations visiteurs",
-      icone: MessageSquareText,
-      href: `/dashboard/sites/${siteSlug}/tickets`,
-    },
-    {
-      cle: "guide",
-      label: "Guide d'AXI",
-      icone: BookOpenCheck,
-      href: `/dashboard/sites/${siteSlug}`,
+      cle: "parametrages",
+      label: "Paramétrages",
+      icone: Settings,
+      href: `/dashboard/sites/${siteSlug}/parametrages`,
     },
   ];
 

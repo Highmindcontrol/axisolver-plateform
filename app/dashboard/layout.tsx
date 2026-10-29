@@ -3,7 +3,7 @@ import { eq, desc } from "drizzle-orm";
 
 import { SidebarDashboard } from "@/components/dashboard/sidebar-dashboard";
 import { db } from "@/lib/db";
-import { sites, stripeSubscriptions } from "@/lib/db/schema";
+import { siteConfigs, sites, stripeSubscriptions } from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 /**
@@ -37,15 +37,25 @@ export default async function LayoutDashboard({
     redirect("/connexion");
   }
 
-  const mesSites = await db
+  const mesSitesRaw = await db
     .select({
       slug: sites.slug,
       nomEntreprise: sites.nomEntreprise,
       domainePrincipal: sites.domainePrincipal,
+      branding: siteConfigs.branding,
     })
     .from(sites)
+    .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
     .where(eq(sites.ownerUserId, user.id))
     .orderBy(sites.creeLe);
+
+  const mesSites = mesSitesRaw.map((s) => ({
+    slug: s.slug,
+    nomEntreprise: s.nomEntreprise,
+    domainePrincipal: s.domainePrincipal,
+    couleur: s.branding?.couleurPrincipale ?? "#4f46e5",
+    picto: s.branding?.picto ?? "globe",
+  }));
 
   // Lecture de l'abonnement Stripe : optionnelle (tolère l'absence
   // de la table stripe_subscriptions tant que les migrations

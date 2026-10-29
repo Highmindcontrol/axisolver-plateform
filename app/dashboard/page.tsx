@@ -1,15 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { and, eq, sql } from "drizzle-orm";
-import {
-  BookOpenCheck,
-  CheckCircle2,
-  Compass,
-  MessageSquareText,
-  Plus,
-  Shield,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Compass, Plus, Shield, Sparkles } from "lucide-react";
 
 import { HeaderSites } from "@/components/dashboard/header-sites";
 import { ToggleConversation } from "@/components/dashboard/toggle-conversation";
@@ -166,85 +158,36 @@ function SectionBienvenue({
   );
 }
 
-const BONNES_PRATIQUES = [
-  {
-    titre: "Alimentez d'abord la base de connaissances",
-    corps:
-      "AXI répond en s'appuyant uniquement sur les sources que vous lui donnez (URL, sitemap, PDF). Plus la base est riche, plus les réponses sont justes.",
-    icone: BookOpenCheck,
-  },
-  {
-    titre: "Configurez des options d'accueil percutantes",
-    corps:
-      "Trois à cinq phrases cliquables qui montrent immédiatement ce qu'AXI sait traiter. C'est votre vitrine, ne la négligez pas.",
-    icone: MessageSquareText,
-  },
-  {
-    titre: "Vérifiez la propriété du domaine tôt",
-    corps:
-      "Fichier à la racine ou enregistrement DNS. Sans vérification, AXI ne peut pas lancer d'actions externes (audits SEO, Ads, Sécurité).",
-    icone: Shield,
-  },
-  {
-    titre: "Laissez AXI faire les audits mensuels",
-    corps:
-      "SEO, Ads, Sécurité : audit automatique le 1er de chaque mois. Vous recevez le rapport par email, vous ne faites qu'agir sur les recommandations.",
-    icone: CheckCircle2,
-  },
-  {
-    titre: "Posez-lui vos questions directement",
-    corps:
-      "Le toggle « Converser avec AXI » en haut de chaque site vous met en lien direct avec le copilote de ce site. Il connaît son contexte, utilisez-le.",
-    icone: Sparkles,
-  },
-];
-
 function SectionGuide() {
   return (
     <section>
-      <header className="mb-5 flex items-center gap-3">
-        <span
-          className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700"
-          aria-hidden
-        >
-          <Compass className="h-4 w-4" strokeWidth={2.2} />
-        </span>
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight text-slate-900">
-            Guide d&apos;AXI
-          </h2>
-          <p className="text-xs text-slate-500">
-            Cinq bonnes pratiques pour tirer le meilleur parti de votre
-            copilote.
-          </p>
+      <Link
+        href="/dashboard/guide"
+        className="group flex items-center justify-between gap-4 rounded-2xl border border-indigo-200 bg-indigo-50/50 p-5 shadow-sm transition-colors hover:border-indigo-400 hover:bg-indigo-50"
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow"
+            aria-hidden
+          >
+            <Compass className="h-5 w-5" strokeWidth={2.2} />
+          </span>
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">
+              Guide d&apos;AXI
+            </h2>
+            <p className="text-xs text-slate-600">
+              Les fondamentaux, le workflow type, les 5 capacités d&apos;AXI
+              par site et les bonnes pratiques issues du terrain.
+            </p>
+          </div>
         </div>
-      </header>
-      <ul className="grid gap-3 md:grid-cols-2">
-        {BONNES_PRATIQUES.map((p) => {
-          const Icone = p.icone;
-          return (
-            <li
-              key={p.titre}
-              className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
-            >
-              <span
-                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700"
-                aria-hidden
-              >
-                <Icone className="h-4 w-4" strokeWidth={2.2} />
-              </span>
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">
-                  {p.titre}
-                </h3>
-                <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                  {p.corps}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+        <ArrowRight
+          className="h-5 w-5 flex-shrink-0 text-indigo-600 transition-transform group-hover:translate-x-0.5"
+          strokeWidth={2.2}
+          aria-hidden
+        />
+      </Link>
     </section>
   );
 }

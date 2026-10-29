@@ -1,27 +1,25 @@
 "use client";
 
 import {
-  BookOpen,
+  Compass,
   CreditCard,
-  Globe,
   Home,
   LayoutGrid,
-  Megaphone,
-  Search,
   Settings,
-  ShieldCheck,
   Sparkles,
-  Target,
   type LucideIcon,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import { IconeSite, hexVersRgba } from "@/lib/ui/sites-apparence";
 
 type Site = {
   slug: string;
   nomEntreprise: string;
   domainePrincipal: string;
+  couleur: string;
+  picto: string;
 };
 
 type Plan =
@@ -42,9 +40,13 @@ export type SidebarDashboardProps = {
 /**
  * Sidebar gauche du dashboard AxiSolver.
  *
- * Reproduit la structure AxiHub : logo + Accueil + liste des sites
- * (équivalent packs métier) + Intelligence (base de connaissances, SEO,
- * Ads, Sécurité) + Marketing Pro (Pack Web si souscrit) + Mon compte.
+ * Structure : logo + Accueil + Guide d'AXI + liste des sites (chacun
+ * coloré avec sa teinte signature quand actif) + Pack Web Marketing
+ * (si souscrit) + Mon compte.
+ *
+ * Pas de section « Intelligence du site » — ces capacités (base de
+ * connaissances, options d'accueil, SEO, Ads, Sécurité) sont dans
+ * le bandeau d'actions contextuel et dans la page Paramétrages.
  */
 export function SidebarDashboard({
   sites,
@@ -81,15 +83,22 @@ export function SidebarDashboard({
             label="Accueil"
             active={pathname === "/dashboard"}
           />
+          <SidebarItem
+            href="/dashboard/guide"
+            icon={Compass}
+            label="Guide d'AXI"
+            active={pathname?.startsWith("/dashboard/guide") ?? false}
+          />
         </ul>
 
         {sites.length > 0 && (
           <SectionSidebar titre="Mes sites">
             {sites.map((s) => (
-              <SidebarItem
+              <SidebarItemSite
                 key={s.slug}
                 href={`/dashboard/sites/${s.slug}`}
-                icon={Globe}
+                picto={s.picto}
+                couleur={s.couleur}
                 label={s.nomEntreprise}
                 active={siteActif === s.slug}
               />
@@ -100,41 +109,6 @@ export function SidebarDashboard({
               label="Ajouter un site"
               active={pathname === "/dashboard/sites/nouveau"}
               muted
-            />
-          </SectionSidebar>
-        )}
-
-        {siteActif && (
-          <SectionSidebar titre="Intelligence du site">
-            <SidebarItem
-              href={`/dashboard/sites/${siteActif}/base-connaissances`}
-              icon={BookOpen}
-              label="Base de connaissances"
-              active={pathname?.includes("/base-connaissances")}
-            />
-            <SidebarItem
-              href={`/dashboard/sites/${siteActif}/options-accueil`}
-              icon={Megaphone}
-              label="Options d'accueil"
-              active={pathname?.includes("/options-accueil")}
-            />
-            <SidebarItem
-              href={`/dashboard/sites/${siteActif}/seo`}
-              icon={Search}
-              label="SEO"
-              active={pathname?.includes("/seo")}
-            />
-            <SidebarItem
-              href={`/dashboard/sites/${siteActif}/ads`}
-              icon={Target}
-              label="Publicité"
-              active={pathname?.includes("/ads")}
-            />
-            <SidebarItem
-              href={`/dashboard/sites/${siteActif}/securite`}
-              icon={ShieldCheck}
-              label="Sécurité"
-              active={pathname?.includes("/securite")}
             />
           </SectionSidebar>
         )}
@@ -234,6 +208,57 @@ function SidebarItem({
         )}
       >
         <Icon className="h-4 w-4 flex-shrink-0" strokeWidth={2.2} aria-hidden />
+        <span className="truncate">{label}</span>
+      </Link>
+    </li>
+  );
+}
+
+/**
+ * SidebarItem spécifique « site » : utilise le picto + colore le
+ * fond avec la couleur signature du site quand il est actif.
+ */
+function SidebarItemSite({
+  href,
+  picto,
+  couleur,
+  label,
+  active,
+}: {
+  href: string;
+  picto: string;
+  couleur: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors"
+        style={
+          active
+            ? {
+                backgroundColor: couleur,
+                color: "#ffffff",
+              }
+            : {
+                backgroundColor: "transparent",
+                color: couleur,
+              }
+        }
+        onMouseEnter={(e) => {
+          if (!active) {
+            e.currentTarget.style.backgroundColor = hexVersRgba(couleur, 0.12);
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!active) {
+            e.currentTarget.style.backgroundColor = "transparent";
+          }
+        }}
+      >
+        <IconeSite valeur={picto} tailleClass="h-4 w-4 flex-shrink-0" />
         <span className="truncate">{label}</span>
       </Link>
     </li>
