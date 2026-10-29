@@ -270,7 +270,7 @@ export default async function PageSecuriteSite({
         </section>
       )}
 
-      {/* ────── Catalogue capacités AxiSolver Shield ────── */}
+      {/* ────── Catalogue capacités AxiSolver Security Shield ────── */}
       <section className="mb-10 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm">
         <header className="mb-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-700">
@@ -353,9 +353,9 @@ export default async function PageSecuriteSite({
         <div className="mt-5 rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 text-xs text-indigo-900">
           <p>
             <strong>Comment déléguer :</strong> pour chaque recommandation
-            marquée <em>&ldquo;Pris en charge par AXI Shield&rdquo;</em>, tu
+            marquée <em>&ldquo;Pris en charge par AXI Security Shield&rdquo;</em>, tu
             peux demander à AXI de la traiter automatiquement en activant
-            l&apos;abonnement AxiSolver Shield.
+            l&apos;abonnement AxiSolver Security Shield.
           </p>
         </div>
       </section>

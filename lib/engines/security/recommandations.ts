@@ -3,10 +3,21 @@ import type { FindingSecurity, RecommandationSecurity } from "./types";
 /**
  * Catalogue des recommandations security. Chaque code de finding est
  * mappé à une action concrète priorisée. Doctrine « 1 code 2 produits » :
- * les actions lourdes (configuration serveur, remédiation code source,
- * surveillance 24/7) sont taguées « pris en charge AXI » pour alimenter
- * l'upsell vers AXI Shield (pack AxiHub).
+ * les actions sont taguées « pris en charge AXI Security Shield » quand
+ * AXI peut les exécuter concrètement avec accès code (90-95 % des cas).
+ *
+ * Pack d'intelligence unique = AXI Security Shield (fusion AXI Shield +
+ * AXI Security). Inclus par défaut dans AxiSolver.
  */
+
+const PACK = "AXI Security Shield";
+
+/** Helper pour taguer une reco comme prise en charge par le pack. */
+const parAxi = (action: string) => ({
+  pack: PACK,
+  cout_sans_axi: "",
+  cout_avec_axi: action,
+});
 
 export type Catalogue = Record<
   string,
@@ -25,11 +36,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "faible",
     impact: "fort",
-    pris_en_charge_axi: {
-      pack: "AXI Shield",
-      cout_sans_axi: "200-500 € HT par devops",
-      cout_avec_axi: "configuration auto + vérification continue",
-    },
+    pris_en_charge_axi: parAxi(
+      "Déploie l'en-tête HSTS côté serveur + vérifie en continu",
+    ),
   },
   hsts_max_age_court: {
     pilier: "headers",
@@ -39,6 +48,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Ajuste max-age à 1 an + demande d'inscription preload si éligible",
+    ),
   },
   hsts_sans_subdomains: {
     pilier: "headers",
@@ -48,6 +60,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "basse",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Vérifie que tous les sous-domaines sont en HTTPS puis active includeSubDomains",
+    ),
   },
   csp_absent: {
     pilier: "headers",
@@ -57,11 +72,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "moyen",
     impact: "fort",
-    pris_en_charge_axi: {
-      pack: "AXI Shield",
-      cout_sans_axi: "800-2500 € HT par consultant sécurité",
-      cout_avec_axi: "génération automatique + rapport mode report-only",
-    },
+    pris_en_charge_axi: parAxi(
+      "Génère une CSP adaptée au site + déploie en mode report-only + analyse les rapports + bascule en enforce",
+    ),
   },
   csp_report_only: {
     pilier: "headers",
@@ -71,6 +84,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "moyen",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Analyse les rapports CSP collectés + ajuste la policy + bascule en enforce",
+    ),
   },
   csp_unsafe_inline: {
     pilier: "headers",
@@ -80,6 +96,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "eleve",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Externalise les scripts/styles inline + met en place un système de nonces côté serveur",
+    ),
   },
   csp_unsafe_eval: {
     pilier: "headers",
@@ -89,6 +108,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "moyen",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Audit du code pour localiser les eval() + propose des alternatives modernes + retire 'unsafe-eval'",
+    ),
   },
   x_frame_options_absent: {
     pilier: "headers",
@@ -98,6 +120,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Déploie X-Frame-Options côté serveur (DENY ou SAMEORIGIN selon usage iframe)",
+    ),
   },
   x_frame_options_mal_configure: {
     pilier: "headers",
@@ -107,6 +132,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Corrige la valeur côté serveur ou bascule sur CSP frame-ancestors",
+    ),
   },
   x_content_type_options_absent: {
     pilier: "headers",
@@ -116,6 +144,7 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi("Déploie l'en-tête nosniff côté serveur"),
   },
   referrer_policy_absent: {
     pilier: "headers",
@@ -125,6 +154,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "basse",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Déploie Referrer-Policy strict-origin-when-cross-origin",
+    ),
   },
   referrer_policy_faible: {
     pilier: "headers",
@@ -134,6 +166,7 @@ export const CATALOGUE: Catalogue = {
     priorite: "basse",
     effort: "faible",
     impact: "faible",
+    pris_en_charge_axi: parAxi("Remplace la valeur par une policy plus restrictive"),
   },
   permissions_policy_absent: {
     pilier: "headers",
@@ -143,6 +176,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "basse",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Génère une Permissions-Policy adaptée à l'usage du site + déploie",
+    ),
   },
   server_version_exposee: {
     pilier: "headers",
@@ -152,6 +188,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Masque la version serveur dans la config Nginx/Apache",
+    ),
   },
   x_powered_by_expose: {
     pilier: "headers",
@@ -161,6 +200,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "faible",
+    pris_en_charge_axi: parAxi(
+      "Retire X-Powered-By côté PHP/Express/Nginx proxy",
+    ),
   },
 
   // ─── Pilier TLS ───────────────────────────────────────────────
@@ -172,11 +214,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "critique",
     effort: "moyen",
     impact: "fort",
-    pris_en_charge_axi: {
-      pack: "AXI Shield",
-      cout_sans_axi: "500-2000 € HT par devops urgence",
-      cout_avec_axi: "diagnostic + plan de remédiation inclus",
-    },
+    pris_en_charge_axi: parAxi(
+      "Diagnostic réseau + plan de remédiation + relance config SSL",
+    ),
   },
   cert_expire: {
     pilier: "tls",
@@ -186,11 +226,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "critique",
     effort: "faible",
     impact: "fort",
-    pris_en_charge_axi: {
-      pack: "AXI Shield",
-      cout_sans_axi: "150-400 € HT par admin système",
-      cout_avec_axi: "renouvellement + alerte pré-expiration",
-    },
+    pris_en_charge_axi: parAxi(
+      "Lance certbot renew en urgence + reload serveur + alertes pré-expiration pour le futur",
+    ),
   },
   cert_expiration_imminente: {
     pilier: "tls",
@@ -200,6 +238,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "critique",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Déclenche certbot renew + vérifie la propagation + reload serveur",
+    ),
   },
   cert_expiration_proche: {
     pilier: "tls",
@@ -209,6 +250,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Vérifie le timer certbot + teste le renouvellement à blanc",
+    ),
   },
   san_absent: {
     pilier: "tls",
@@ -218,6 +262,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Régénère le certificat avec les SAN appropriés via certbot",
+    ),
   },
   protocole_tls_obsolete: {
     pilier: "tls",
@@ -227,6 +274,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Configure Nginx/Apache pour n'accepter que TLS 1.2 et 1.3",
+    ),
   },
 
   // ─── Pilier exposition ────────────────────────────────────────
@@ -238,11 +288,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "moyen",
     impact: "fort",
-    pris_en_charge_axi: {
-      pack: "AXI Shield",
-      cout_sans_axi: "300-800 € HT par devops",
-      cout_avec_axi: "surveillance tentatives + blocage auto",
-    },
+    pris_en_charge_axi: parAxi(
+      "Déploie restriction IP ou 2FA sur les interfaces admin + surveillance tentatives + blocage auto",
+    ),
   },
   robots_txt_absent: {
     pilier: "exposition",
@@ -252,6 +300,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "basse",
     effort: "faible",
     impact: "faible",
+    pris_en_charge_axi: parAxi(
+      "Dépose un robots.txt adapté au site avec Sitemap",
+    ),
   },
   security_txt_absent: {
     pilier: "exposition",
@@ -261,6 +312,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "basse",
     effort: "faible",
     impact: "faible",
+    pris_en_charge_axi: parAxi(
+      "Dépose /.well-known/security.txt conforme RFC 9116",
+    ),
   },
 
   // ─── Pilier cookies ──────────────────────────────────────────
@@ -272,6 +326,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Modifie la config PHP/Express/WordPress pour marquer les cookies Secure",
+    ),
   },
   cookie_sans_httponly: {
     pilier: "cookies",
@@ -281,6 +338,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Applique HttpOnly aux cookies de session côté code applicatif",
+    ),
   },
   cookie_sans_samesite: {
     pilier: "cookies",
@@ -290,6 +350,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Définit SameSite=Lax (ou Strict si applicable) côté code applicatif",
+    ),
   },
   cookie_samesite_none_sans_secure: {
     pilier: "cookies",
@@ -299,6 +362,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Évalue si cross-origin nécessaire puis active Secure ou bascule en Lax",
+    ),
   },
 
   // ─── Pilier contenu ───────────────────────────────────────────
@@ -310,11 +376,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "moyen",
     impact: "fort",
-    pris_en_charge_axi: {
-      pack: "AXI Shield",
-      cout_sans_axi: "200-800 € HT par dev",
-      cout_avec_axi: "détection + liste exhaustive à corriger",
-    },
+    pris_en_charge_axi: parAxi(
+      "Scan complet + remplacement http→https dans HTML/CSS/JS/base + ajout upgrade-insecure-requests",
+    ),
   },
   iframes_tiers_sans_sandbox: {
     pilier: "contenu",
@@ -324,6 +388,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Ajoute sandbox avec permissions minimales adaptées sur chaque iframe tiers",
+    ),
   },
   form_action_http: {
     pilier: "contenu",
@@ -333,6 +400,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "critique",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Corrige en urgence tous les form action HTTP → HTTPS ou URL relative",
+    ),
   },
   cms_version_exposee: {
     pilier: "contenu",
@@ -342,6 +412,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "moyenne",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Retire la balise generator + masque /readme.html et versions dans URLs d'assets",
+    ),
   },
   target_blank_sans_noopener: {
     pilier: "contenu",
@@ -351,6 +424,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "basse",
     effort: "faible",
     impact: "moyen",
+    pris_en_charge_axi: parAxi(
+      "Scan + ajout systématique de rel=\"noopener noreferrer\" sur tous les liens target=_blank",
+    ),
   },
 
   // ─── Pilier réputation ────────────────────────────────────────
@@ -362,11 +438,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "critique",
     effort: "faible",
     impact: "fort",
-    pris_en_charge_axi: {
-      pack: "AXI Shield",
-      cout_sans_axi: "200-500 € HT par admin",
-      cout_avec_axi: "redirection + HSTS + certificat auto",
-    },
+    pris_en_charge_axi: parAxi(
+      "Déploie la redirection 301 HTTP→HTTPS + active HSTS + vérifie le certificat",
+    ),
   },
   redirect_http_vers_http: {
     pilier: "reputation",
@@ -376,6 +450,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "haute",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Corrige la cible de redirection pour pointer explicitement sur https://",
+    ),
   },
   http_sert_contenu: {
     pilier: "reputation",
@@ -385,6 +462,9 @@ export const CATALOGUE: Catalogue = {
     priorite: "critique",
     effort: "faible",
     impact: "fort",
+    pris_en_charge_axi: parAxi(
+      "Déploie une redirection 301 systématique du port 80 vers HTTPS",
+    ),
   },
 };
 

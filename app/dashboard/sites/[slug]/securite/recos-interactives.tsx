@@ -226,11 +226,22 @@ export function RecosInteractives({
                 </div>
               </div>
               {r.pris_en_charge_axi && (
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-slate-900 to-slate-700 px-3 py-1 text-white">
-                  <Shield className="h-3 w-3" strokeWidth={2.5} aria-hidden />
-                  <span className="text-[11px] font-semibold">
-                    Pris en charge par {r.pris_en_charge_axi.pack}
-                  </span>
+                <div className="mt-3 flex items-start gap-2 rounded-lg border border-slate-900/10 bg-gradient-to-br from-slate-900 to-slate-700 p-3 text-white">
+                  <Shield
+                    className="mt-0.5 h-3.5 w-3.5 flex-shrink-0"
+                    strokeWidth={2.5}
+                    aria-hidden
+                  />
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                      Pris en charge par {r.pris_en_charge_axi.pack}
+                    </p>
+                    {r.pris_en_charge_axi.cout_avec_axi && (
+                      <p className="mt-0.5 text-xs">
+                        {r.pris_en_charge_axi.cout_avec_axi}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </li>

@@ -135,7 +135,7 @@ export default async function PageRapportWebmaster({
           </p>
           <p className="mt-2">
             Les éléments marqués{" "}
-            <strong>&ldquo;Pris en charge par AXI Shield&rdquo;</strong>{" "}
+            <strong>&ldquo;Pris en charge par AXI Security Shield&rdquo;</strong>{" "}
             peuvent être automatisés via l&apos;abonnement AxiSolver. Pour
             les autres, suivre les instructions ci-dessous.
           </p>
@@ -270,10 +270,22 @@ function RecoBloc({
             {reco.description}
           </p>
           {reco.pris_en_charge_axi && (
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-semibold text-white">
-              <Shield className="h-3 w-3" strokeWidth={2.5} />
-              Pris en charge par {reco.pris_en_charge_axi.pack}
-            </p>
+            <div className="mt-2 inline-flex items-start gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1 text-white">
+              <Shield
+                className="mt-0.5 h-3 w-3 flex-shrink-0"
+                strokeWidth={2.5}
+              />
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                  Pris en charge par {reco.pris_en_charge_axi.pack}
+                </p>
+                {reco.pris_en_charge_axi.cout_avec_axi && (
+                  <p className="mt-0.5 text-[11px]">
+                    {reco.pris_en_charge_axi.cout_avec_axi}
+                  </p>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </header>

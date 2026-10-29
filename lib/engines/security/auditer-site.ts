@@ -11,7 +11,7 @@ import type { FindingSecurity, ResultatAuditSecurity } from "./types";
 /**
  * Audit sécurité complet d'un site : 6 piliers analysés en parallèle
  * (headers, TLS, exposition, cookies, contenu, réputation), scoring
- * pondéré, recommandations priorisées avec upsell AXI Shield.
+ * pondéré, recommandations priorisées avec upsell AXI Security Shield.
  *
  * Durée typique 15-30 secondes selon la vitesse du site cible.
  */
