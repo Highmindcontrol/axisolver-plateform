@@ -16,6 +16,7 @@ import { db } from "@/lib/db";
 import { sites } from "@/lib/db/schema";
 import { listerAcces, type AccesResume } from "@/lib/packs/security-shield";
 import { FormulaireWordpress } from "./formulaire-wordpress";
+import { PasAPasWordpress } from "./pas-a-pas-wordpress";
 import {
   BoutonSupprimerAcces,
   BoutonTesterAcces,
@@ -145,6 +146,7 @@ export default async function PageAccesSecurite({
             </p>
           </div>
         </header>
+        <PasAPasWordpress />
         <FormulaireWordpress slug={slug} />
       </section>
 
