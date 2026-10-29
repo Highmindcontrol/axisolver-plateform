@@ -2,15 +2,16 @@ import Link from "next/link";
 import { AlertTriangle, CheckCircle2, Download, Package } from "lucide-react";
 
 /**
- * Bandeau d'état du plugin WordPress AXI Security Shield. Affiché en
- * haut de la page sécurité juste après le monitoring. Trois états :
- * - installé : vert avec version
- * - non installé mais accès configuré : orange avec lien téléchargement
- * - pas d'accès du tout : bleu discret avec lien vers Accès au site
+ * Bandeau d'état d'AXI Security Shield pour ce site :
+ * - accès GitHub actif → vert "AXI prêt à commiter dans le repo"
+ * - accès WordPress + plugin installé → vert avec version
+ * - accès WordPress sans plugin → orange avec lien téléchargement
+ * - aucun accès → bleu discret avec lien vers Accès au site
  */
 export function BandeauPlugin({
   statutPlugin,
   aAcces,
+  typeAcces,
   slug,
 }: {
   statutPlugin: {
@@ -18,6 +19,7 @@ export function BandeauPlugin({
     version: string | null;
   } | null;
   aAcces: boolean;
+  typeAcces: "wordpress_rest" | "github_repo" | null;
   slug: string;
 }) {
   if (!aAcces) {
@@ -38,6 +40,27 @@ export function BandeauPlugin({
           >
             Configurer un accès →
           </Link>
+        </p>
+      </section>
+    );
+  }
+
+  // Cas GitHub : pas de plugin requis, l'accès suffit
+  if (typeAcces === "github_repo") {
+    return (
+      <section className="mb-10 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-emerald-900">
+        <CheckCircle2
+          className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-700"
+          strokeWidth={2.2}
+          aria-hidden
+        />
+        <p>
+          <strong>AXI Security Shield prêt via GitHub.</strong>{" "}
+          AXI commitera les corrections (en-têtes HTTP, robots.txt,
+          security.txt) directement dans ton repo. Vercel redéploie
+          automatiquement après chaque push. Clique sur « Déclencher
+          la remédiation » sur n&apos;importe quelle recommandation
+          prise en charge.
         </p>
       </section>
     );

@@ -34,7 +34,10 @@ import {
   type FindingSecurity,
   type RecommandationSecurity,
 } from "@/lib/db/schema";
-import { verifierPluginPourSite } from "@/lib/packs/security-shield";
+import {
+  verifierPluginPourSite,
+  verifierRemediationDisponible,
+} from "@/lib/packs/security-shield";
 import { FormulaireAuditSecurity } from "./formulaire-audit";
 import { BoutonResoudreIncident } from "./bouton-resoudre";
 import { RecosInteractives } from "./recos-interactives";
@@ -89,8 +92,12 @@ export default async function PageSecuriteSite({
 
   // Vérifie si un accès est configuré + si le plugin WP est installé
   const statutPlugin = await verifierPluginPourSite(site.id);
-  const aAccesConfigure = statutPlugin !== null;
-  const pluginActif = !!statutPlugin?.installe;
+  const remediationDispo = await verifierRemediationDisponible(site.id);
+  const aAccesConfigure = remediationDispo.disponible;
+  // Remédiation possible si plugin WP OK OU accès GitHub actif
+  const remediationActive =
+    !!statutPlugin?.installe ||
+    remediationDispo.typeAcces === "github_repo";
 
   const dernier = audits[0] ?? null;
   const auditsTermines = audits.filter((a) => a.statut === "termine");
@@ -150,6 +157,7 @@ export default async function PageSecuriteSite({
       <BandeauPlugin
         statutPlugin={statutPlugin}
         aAcces={aAccesConfigure}
+        typeAcces={remediationDispo.typeAcces}
         slug={slug}
       />
 
@@ -260,7 +268,7 @@ export default async function PageSecuriteSite({
             findings={findings}
             slug={slug}
             auditId={dernier.id}
-            pluginInstalle={pluginActif}
+            pluginInstalle={remediationActive}
           />
         </section>
       )}

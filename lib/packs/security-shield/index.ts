@@ -17,6 +17,7 @@ export {
 } from "./acces/repository";
 export { testerConnexion } from "./acces/tester-connexion";
 export type { ResultatConnexion } from "./acces/tester-connexion";
+export { verifierRemediationDisponible } from "./acces/verifier-remediation-disponible";
 export type {
   AccesTypeId,
   AccesParametresPublics,
