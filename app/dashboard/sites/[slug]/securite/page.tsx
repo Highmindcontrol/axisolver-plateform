@@ -7,15 +7,25 @@ import {
   Shield,
   AlertCircle,
   AlertTriangle,
-  CheckCircle2,
   Clock,
-  Lock,
+  Radar,
+  CalendarClock,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import { sites, securityAudits, securityIncidents } from "@/lib/db/schema";
+import {
+  sites,
+  securityAudits,
+  securityIncidents,
+  type FindingSecurity,
+  type RecommandationSecurity,
+} from "@/lib/db/schema";
 import { FormulaireAuditSecurity } from "./formulaire-audit";
 import { BoutonResoudreIncident } from "./bouton-resoudre";
+import { RecosInteractives } from "./recos-interactives";
 
 export const dynamic = "force-dynamic";
 // Les audits sécurité peuvent prendre 20-30s (fetch 15s + TLS/expo/reputation).
@@ -50,6 +60,8 @@ export default async function PageSecuriteSite({
     .limit(10);
 
   const dernier = audits[0] ?? null;
+  const auditsTermines = audits.filter((a) => a.statut === "termine");
+  const precedent = auditsTermines[1] ?? null;
 
   const incidentsOuverts = await db
     .select()
@@ -62,6 +74,15 @@ export default async function PageSecuriteSite({
     )
     .orderBy(desc(securityIncidents.detecteLe))
     .limit(20);
+
+  const recos = (dernier?.recommandations as RecommandationSecurity[]) ?? [];
+  const findings = (dernier?.findings as FindingSecurity[]) ?? [];
+  const compteurRecos = {
+    critique: recos.filter((r) => r.priorite === "critique").length,
+    haute: recos.filter((r) => r.priorite === "haute").length,
+    moyenne: recos.filter((r) => r.priorite === "moyenne").length,
+    basse: recos.filter((r) => r.priorite === "basse").length,
+  };
 
   return (
     <div className="px-6 py-10 md:px-14 lg:px-16">
@@ -81,12 +102,28 @@ export default async function PageSecuriteSite({
           Sécurité de {site.domainePrincipal}
         </h1>
         <p className="mt-3 text-sm text-slate-600">
-          Audit complet sur 6 piliers (headers HTTP, TLS, exposition de
-          fichiers, cookies, contenu, réputation). Monitoring automatique
-          toutes les 6 heures. Audit mensuel le 1er du mois à 8h UTC.
+          Audit complet sur 6 piliers : headers HTTP, TLS, exposition de
+          fichiers, cookies, contenu, réputation.
         </p>
       </header>
 
+      {/* ────── Bandeau monitoring automatique ────── */}
+      <section className="mb-10 flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50/60 p-4 text-xs text-blue-900 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <Radar className="h-4 w-4 flex-shrink-0" strokeWidth={2.2} aria-hidden />
+          <p>
+            <strong>Monitoring automatique :</strong> contrôle toutes les 6h
+            (status, SSL, hash HTML) · Audit complet le 1er de chaque mois à 8h UTC.
+          </p>
+        </div>
+        <CalendarClock
+          className="hidden h-4 w-4 flex-shrink-0 text-blue-500 md:block"
+          strokeWidth={2.2}
+          aria-hidden
+        />
+      </section>
+
+      {/* ────── Incidents ouverts (si existants) ────── */}
       {incidentsOuverts.length > 0 && (
         <section className="mb-10 rounded-2xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
           <header className="mb-5 flex items-center gap-3">
@@ -141,123 +178,44 @@ export default async function PageSecuriteSite({
         </section>
       )}
 
-      <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <header className="mb-5">
-          <h2 className="text-base font-semibold text-slate-900">
-            Lancer un audit maintenant
-          </h2>
-          <p className="mt-1 text-xs text-slate-500">
-            L&apos;audit prend 15 à 30 secondes selon la vitesse du site
-            cible. 6 piliers analysés en parallèle.
-          </p>
-        </header>
-        <FormulaireAuditSecurity slug={slug} />
-      </section>
-
+      {/* ────── Score global enrichi + bouton relancer ────── */}
       {dernier && dernier.statut === "termine" && (
-        <section className="mb-10">
+        <section className="mb-6">
           <ScoreGlobalCarte
             score={dernier.scoreGlobal ?? 0}
             date={dernier.creeLe}
             certificatExpireeLe={dernier.certificatSslExpireeLe}
+            compteurRecos={compteurRecos}
+            scorePrecedent={precedent?.scoreGlobal ?? null}
+            slug={slug}
           />
 
-          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-6">
-            <CartePilier label="Headers" score={dernier.scoreHeaders} />
-            <CartePilier label="TLS" score={dernier.scoreTls} />
-            <CartePilier
-              label="Exposition"
-              score={dernier.scoreExposition}
-            />
-            <CartePilier label="Cookies" score={dernier.scoreCookies} />
-            <CartePilier label="Contenu" score={dernier.scoreContenu} />
-            <CartePilier
-              label="Réputation"
-              score={dernier.scoreReputation}
-            />
-          </div>
-
-          {dernier.recommandations.length > 0 && (
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <header className="mb-5 flex items-center gap-3">
-                <span
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white"
-                  aria-hidden
-                >
-                  <Lock className="h-5 w-5" strokeWidth={2} />
-                </span>
-                <div>
-                  <h2 className="text-base font-semibold text-slate-900">
-                    {dernier.recommandations.length} recommandation
-                    {dernier.recommandations.length > 1 ? "s" : ""} priorisée
-                    {dernier.recommandations.length > 1 ? "s" : ""}
-                  </h2>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    Tri automatique par priorité et impact sécurité
-                  </p>
-                </div>
-              </header>
-              <ul className="space-y-4">
-                {dernier.recommandations.map((r, i) => (
-                  <li
-                    key={i}
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-5"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="flex items-center gap-2">
-                          <BadgePriorite priorite={r.priorite} />
-                          <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
-                            {r.pilier}
-                          </span>
-                        </p>
-                        <h3 className="mt-2 text-sm font-semibold text-slate-900">
-                          {r.titre}
-                        </h3>
-                        <p className="mt-1 text-sm leading-relaxed text-slate-700">
-                          {r.description}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0 text-right text-[11px] text-slate-500">
-                        <p>
-                          Effort :{" "}
-                          <strong className="text-slate-700">
-                            {r.effort}
-                          </strong>
-                        </p>
-                        <p>
-                          Impact :{" "}
-                          <strong className="text-slate-700">
-                            {r.impact}
-                          </strong>
-                        </p>
-                      </div>
-                    </div>
-                    {r.pris_en_charge_axi && (
-                      <div className="mt-3 rounded-lg border border-slate-900/10 bg-gradient-to-br from-slate-900 to-slate-700 p-3 text-white">
-                        <p className="text-[10px] font-medium uppercase tracking-wider opacity-80">
-                          Pris en charge par {r.pris_en_charge_axi.pack}
-                        </p>
-                        <p className="mt-1 text-xs">
-                          Sans AXI :{" "}
-                          <span className="line-through opacity-70">
-                            {r.pris_en_charge_axi.cout_sans_axi}
-                          </span>{" "}
-                          · Avec AXI :{" "}
-                          <strong>
-                            {r.pris_en_charge_axi.cout_avec_axi}
-                          </strong>
-                        </p>
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          {/* Mini-cartes piliers cliquables (filtre les recos en bas) */}
+          <PiliersGrille
+            scores={{
+              headers: dernier.scoreHeaders,
+              tls: dernier.scoreTls,
+              exposition: dernier.scoreExposition,
+              cookies: dernier.scoreCookies,
+              contenu: dernier.scoreContenu,
+              reputation: dernier.scoreReputation,
+            }}
+            compteurRecosParPilier={compteurRecosParPilier(recos)}
+          />
         </section>
       )}
 
+      {/* ────── Recos interactives + filtres + findings ────── */}
+      {dernier && dernier.statut === "termine" && recos.length > 0 && (
+        <section className="mb-10">
+          <RecosInteractives
+            recommandations={recos}
+            findings={findings}
+          />
+        </section>
+      )}
+
+      {/* ────── Statuts transitoires (en_cours / echec / aucun) ────── */}
       {dernier && dernier.statut === "en_cours" && (
         <section className="mb-10 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
           <p className="flex items-center gap-2">
@@ -273,25 +231,35 @@ export default async function PageSecuriteSite({
             <AlertCircle className="mt-0.5 h-4 w-4" strokeWidth={2} />
             L&apos;audit a échoué : {dernier.erreur}
           </p>
+          <div className="mt-4">
+            <FormulaireAuditSecurity slug={slug} />
+          </div>
         </section>
       )}
 
       {!dernier && (
-        <section className="mb-10 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+        <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
           <Shield
             className="mx-auto h-10 w-10 text-slate-400"
             strokeWidth={1.5}
           />
-          <p className="mt-3 text-sm text-slate-600">
-            Aucun audit encore réalisé. Lancez le premier audit pour
-            découvrir le niveau de sécurité de votre site.
+          <h2 className="mt-4 text-base font-semibold text-slate-900">
+            Aucun audit encore réalisé
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Lance le premier audit pour découvrir le niveau de sécurité
+            de ton site sur 6 piliers.
           </p>
+          <div className="mt-5 flex justify-center">
+            <FormulaireAuditSecurity slug={slug} />
+          </div>
         </section>
       )}
 
+      {/* ────── Historique en tableau alterné ────── */}
       {audits.length > 1 && (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <header className="mb-4 flex items-center gap-3">
+          <header className="mb-5 flex items-center gap-3">
             <Clock
               className="h-5 w-5 text-slate-600"
               strokeWidth={2}
@@ -301,14 +269,19 @@ export default async function PageSecuriteSite({
               Historique des audits
             </h2>
           </header>
-          <ul className="divide-y divide-slate-100">
-            {audits.slice(1).map((a) => (
-              <li
-                key={a.id}
-                className="flex items-center justify-between py-3 text-sm"
-              >
-                <div>
-                  <p className="font-medium text-slate-900">
+          <div className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="hidden grid-cols-[1fr_auto_auto] items-center gap-4 border-b border-slate-200 bg-slate-100 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 md:grid">
+              <span>Date</span>
+              <span>Déclencheur</span>
+              <span>Score</span>
+            </div>
+            <ul>
+              {audits.slice(1).map((a) => (
+                <li
+                  key={a.id}
+                  className="grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 odd:bg-white even:bg-slate-50 md:grid-cols-[1fr_auto_auto]"
+                >
+                  <p className="text-sm font-medium text-slate-900">
                     {new Date(a.creeLe).toLocaleString("fr-FR", {
                       day: "2-digit",
                       month: "short",
@@ -317,43 +290,48 @@ export default async function PageSecuriteSite({
                       minute: "2-digit",
                     })}
                   </p>
-                  <p className="text-xs text-slate-500">
-                    Déclencheur :{" "}
+                  <span className="hidden rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-700 md:inline-flex">
                     {a.declencheur === "auto_mensuel"
                       ? "cron mensuel"
                       : a.declencheur === "monitoring"
-                        ? "monitoring auto"
+                        ? "monitoring"
                         : "manuel"}
-                  </p>
-                </div>
-                <div className="text-right">
-                  {a.statut === "termine" ? (
-                    <p className="text-base font-bold text-slate-900">
-                      {a.scoreGlobal}/100
-                    </p>
-                  ) : a.statut === "en_cours" ? (
-                    <p className="text-xs text-amber-700">en cours</p>
-                  ) : (
-                    <p className="text-xs text-rose-700">échec</p>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
+                  </span>
+                  <span className="justify-self-end">
+                    {a.statut === "termine" ? (
+                      <ScoreMini score={a.scoreGlobal ?? 0} />
+                    ) : a.statut === "en_cours" ? (
+                      <span className="text-xs text-amber-700">en cours</span>
+                    ) : (
+                      <span className="text-xs text-rose-700">échec</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </section>
       )}
     </div>
   );
 }
 
+/* ───────────────── Composants internes ───────────────── */
+
 function ScoreGlobalCarte({
   score,
   date,
   certificatExpireeLe,
+  compteurRecos,
+  scorePrecedent,
+  slug,
 }: {
   score: number;
   date: Date;
   certificatExpireeLe: Date | null;
+  compteurRecos: Record<"critique" | "haute" | "moyenne" | "basse", number>;
+  scorePrecedent: number | null;
+  slug: string;
 }) {
   const couleur =
     score >= 80
@@ -371,16 +349,39 @@ function ScoreGlobalCarte({
       )
     : null;
 
+  const delta =
+    scorePrecedent !== null && scorePrecedent !== undefined
+      ? score - scorePrecedent
+      : null;
+
   return (
     <div
       className={`rounded-2xl bg-gradient-to-br ${couleur} p-8 text-white shadow-lg`}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+        {/* Score + label + delta */}
+        <div className="flex-1">
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] opacity-90">
             Score sécurité global
           </p>
-          <p className="mt-2 text-5xl font-bold">{score}/100</p>
+          <div className="mt-2 flex items-baseline gap-3">
+            <p className="text-5xl font-bold">{score}</p>
+            <p className="text-xl opacity-80">/100</p>
+            {delta !== null && (
+              <span
+                className={`inline-flex items-center gap-0.5 rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold backdrop-blur-sm`}
+              >
+                {delta > 0 ? (
+                  <TrendingUp className="h-3 w-3" strokeWidth={2.5} />
+                ) : delta < 0 ? (
+                  <TrendingDown className="h-3 w-3" strokeWidth={2.5} />
+                ) : (
+                  <Minus className="h-3 w-3" strokeWidth={2.5} />
+                )}
+                {delta > 0 ? `+${delta}` : delta}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-sm opacity-90">
             {label} ·{" "}
             {new Date(date).toLocaleString("fr-FR", {
@@ -389,74 +390,132 @@ function ScoreGlobalCarte({
               year: "numeric",
             })}
           </p>
-        </div>
-        {joursSsl !== null && (
-          <div className="rounded-xl bg-white/15 p-3 text-right backdrop-blur-sm">
-            <p className="text-[10px] font-medium uppercase tracking-wider opacity-90">
-              Certificat SSL
-            </p>
-            <p className="mt-1 text-2xl font-bold">
-              {joursSsl > 0 ? `J-${joursSsl}` : "expiré"}
-            </p>
-            <p className="mt-0.5 text-[11px] opacity-80">
-              {certificatExpireeLe &&
-                new Date(certificatExpireeLe).toLocaleDateString("fr-FR")}
-            </p>
+
+          {/* Compteurs par priorité */}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <PastilleRecos
+              label="Critique"
+              count={compteurRecos.critique}
+              fallback="aucun"
+            />
+            <PastilleRecos label="Haute" count={compteurRecos.haute} />
+            <PastilleRecos label="Moyenne" count={compteurRecos.moyenne} />
+            <PastilleRecos label="Basse" count={compteurRecos.basse} />
           </div>
-        )}
+        </div>
+
+        {/* Colonne droite : certificat SSL + bouton relancer */}
+        <div className="flex flex-col items-stretch gap-3 md:items-end">
+          {joursSsl !== null && (
+            <div className="rounded-xl bg-white/15 p-3 text-right backdrop-blur-sm">
+              <p className="text-[10px] font-medium uppercase tracking-wider opacity-90">
+                Certificat SSL
+              </p>
+              <p className="mt-1 text-2xl font-bold">
+                {joursSsl > 0 ? `J-${joursSsl}` : "expiré"}
+              </p>
+              <p className="mt-0.5 text-[11px] opacity-80">
+                {certificatExpireeLe &&
+                  new Date(certificatExpireeLe).toLocaleDateString("fr-FR")}
+              </p>
+            </div>
+          )}
+          <FormulaireAuditSecurity slug={slug} />
+        </div>
       </div>
     </div>
   );
 }
 
-function CartePilier({
+function PastilleRecos({
   label,
-  score,
+  count,
+  fallback,
 }: {
   label: string;
-  score: number | null;
+  count: number;
+  fallback?: string;
 }) {
-  const val = score ?? 0;
-  const couleur =
-    val >= 80
-      ? "text-emerald-700"
-      : val >= 60
-        ? "text-amber-700"
-        : "text-rose-700";
+  if (count === 0 && !fallback) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs backdrop-blur-sm">
+      <span className="font-bold">{count === 0 ? "0" : count}</span>
+      <span className="opacity-80">{label.toLowerCase()}</span>
+    </span>
+  );
+}
+
+function PiliersGrille({
+  scores,
+  compteurRecosParPilier,
+}: {
+  scores: {
+    headers: number | null;
+    tls: number | null;
+    exposition: number | null;
+    cookies: number | null;
+    contenu: number | null;
+    reputation: number | null;
+  };
+  compteurRecosParPilier: Record<string, number>;
+}) {
+  const piliers: Array<{ id: keyof typeof scores; label: string }> = [
+    { id: "headers", label: "Headers" },
+    { id: "tls", label: "TLS" },
+    { id: "exposition", label: "Exposition" },
+    { id: "cookies", label: "Cookies" },
+    { id: "contenu", label: "Contenu" },
+    { id: "reputation", label: "Réputation" },
+  ];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
-        {label}
-      </p>
-      <p className={`mt-1 text-2xl font-bold ${couleur}`}>{val}</p>
-      <p className="text-[11px] text-slate-400">/ 100</p>
+    <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-6">
+      {piliers.map((p) => {
+        const val = scores[p.id] ?? 0;
+        const nbRecos = compteurRecosParPilier[p.id] ?? 0;
+        const couleur =
+          val >= 80
+            ? "text-emerald-700"
+            : val >= 60
+              ? "text-amber-700"
+              : "text-rose-700";
+        return (
+          <a
+            key={p.id}
+            href={`#recos-${p.id}`}
+            className="group block rounded-xl border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50/30"
+          >
+            <div className="flex items-start justify-between">
+              <p className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                {p.label}
+              </p>
+              {nbRecos > 0 && (
+                <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[9px] font-bold text-rose-700">
+                  {nbRecos}
+                </span>
+              )}
+            </div>
+            <p className={`mt-1 text-2xl font-bold ${couleur}`}>{val}</p>
+            <p className="text-[11px] text-slate-400">/ 100</p>
+          </a>
+        );
+      })}
     </div>
   );
 }
 
-function BadgePriorite({
-  priorite,
-}: {
-  priorite: "critique" | "haute" | "moyenne" | "basse";
-}) {
-  const styles: Record<string, string> = {
-    critique: "bg-rose-100 text-rose-800 border-rose-200",
-    haute: "bg-orange-100 text-orange-800 border-orange-200",
-    moyenne: "bg-amber-100 text-amber-800 border-amber-200",
-    basse: "bg-slate-100 text-slate-700 border-slate-200",
-  };
+function ScoreMini({ score }: { score: number }) {
+  const couleur =
+    score >= 80
+      ? "bg-emerald-100 text-emerald-800"
+      : score >= 60
+        ? "bg-amber-100 text-amber-800"
+        : "bg-rose-100 text-rose-800";
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${styles[priorite]}`}
+      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${couleur}`}
     >
-      {priorite === "critique" && (
-        <AlertCircle className="h-3 w-3" strokeWidth={2.4} />
-      )}
-      {priorite === "basse" && (
-        <CheckCircle2 className="h-3 w-3" strokeWidth={2.4} />
-      )}
-      {priorite}
+      {score}/100
     </span>
   );
 }
@@ -480,4 +539,14 @@ function BadgeSeverite({
       {severite}
     </span>
   );
+}
+
+function compteurRecosParPilier(
+  recos: RecommandationSecurity[],
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const r of recos) {
+    out[r.pilier] = (out[r.pilier] ?? 0) + 1;
+  }
+  return out;
 }
