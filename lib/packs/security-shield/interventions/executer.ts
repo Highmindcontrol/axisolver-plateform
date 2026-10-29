@@ -12,6 +12,7 @@ import { appliquerRemediationGithub } from "../nextjs-github/appliquer-remediati
 import { appliquerRemediationShopify } from "../shopify/appliquer-remediation";
 import { appliquerRemediationWix } from "../wix/appliquer-remediation";
 import { appliquerRemediationWebflow } from "../webflow/appliquer-remediation";
+import { appliquerRemediationSsh } from "../ssh/appliquer-remediation";
 import { marquerExecution, recupererIntervention } from "./repository";
 
 /**
@@ -58,6 +59,8 @@ export async function executerIntervention(params: {
     "shopify_admin",
     "wix_api",
     "webflow_api",
+    "ssh",
+    "sftp",
   ];
   if (!typesSupportes.includes(acces.type)) {
     await marquerExecution({
@@ -105,7 +108,9 @@ export async function executerIntervention(params: {
           ? await appliquerRemediationShopify(paramsCommuns)
           : acces.type === "wix_api"
             ? await appliquerRemediationWix(paramsCommuns)
-            : await appliquerRemediationWebflow(paramsCommuns);
+            : acces.type === "webflow_api"
+              ? await appliquerRemediationWebflow(paramsCommuns)
+              : await appliquerRemediationSsh(paramsCommuns);
 
   await marquerExecution({
     interventionId: params.interventionId,

@@ -4,6 +4,7 @@ import { verifierToken } from "../nextjs-github/client";
 import { verifierBoutique } from "../shopify/client";
 import { verifierTokenWix } from "../wix/appliquer-remediation";
 import { verifierTokenWebflow } from "../webflow/appliquer-remediation";
+import { verifierConnexion as verifierSsh } from "../ssh/client";
 
 /**
  * Tests de connexion par type d'accès. Objectif : vérifier qu'AXI peut
@@ -39,6 +40,9 @@ export async function testerConnexion(params: {
         return await testerWix(parametresPublics, credentiels, debut);
       case "webflow_api":
         return await testerWebflow(parametresPublics, credentiels, debut);
+      case "ssh":
+      case "sftp":
+        return await testerSshSftp(parametresPublics, credentiels, debut);
       default:
         return {
           ok: false,
@@ -145,6 +149,39 @@ async function testerWebflow(
   return {
     ok: res.ok,
     message: res.message,
+    latenceMs: Date.now() - debut,
+  };
+}
+
+async function testerSshSftp(
+  params: AccesParametresPublics,
+  creds: AccesCredentiels,
+  debut: number,
+): Promise<ResultatConnexion> {
+  if (
+    (params.type !== "ssh" && params.type !== "sftp") ||
+    (creds.type !== "ssh" && creds.type !== "sftp")
+  ) {
+    return {
+      ok: false,
+      message: "Type incohérent.",
+      latenceMs: Date.now() - debut,
+    };
+  }
+  const res = await verifierSsh({
+    host: params.host,
+    port: params.port,
+    user: params.user,
+    motDePasse: "motDePasse" in creds ? creds.motDePasse : undefined,
+    clePrivee: "clePrivee" in creds ? creds.clePrivee : undefined,
+    passphrase: "passphrase" in creds ? creds.passphrase : undefined,
+    timeoutMs: 10000,
+  });
+  return {
+    ok: res.ok,
+    message: res.systeme
+      ? `${res.message}. Système : ${res.systeme}`
+      : res.message,
     latenceMs: Date.now() - debut,
   };
 }
