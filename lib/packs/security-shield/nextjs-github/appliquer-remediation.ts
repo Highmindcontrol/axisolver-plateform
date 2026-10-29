@@ -71,6 +71,8 @@ export async function appliquerRemediationGithub(params: {
       "Cette correction concerne les sites WordPress / PHP (restreindre /wp-admin, /phpmyadmin). Un site Next.js n'expose pas ces chemins — l'audit a probablement remonté un faux positif. Rien à faire côté GitHub.",
     cms_version_exposee:
       "Cette correction concerne WordPress (balise meta generator). Next.js n'ajoute pas de meta generator par défaut, c'est un faux positif de l'audit.",
+    csp_report_only:
+      "La CSP est actuellement en mode report-only (observation). Pour la basculer en enforce il faut d'abord analyser les violations collectées pendant quelques jours et ajuster la policy. Chantier futur AXI : collecte des rapports via /csp-report + ajustement auto + bascule en enforce.",
     cookie_sans_secure:
       "Cette correction concerne la couche applicative (code qui pose les cookies de session). Pas automatisable via vercel.json. Si tu utilises next-auth, les cookies sont déjà Secure par défaut en production.",
     cookie_sans_httponly:
