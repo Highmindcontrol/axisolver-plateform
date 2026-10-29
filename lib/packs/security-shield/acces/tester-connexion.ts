@@ -1,5 +1,6 @@
 import "server-only";
 import type { AccesCredentiels, AccesParametresPublics } from "./types";
+import { verifierToken } from "../nextjs-github/client";
 
 /**
  * Tests de connexion par type d'accès. Objectif : vérifier qu'AXI peut
@@ -27,6 +28,8 @@ export async function testerConnexion(params: {
     switch (parametresPublics.type) {
       case "wordpress_rest":
         return await testerWordpressRest(parametresPublics, credentiels);
+      case "github_repo":
+        return await testerGithubRepo(parametresPublics, credentiels, debut);
       default:
         return {
           ok: false,
@@ -41,6 +44,30 @@ export async function testerConnexion(params: {
       latenceMs: Date.now() - debut,
     };
   }
+}
+
+async function testerGithubRepo(
+  params: AccesParametresPublics,
+  creds: AccesCredentiels,
+  debut: number,
+): Promise<ResultatConnexion> {
+  if (params.type !== "github_repo" || creds.type !== "github_repo") {
+    return {
+      ok: false,
+      message: "Type incohérent.",
+      latenceMs: Date.now() - debut,
+    };
+  }
+  const res = await verifierToken({
+    token: creds.personalAccessToken,
+    proprietaire: params.proprietaire,
+    repo: params.repo,
+  });
+  return {
+    ok: res.ok && res.droitsEcriture === true,
+    message: res.message,
+    latenceMs: Date.now() - debut,
+  };
 }
 
 async function testerWordpressRest(

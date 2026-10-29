@@ -8,6 +8,7 @@ import type {
   AccesParametresPublics,
 } from "../acces/types";
 import { appliquerRemediation } from "../plugin-wordpress/client";
+import { appliquerRemediationGithub } from "../nextjs-github/appliquer-remediation";
 import { marquerExecution, recupererIntervention } from "./repository";
 
 /**
@@ -48,12 +49,12 @@ export async function executerIntervention(params: {
     };
   }
 
-  if (acces.type !== "wordpress_rest") {
+  if (acces.type !== "wordpress_rest" && acces.type !== "github_repo") {
     await marquerExecution({
       interventionId: params.interventionId,
       siteId: params.siteId,
       statut: "echec",
-      erreur: `Type d'accès « ${acces.type} » pas encore supporté par le moteur de remédiation. V1 : WordPress REST uniquement.`,
+      erreur: `Type d'accès « ${acces.type} » pas encore supporté par le moteur de remédiation.`,
     });
     return {
       ok: false,
@@ -79,12 +80,19 @@ export async function executerIntervention(params: {
     statut: "en_cours",
   });
 
-  // Appelle le plugin WordPress
-  const resultat = await appliquerRemediation({
-    parametresPublics: acces.parametresPublics as AccesParametresPublics,
-    credentiels: creds as AccesCredentiels,
-    code: intervention.findingCode,
-  });
+  // Route selon le type d'accès (WordPress REST ou GitHub repo)
+  const resultat =
+    acces.type === "wordpress_rest"
+      ? await appliquerRemediation({
+          parametresPublics: acces.parametresPublics as AccesParametresPublics,
+          credentiels: creds as AccesCredentiels,
+          code: intervention.findingCode,
+        })
+      : await appliquerRemediationGithub({
+          parametresPublics: acces.parametresPublics as AccesParametresPublics,
+          credentiels: creds as AccesCredentiels,
+          code: intervention.findingCode,
+        });
 
   await marquerExecution({
     interventionId: params.interventionId,

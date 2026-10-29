@@ -139,6 +139,119 @@ export async function ajouterAccesWordpressAction(
   };
 }
 
+/**
+ * Ajoute un accès GitHub Repo (pour sites Next.js / Astro / statiques
+ * hébergés via GitHub+Vercel).
+ */
+export async function ajouterAccesGithubAction(
+  _prev: EtatAjoutAcces,
+  formData: FormData,
+): Promise<EtatAjoutAcces> {
+  const slug = String(formData.get("slug") ?? "").trim();
+  const libelle = String(formData.get("libelle") ?? "")
+    .trim()
+    .slice(0, 100);
+  const proprietaire = String(formData.get("proprietaire") ?? "").trim();
+  const repo = String(formData.get("repo") ?? "").trim();
+  const branche = String(formData.get("branche") ?? "main").trim() || "main";
+  const modeCommit =
+    (String(formData.get("modeCommit") ?? "push_direct").trim() as
+      | "push_direct"
+      | "pull_request") ?? "push_direct";
+  const personalAccessToken = String(
+    formData.get("personalAccessToken") ?? "",
+  ).trim();
+
+  if (!slug) return { erreur: "slug manquant", succes: false };
+  if (!libelle || !proprietaire || !repo || !personalAccessToken) {
+    return {
+      erreur: "Tous les champs sont obligatoires.",
+      succes: false,
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user: userConnecte },
+  } = await supabase.auth.getUser();
+  if (!userConnecte)
+    return { erreur: "Vous devez être connecté.", succes: false };
+
+  const [site] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(
+      and(eq(sites.slug, slug), await filtreSitesAccessibles(userConnecte.id)),
+    )
+    .limit(1);
+  if (!site) return { erreur: "Site introuvable.", succes: false };
+
+  const parametresPublics: AccesParametresPublics = {
+    type: "github_repo",
+    proprietaire,
+    repo,
+    branche,
+    modeCommit,
+  };
+  const credentiels: AccesCredentiels = {
+    type: "github_repo",
+    personalAccessToken,
+  };
+
+  const test = await testerConnexion({ parametresPublics, credentiels });
+  if (!test.ok) {
+    return {
+      erreur: `Test de connexion échoué : ${test.message}`,
+      succes: false,
+    };
+  }
+
+  try {
+    const { id } = await creerAcces({
+      siteId: site.id,
+      type: "github_repo",
+      libelle,
+      parametresPublics,
+      credentiels,
+      creeParUserId: userConnecte.id,
+    });
+    await marquerConnexion({
+      accesId: id,
+      siteId: site.id,
+      ok: true,
+      erreur: null,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("SECURITY_SHIELD_ENCRYPTION_KEY")) {
+      return {
+        erreur:
+          "Clé de chiffrement manquante côté serveur (SECURITY_SHIELD_ENCRYPTION_KEY).",
+        succes: false,
+      };
+    }
+    if (
+      msg.includes("invalid input value for enum") &&
+      msg.includes("github_repo")
+    ) {
+      return {
+        erreur:
+          "Migration 0022 pas encore appliquée en prod — applique le SQL puis réessaie.",
+        succes: false,
+      };
+    }
+    return { erreur: `Impossible d'enregistrer : ${msg}`, succes: false };
+  }
+
+  revalidatePath(`/dashboard/sites/${slug}/securite/acces`);
+  revalidatePath(`/dashboard/sites/${slug}/securite`);
+  return {
+    erreur: null,
+    succes: true,
+    message: test.message,
+  };
+}
+
 export type EtatSuppressionAcces = {
   erreur: string | null;
   succes: boolean;

@@ -10,6 +10,7 @@ import {
   Clock,
   Shield,
   Hammer,
+  GitBranch,
 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
@@ -17,6 +18,8 @@ import { sites } from "@/lib/db/schema";
 import { listerAcces, type AccesResume } from "@/lib/packs/security-shield";
 import { FormulaireWordpress } from "./formulaire-wordpress";
 import { PasAPasWordpress } from "./pas-a-pas-wordpress";
+import { FormulaireGithub } from "./formulaire-github";
+import { PasAPasGithub } from "./pas-a-pas-github";
 import {
   BoutonSupprimerAcces,
   BoutonTesterAcces,
@@ -127,7 +130,32 @@ export default async function PageAccesSecurite({
         )}
       </section>
 
-      {/* ────── Formulaire d'ajout WordPress REST (V1) ────── */}
+      {/* ────── Formulaire d'ajout GitHub (sites Next.js/Astro/statiques) ─── */}
+      <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <header className="mb-5 flex items-center gap-3">
+          <span
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white"
+            aria-hidden
+          >
+            <GitBranch className="h-5 w-5" strokeWidth={2} />
+          </span>
+          <div>
+            <h2 className="text-base font-semibold text-slate-900">
+              Ajouter un accès GitHub (Next.js / Astro / sites statiques)
+            </h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Pour les sites hébergés sur Vercel / Netlify / Cloudflare
+              Pages. AXI modifie <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px]">vercel.json</code> ou dépose{" "}
+              <code className="rounded bg-slate-100 px-1 py-0.5 font-mono text-[10px]">robots.txt</code> via un commit — le site se redéploie
+              automatiquement.
+            </p>
+          </div>
+        </header>
+        <PasAPasGithub />
+        <FormulaireGithub slug={slug} />
+      </section>
+
+      {/* ────── Formulaire d'ajout WordPress REST ────── */}
       <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <header className="mb-5 flex items-center gap-3">
           <span
@@ -141,8 +169,8 @@ export default async function PageAccesSecurite({
               Ajouter un accès WordPress REST API
             </h2>
             <p className="mt-0.5 text-xs text-slate-500">
-              Le plus simple si ton site est sous WordPress — AXI pourra
-              modifier config, cookies, headers HTTP et scanner le contenu.
+              Si ton site est sous WordPress — AXI utilise le plugin
+              compagnon pour appliquer les corrections côté PHP.
             </p>
           </div>
         </header>
@@ -156,19 +184,23 @@ export default async function PageAccesSecurite({
           Autres types d&apos;accès bientôt disponibles
         </h2>
         <p className="mt-1 text-xs text-slate-600">
-          Pour les cas non-WordPress ou plus avancés :
+          Pour les cas spécifiques :
         </p>
         <ul className="mt-3 grid gap-2 text-xs text-slate-700 md:grid-cols-2">
           <li className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-            <strong>SSH</strong> — serveur VPS/dédié avec clé privée ou
-            mot de passe
+            <strong>Shopify Admin API</strong> — boutiques Shopify
+          </li>
+          <li className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <strong>Wix / Webflow API</strong> — sites builders
+          </li>
+          <li className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <strong>SSH</strong> — serveur VPS/dédié
+          </li>
+          <li className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+            <strong>Cloudflare API</strong> — en-têtes via Cloudflare
           </li>
           <li className="rounded-lg border border-slate-200 bg-white px-3 py-2">
             <strong>FTP / SFTP</strong> — hébergement mutualisé
-          </li>
-          <li className="rounded-lg border border-slate-200 bg-white px-3 py-2">
-            <strong>Cloudflare API</strong> — gestion en-têtes HTTP via
-            Cloudflare
           </li>
           <li className="rounded-lg border border-slate-200 bg-white px-3 py-2">
             <strong>cPanel / Plesk</strong> — panels d&apos;hébergement

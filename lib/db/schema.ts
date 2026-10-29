@@ -628,6 +628,7 @@ export const securityShieldAccesTypeEnum = pgEnum(
     "cloudflare_api",
     "cpanel_api",
     "plesk_api",
+    "github_repo",
   ],
 );
 

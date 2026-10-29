@@ -11,7 +11,8 @@ export type AccesTypeId =
   | "wordpress_rest"
   | "cloudflare_api"
   | "cpanel_api"
-  | "plesk_api";
+  | "plesk_api"
+  | "github_repo";
 
 /** Paramètres publics (non secrets) — stockés en JSONB clair. */
 export type AccesParametresPublics =
@@ -21,7 +22,14 @@ export type AccesParametresPublics =
   | { type: "wordpress_rest"; urlSite: string; user: string }
   | { type: "cloudflare_api"; zoneId: string; email?: string }
   | { type: "cpanel_api"; host: string; port: number; user: string }
-  | { type: "plesk_api"; host: string; port: number; user: string };
+  | { type: "plesk_api"; host: string; port: number; user: string }
+  | {
+      type: "github_repo";
+      proprietaire: string; // ex. "Highmindcontrol"
+      repo: string; // ex. "ataraxis-group"
+      branche: string; // ex. "main"
+      modeCommit: "push_direct" | "pull_request";
+    };
 
 /** Credentiels sensibles — chiffrés avant stockage. */
 export type AccesCredentiels =
@@ -31,7 +39,8 @@ export type AccesCredentiels =
   | { type: "wordpress_rest"; applicationPassword: string }
   | { type: "cloudflare_api"; apiToken: string }
   | { type: "cpanel_api"; motDePasse?: string; apiToken?: string }
-  | { type: "plesk_api"; motDePasse?: string; apiKey?: string };
+  | { type: "plesk_api"; motDePasse?: string; apiKey?: string }
+  | { type: "github_repo"; personalAccessToken: string };
 
 /** Résumé public d'un accès (sans secrets, OK pour UI). */
 export type AccesResume = {
