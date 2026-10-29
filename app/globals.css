@@ -39,19 +39,19 @@ body {
   animation: fadeIn 240ms ease-out;
 }
 
-/* Effet « shine » qui traverse un élément périodiquement pour
-   signaler qu'il est vivant / cliquable. Le gradient oblique
-   semi-transparent glisse de gauche à droite rapidement, puis
-   attend plusieurs secondes avant de recommencer. */
+/* Effet « shine » : un reflet doré horizontal traverse toute la
+   largeur de l'élément toutes les 7 secondes pour signaler qu'il
+   est vivant / cliquable. On anime background-position pour que
+   le reflet traverse réellement de bout en bout, sans incliner. */
 @keyframes toggleShine {
   0% {
-    transform: translateX(-120%) skewX(-18deg);
+    background-position: -40% 0;
   }
-  12% {
-    transform: translateX(220%) skewX(-18deg);
+  18% {
+    background-position: 140% 0;
   }
   100% {
-    transform: translateX(220%) skewX(-18deg);
+    background-position: 140% 0;
   }
 }
 

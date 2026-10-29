@@ -41,19 +41,23 @@ export function ToggleConversation({
         aria-controls="panneau-conversation-axi"
         className="group relative flex w-full items-center justify-between gap-5 overflow-hidden border-b border-slate-200 bg-white px-6 py-6 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
       >
-        {/* Shine qui traverse périodiquement pour signaler que le
-            bouton est vivant et attend un clic. Pointer-events none
-            pour ne pas gêner l'interaction. */}
+        {/* Shine doré horizontal qui traverse de bout en bout toutes
+            les 7 secondes pour signaler que le bouton est vivant. */}
         {!ouvert && (
           <span
             aria-hidden
-            className="animate-toggleShine pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-transparent via-indigo-200/60 to-transparent"
+            className="animate-toggleShine pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent 0%, transparent 35%, rgba(251, 191, 36, 0.45) 50%, transparent 65%, transparent 100%)",
+              backgroundSize: "250% 100%",
+            }}
           />
         )}
 
         <div className="relative flex items-center gap-5">
           <span
-            className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 shadow-md ring-1 ring-slate-900/10"
+            className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 p-1.5 shadow-md ring-1 ring-slate-900/10"
             aria-hidden
           >
             <Image
@@ -62,7 +66,7 @@ export function ToggleConversation({
               width={160}
               height={160}
               priority
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           </span>
           <div>
