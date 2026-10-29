@@ -44,7 +44,7 @@ export function HeaderSites({
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-slate-200 bg-white px-6 py-4 md:px-14 lg:px-16">
       <div className="shrink-0 text-sm text-slate-600">
-        Bonjour{" "}
+        Bienvenue{" "}
         <span className="font-semibold text-slate-900">
           {prenom ?? "à vous"}
         </span>

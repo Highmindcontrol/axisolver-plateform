@@ -100,10 +100,6 @@ export default async function PageDashboard() {
 
       <div className="flex-1 bg-slate-50 px-6 py-10 md:px-14 lg:px-16">
         <div className="space-y-10">
-          <SectionBienvenue
-            prenomCap={prenomCap}
-            nbSites={mesSites.length}
-          />
           <SectionGuide />
           <SectionRecap
             sites={mesSites.map((s) => ({
@@ -119,41 +115,6 @@ export default async function PageDashboard() {
         </div>
       </div>
     </div>
-  );
-}
-
-function SectionBienvenue({
-  prenomCap,
-  nbSites,
-}: {
-  prenomCap: string | null;
-  nbSites: number;
-}) {
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-      <div className="flex items-start gap-4">
-        <span
-          className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-white shadow-md shadow-indigo-500/20"
-          aria-hidden
-        >
-          <Sparkles className="h-5 w-5" strokeWidth={2.2} />
-        </span>
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-            Bienvenue{prenomCap ? ` ${prenomCap}` : ""}.
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            Vous gérez actuellement{" "}
-            <strong className="font-semibold text-slate-900">
-              {nbSites} site{nbSites > 1 ? "s" : ""}
-            </strong>{" "}
-            depuis cette interface AxiSolver. Choisissez un site à
-            piloter dans la barre du haut ou directement dans la liste
-            ci-dessous.
-          </p>
-        </div>
-      </div>
-    </section>
   );
 }
 

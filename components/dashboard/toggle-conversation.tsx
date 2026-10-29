@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown, Sparkles } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 import { TroisEcrans } from "./trois-ecrans";
@@ -38,22 +39,22 @@ export function ToggleConversation({
         onClick={() => setOuvert((v) => !v)}
         aria-expanded={ouvert}
         aria-controls="panneau-conversation-axi"
-        className="group flex w-full items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
+        className="group flex w-full items-center justify-between gap-5 border-b border-slate-200 bg-white px-6 py-6 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
       >
-        <div className="flex items-center gap-4">
-          <span
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-white shadow-md shadow-indigo-500/30"
-            aria-hidden
-          >
-            <Sparkles className="h-5 w-5" strokeWidth={2.2} />
-          </span>
+        <div className="flex items-center gap-5">
+          <Image
+            src="/axi-mascotte-bouton.png"
+            alt=""
+            width={120}
+            height={120}
+            priority
+            className="h-14 w-14 flex-shrink-0 rounded-full"
+          />
           <div>
-            <p className="text-sm font-semibold text-slate-900">
-              {ouvert
-                ? "Conversation avec AXI"
-                : "Converser avec AXI"}
+            <p className="text-base font-semibold text-slate-900">
+              {ouvert ? "Conversation avec AXI" : "Converser avec AXI"}
             </p>
-            <p className="mt-0.5 text-xs text-slate-600">
+            <p className="mt-1 text-sm text-slate-600">
               {ouvert
                 ? "Fermer la fenêtre de conversation."
                 : "Ouvrez le copilote AxiSolver — configuration, questions, actions."}
@@ -61,7 +62,7 @@ export function ToggleConversation({
           </div>
         </div>
         <span
-          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
+          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
             ouvert ? "rotate-180" : ""
           }`}
           aria-hidden
