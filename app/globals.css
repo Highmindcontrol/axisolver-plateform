@@ -39,19 +39,20 @@ body {
   animation: fadeIn 240ms ease-out;
 }
 
-/* Effet « shine » : un reflet doré horizontal traverse toute la
-   largeur de l'élément toutes les 7 secondes pour signaler qu'il
-   est vivant / cliquable. On anime background-position pour que
-   le reflet traverse réellement de bout en bout, sans incliner. */
+/* Effet « shine » : un reflet doré fin traverse l'élément de la
+   gauche vers la droite toutes les 7 secondes pour signaler qu'il
+   est vivant / cliquable. On translate un span étroit depuis
+   l'extérieur gauche jusqu'à l'extérieur droit — garantit un
+   mouvement visible de bout en bout. */
 @keyframes toggleShine {
   0% {
-    background-position: -40% 0;
+    transform: translateX(-100%);
   }
   18% {
-    background-position: 140% 0;
+    transform: translateX(100vw);
   }
   100% {
-    background-position: 140% 0;
+    transform: translateX(100vw);
   }
 }
 
