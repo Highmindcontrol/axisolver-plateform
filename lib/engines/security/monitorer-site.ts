@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, gte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
+  securiteInterventions,
   securityIncidents,
   securityMonitorings,
   type FindingSecurity,
@@ -159,16 +160,27 @@ export async function monitorerSite(params: {
       .limit(1);
 
     if (precedent?.hashHtml && precedent.hashHtml !== resultat.hashHtml) {
-      resultat.incidents.push({
-        type: "hash_html_change",
-        severite: "moyenne",
-        message:
-          "Le contenu HTML de la page d'accueil a changé. Vérifier qu'il s'agit d'un deploy légitime.",
-        details: {
-          hash_precedent: precedent.hashHtml.slice(0, 16),
-          hash_courant: resultat.hashHtml.slice(0, 16),
-        },
-      });
+      // Avant de déclencher l'incident, vérifier si une intervention
+      // AXI Security Shield a modifié le site récemment (30 min).
+      // Si oui, c'est un faux positif attendu — on marque le changement
+      // comme légitime au lieu de créer un incident.
+      const interventionRecente = await interventionAxiRecente(siteId);
+      if (interventionRecente) {
+        console.log(
+          `[monitoring] hash HTML changé mais intervention AXI « ${interventionRecente.titre} » détectée à ${interventionRecente.termineLe?.toISOString()} — pas d'incident créé.`,
+        );
+      } else {
+        resultat.incidents.push({
+          type: "hash_html_change",
+          severite: "moyenne",
+          message:
+            "Le contenu HTML de la page d'accueil a changé. Vérifier qu'il s'agit d'un deploy légitime.",
+          details: {
+            hash_precedent: precedent.hashHtml.slice(0, 16),
+            hash_courant: resultat.hashHtml.slice(0, 16),
+          },
+        });
+      }
     }
   }
 
@@ -209,4 +221,35 @@ export async function monitorerSite(params: {
   }
 
   return resultat;
+}
+
+/**
+ * Retourne la dernière intervention AXI Security Shield terminée avec
+ * succès dans les 30 dernières minutes, ou null si aucune.
+ */
+async function interventionAxiRecente(
+  siteId: string,
+): Promise<{ titre: string; termineLe: Date | null } | null> {
+  try {
+    const il30Min = new Date(Date.now() - 30 * 60 * 1000);
+    const [row] = await db
+      .select({
+        titre: securiteInterventions.titre,
+        termineLe: securiteInterventions.termineLe,
+      })
+      .from(securiteInterventions)
+      .where(
+        and(
+          eq(securiteInterventions.siteId, siteId),
+          eq(securiteInterventions.statut, "terminee"),
+          gte(securiteInterventions.termineLe, il30Min),
+        ),
+      )
+      .orderBy(desc(securiteInterventions.termineLe))
+      .limit(1);
+    return row ?? null;
+  } catch {
+    // Table pas encore créée en prod (migration 0020 pas appliquée)
+    return null;
+  }
 }
