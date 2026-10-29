@@ -1,13 +1,16 @@
 "use client";
 
-import { Globe, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import { IconeSite } from "@/lib/ui/sites-apparence";
 
 type SiteSwitcher = {
   slug: string;
   nomEntreprise: string;
   couleur: string;
+  picto: string;
 };
 
 /**
@@ -60,7 +63,7 @@ export function HeaderSites({
               href={`/dashboard/sites/${s.slug}`}
               actif={slugActif === s.slug}
               couleur={s.couleur}
-              icone={<Globe className="h-4 w-4" strokeWidth={2.2} />}
+              icone={<IconeSite valeur={s.picto} tailleClass="h-4 w-4" />}
               label={s.nomEntreprise}
             />
           ))}

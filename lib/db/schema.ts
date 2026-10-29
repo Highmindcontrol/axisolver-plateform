@@ -132,6 +132,7 @@ export const siteConfigs = pgTable("site_configs", {
       logoUrl: null,
       position: "bas-droite",
       afficherPropulsePar: true,
+      picto: "globe",
     }),
   mentionsLegalesUrl: text("mentions_legales_url"),
   politiqueConfUrl: text("politique_conf_url"),
@@ -146,6 +147,10 @@ export type BrandingConfig = {
   logoUrl: string | null;
   position: "bas-droite" | "bas-gauche";
   afficherPropulsePar: boolean;
+  /** Nom d'icône lucide (ex. "globe", "building-2") pour identifier
+   *  le site dans la barre du haut du dashboard client. Optionnel
+   *  pour compatibilité avec les sites créés avant 2026-10-29. */
+  picto?: string;
 };
 
 /* ─── Options d'accueil ─────────────────────────────────────────── */

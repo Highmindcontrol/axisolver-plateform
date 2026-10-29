@@ -83,7 +83,12 @@ export default async function LayoutSite({
     slug: s.slug,
     nomEntreprise: s.nomEntreprise,
     couleur: s.branding?.couleurPrincipale ?? "#4f46e5",
+    picto: s.branding?.picto ?? "globe",
   }));
+
+  const siteActifBranding = mesSites.find((s) => s.slug === slug)?.branding;
+  const couleurSiteActif =
+    siteActifBranding?.couleurPrincipale ?? "#4f46e5";
 
   const sitesChantier = mesSites.map((s) => ({
     slug: s.slug,
@@ -102,7 +107,7 @@ export default async function LayoutSite({
     <div className="flex flex-col">
       <HeaderSites prenom={prenomCap} sites={sitesHeader} />
       <ToggleConversation prenom={prenomCap} sites={sitesChantier} />
-      <BandeauActions siteSlug={slug} />
+      <BandeauActions siteSlug={slug} couleurSite={couleurSiteActif} />
       <div className="flex-1">{children}</div>
     </div>
   );

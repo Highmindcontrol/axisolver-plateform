@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { AlertCircle, Rocket, Loader2 } from "lucide-react";
 import { creerSiteAction, type EtatCreationSite } from "./actions";
 import { CATALOGUE_SECTEURS } from "@/lib/axi-solver/catalogue-secteurs";
+import { PickerApparence } from "@/components/dashboard/picker-apparence";
 
 const ETAT_INITIAL: EtatCreationSite = { erreur: null };
 
@@ -135,6 +136,18 @@ export function FormulaireNouveauSite() {
           Permet de pré-remplir le ton et les options d&apos;accueil
           templatées. Vous pourrez tout personnaliser ensuite.
         </p>
+      </div>
+
+      <div className="border-t border-slate-100 pt-5">
+        <p className="mb-3 text-sm font-medium text-slate-900">
+          Apparence du site
+        </p>
+        <p className="mb-4 text-xs text-slate-500">
+          Choisissez une couleur et un picto. Ils apparaîtront dans la
+          barre du haut pour identifier ce site d&apos;un coup d&apos;œil
+          et teinter le bandeau d&apos;actions.
+        </p>
+        <PickerApparence />
       </div>
 
       {etat.erreur && (

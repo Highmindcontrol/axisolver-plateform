@@ -34,6 +34,9 @@ function slugDepuisDomaine(domaine: string): string {
     .slice(0, 48);
 }
 
+const HEX_REGEX = /^#[0-9a-fA-F]{6}$/;
+const PICTO_REGEX = /^[a-z0-9-]{1,32}$/;
+
 export async function creerSiteAction(
   _prev: EtatCreationSite,
   formData: FormData,
@@ -46,6 +49,11 @@ export async function creerSiteAction(
     .replace(/\/.*$/, "");
   const slugDemande = String(formData.get("slug") ?? "").trim().toLowerCase();
   const secteurSlug = String(formData.get("secteur") ?? "").trim();
+  const couleurBrute = String(formData.get("couleur") ?? "").trim();
+  const pictoBrut = String(formData.get("picto") ?? "").trim();
+
+  const couleur = HEX_REGEX.test(couleurBrute) ? couleurBrute : "#4f46e5";
+  const picto = PICTO_REGEX.test(pictoBrut) ? pictoBrut : "globe";
 
   if (!nomEntreprise || nomEntreprise.length < 2) {
     return { erreur: "Nom de l'entreprise requis (2 caractères minimum)." };
@@ -100,6 +108,14 @@ export async function creerSiteAction(
       languesActives: ["fr"],
       langueDefaut: "fr",
       voixMode: "texte_seul",
+      branding: {
+        couleurPrincipale: couleur,
+        couleurSecondaire: "#8b5cf6",
+        logoUrl: null,
+        position: "bas-droite",
+        afficherPropulsePar: true,
+        picto,
+      },
     });
 
     // Insert les options d'accueil templatées
