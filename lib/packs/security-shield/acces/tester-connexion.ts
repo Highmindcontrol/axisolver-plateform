@@ -1,6 +1,9 @@
 import "server-only";
 import type { AccesCredentiels, AccesParametresPublics } from "./types";
 import { verifierToken } from "../nextjs-github/client";
+import { verifierBoutique } from "../shopify/client";
+import { verifierTokenWix } from "../wix/appliquer-remediation";
+import { verifierTokenWebflow } from "../webflow/appliquer-remediation";
 
 /**
  * Tests de connexion par type d'accès. Objectif : vérifier qu'AXI peut
@@ -30,6 +33,12 @@ export async function testerConnexion(params: {
         return await testerWordpressRest(parametresPublics, credentiels);
       case "github_repo":
         return await testerGithubRepo(parametresPublics, credentiels, debut);
+      case "shopify_admin":
+        return await testerShopify(parametresPublics, credentiels, debut);
+      case "wix_api":
+        return await testerWix(parametresPublics, credentiels, debut);
+      case "webflow_api":
+        return await testerWebflow(parametresPublics, credentiels, debut);
       default:
         return {
           ok: false,
@@ -65,6 +74,76 @@ async function testerGithubRepo(
   });
   return {
     ok: res.ok && res.droitsEcriture === true,
+    message: res.message,
+    latenceMs: Date.now() - debut,
+  };
+}
+
+async function testerShopify(
+  params: AccesParametresPublics,
+  creds: AccesCredentiels,
+  debut: number,
+): Promise<ResultatConnexion> {
+  if (params.type !== "shopify_admin" || creds.type !== "shopify_admin") {
+    return {
+      ok: false,
+      message: "Type incohérent.",
+      latenceMs: Date.now() - debut,
+    };
+  }
+  const res = await verifierBoutique({
+    domaineBoutique: params.domaineBoutique,
+    versionApi: params.versionApi,
+    token: creds.adminApiAccessToken,
+  });
+  return {
+    ok: res.ok,
+    message: res.message,
+    latenceMs: Date.now() - debut,
+  };
+}
+
+async function testerWix(
+  params: AccesParametresPublics,
+  creds: AccesCredentiels,
+  debut: number,
+): Promise<ResultatConnexion> {
+  if (params.type !== "wix_api" || creds.type !== "wix_api") {
+    return {
+      ok: false,
+      message: "Type incohérent.",
+      latenceMs: Date.now() - debut,
+    };
+  }
+  const res = await verifierTokenWix({
+    siteId: params.siteId,
+    apiKey: creds.apiKey,
+  });
+  return {
+    ok: res.ok,
+    message: res.message,
+    latenceMs: Date.now() - debut,
+  };
+}
+
+async function testerWebflow(
+  params: AccesParametresPublics,
+  creds: AccesCredentiels,
+  debut: number,
+): Promise<ResultatConnexion> {
+  if (params.type !== "webflow_api" || creds.type !== "webflow_api") {
+    return {
+      ok: false,
+      message: "Type incohérent.",
+      latenceMs: Date.now() - debut,
+    };
+  }
+  const res = await verifierTokenWebflow({
+    siteId: params.siteId,
+    apiToken: creds.apiToken,
+  });
+  return {
+    ok: res.ok,
     message: res.message,
     latenceMs: Date.now() - debut,
   };

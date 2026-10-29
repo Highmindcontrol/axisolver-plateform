@@ -9,6 +9,9 @@ import type {
 } from "../acces/types";
 import { appliquerRemediation } from "../plugin-wordpress/client";
 import { appliquerRemediationGithub } from "../nextjs-github/appliquer-remediation";
+import { appliquerRemediationShopify } from "../shopify/appliquer-remediation";
+import { appliquerRemediationWix } from "../wix/appliquer-remediation";
+import { appliquerRemediationWebflow } from "../webflow/appliquer-remediation";
 import { marquerExecution, recupererIntervention } from "./repository";
 
 /**
@@ -49,7 +52,14 @@ export async function executerIntervention(params: {
     };
   }
 
-  if (acces.type !== "wordpress_rest" && acces.type !== "github_repo") {
+  const typesSupportes = [
+    "wordpress_rest",
+    "github_repo",
+    "shopify_admin",
+    "wix_api",
+    "webflow_api",
+  ];
+  if (!typesSupportes.includes(acces.type)) {
     await marquerExecution({
       interventionId: params.interventionId,
       siteId: params.siteId,
@@ -80,19 +90,22 @@ export async function executerIntervention(params: {
     statut: "en_cours",
   });
 
-  // Route selon le type d'accès (WordPress REST ou GitHub repo)
+  // Route selon le type d'accès
+  const paramsCommuns = {
+    parametresPublics: acces.parametresPublics as AccesParametresPublics,
+    credentiels: creds as AccesCredentiels,
+    code: intervention.findingCode,
+  };
   const resultat =
     acces.type === "wordpress_rest"
-      ? await appliquerRemediation({
-          parametresPublics: acces.parametresPublics as AccesParametresPublics,
-          credentiels: creds as AccesCredentiels,
-          code: intervention.findingCode,
-        })
-      : await appliquerRemediationGithub({
-          parametresPublics: acces.parametresPublics as AccesParametresPublics,
-          credentiels: creds as AccesCredentiels,
-          code: intervention.findingCode,
-        });
+      ? await appliquerRemediation(paramsCommuns)
+      : acces.type === "github_repo"
+        ? await appliquerRemediationGithub(paramsCommuns)
+        : acces.type === "shopify_admin"
+          ? await appliquerRemediationShopify(paramsCommuns)
+          : acces.type === "wix_api"
+            ? await appliquerRemediationWix(paramsCommuns)
+            : await appliquerRemediationWebflow(paramsCommuns);
 
   await marquerExecution({
     interventionId: params.interventionId,

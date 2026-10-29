@@ -12,7 +12,10 @@ export type AccesTypeId =
   | "cloudflare_api"
   | "cpanel_api"
   | "plesk_api"
-  | "github_repo";
+  | "github_repo"
+  | "shopify_admin"
+  | "wix_api"
+  | "webflow_api";
 
 /** Paramètres publics (non secrets) — stockés en JSONB clair. */
 export type AccesParametresPublics =
@@ -29,6 +32,19 @@ export type AccesParametresPublics =
       repo: string; // ex. "ataraxis-group"
       branche: string; // ex. "main"
       modeCommit: "push_direct" | "pull_request";
+    }
+  | {
+      type: "shopify_admin";
+      domaineBoutique: string; // ex. "ma-boutique.myshopify.com"
+      versionApi: string; // ex. "2024-10"
+    }
+  | {
+      type: "wix_api";
+      siteId: string; // Wix site ID (UUID)
+    }
+  | {
+      type: "webflow_api";
+      siteId: string; // Webflow site ID
     };
 
 /** Credentiels sensibles — chiffrés avant stockage. */
@@ -40,7 +56,10 @@ export type AccesCredentiels =
   | { type: "cloudflare_api"; apiToken: string }
   | { type: "cpanel_api"; motDePasse?: string; apiToken?: string }
   | { type: "plesk_api"; motDePasse?: string; apiKey?: string }
-  | { type: "github_repo"; personalAccessToken: string };
+  | { type: "github_repo"; personalAccessToken: string }
+  | { type: "shopify_admin"; adminApiAccessToken: string }
+  | { type: "wix_api"; apiKey: string }
+  | { type: "webflow_api"; apiToken: string };
 
 /** Résumé public d'un accès (sans secrets, OK pour UI). */
 export type AccesResume = {

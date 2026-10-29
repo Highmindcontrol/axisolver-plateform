@@ -629,6 +629,9 @@ export const securityShieldAccesTypeEnum = pgEnum(
     "cpanel_api",
     "plesk_api",
     "github_repo",
+    "shopify_admin",
+    "wix_api",
+    "webflow_api",
   ],
 );
 
