@@ -1,7 +1,13 @@
-import { eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike, or, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { profilsPlateforme } from "@/lib/db/schema";
+import {
+  profilsPlateforme,
+  sites,
+  stripeSubscriptions,
+  users,
+  workspaceMembers,
+} from "@/lib/db/schema";
 
 export type RolePlateforme =
   | "super_admin"
@@ -64,4 +70,130 @@ export async function aAccesSuperAdmin(userId: string): Promise<boolean> {
   return (
     profil.role === "super_admin" || profil.role === "admin_plateforme"
   );
+}
+
+export type UtilisateurPlateforme = {
+  userId: string;
+  email: string | null;
+  nomAffiche: string | null;
+  creeLe: Date;
+  rolePlateforme: RolePlateforme | null;
+  planAbonnement: string | null;
+  statutAbonnement: string | null;
+  nbSites: number;
+};
+
+export async function listerUtilisateurs(options: {
+  recherche?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<{ liste: UtilisateurPlateforme[]; total: number }> {
+  const limit = options.limit ?? 50;
+  const offset = options.offset ?? 0;
+  const terme = options.recherche?.trim();
+
+  try {
+    const condRecherche = terme
+      ? or(
+          ilike(users.email, `%${terme}%`),
+          ilike(users.nomAffiche, `%${terme}%`),
+        )
+      : undefined;
+
+    const [totalRow] = await db
+      .select({ n: count() })
+      .from(users)
+      .where(condRecherche);
+    const total = Number(totalRow?.n ?? 0);
+
+    const rows = await db
+      .select({
+        userId: users.id,
+        email: users.email,
+        nomAffiche: users.nomAffiche,
+        creeLe: users.creeLe,
+        rolePlateforme: profilsPlateforme.role,
+        planAbonnement: stripeSubscriptions.plan,
+        statutAbonnement: stripeSubscriptions.statut,
+        nbSites: sql<number>`(
+          SELECT COUNT(DISTINCT s."id")
+          FROM ${sites} s
+          LEFT JOIN ${workspaceMembers} wm ON wm."workspace_id" = s."workspace_id"
+          WHERE s."owner_user_id" = ${users.id}
+             OR wm."user_id" = ${users.id}
+        )`,
+      })
+      .from(users)
+      .leftJoin(
+        profilsPlateforme,
+        eq(profilsPlateforme.userId, users.id),
+      )
+      .leftJoin(
+        stripeSubscriptions,
+        and(
+          eq(stripeSubscriptions.userId, users.id),
+          eq(stripeSubscriptions.statut, "active"),
+        ),
+      )
+      .where(condRecherche)
+      .orderBy(desc(users.creeLe))
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      total,
+      liste: rows.map((r) => ({
+        userId: r.userId,
+        email: r.email,
+        nomAffiche: r.nomAffiche,
+        creeLe: r.creeLe,
+        rolePlateforme: (r.rolePlateforme ?? null) as RolePlateforme | null,
+        planAbonnement: r.planAbonnement ?? null,
+        statutAbonnement: r.statutAbonnement ?? null,
+        nbSites: Number(r.nbSites ?? 0),
+      })),
+    };
+  } catch {
+    return { total: 0, liste: [] };
+  }
+}
+
+export async function compterSuperAdmins(): Promise<number> {
+  try {
+    const [row] = await db
+      .select({ n: count() })
+      .from(profilsPlateforme)
+      .where(eq(profilsPlateforme.role, "super_admin"));
+    return Number(row?.n ?? 0);
+  } catch {
+    return 0;
+  }
+}
+
+export async function assignerRolePlateforme(
+  userId: string,
+  role: RolePlateforme,
+  creeParUserId: string,
+  notes?: string,
+): Promise<void> {
+  await db
+    .insert(profilsPlateforme)
+    .values({
+      userId,
+      role,
+      creeParUserId,
+      notes: notes ?? null,
+    })
+    .onConflictDoUpdate({
+      target: profilsPlateforme.userId,
+      set: {
+        role,
+        notes: notes ?? null,
+        majLe: new Date(),
+      },
+    });
+}
+
+export async function retirerRolePlateforme(userId: string): Promise<void> {
+  await db.delete(profilsPlateforme).where(eq(profilsPlateforme.userId, userId));
 }
