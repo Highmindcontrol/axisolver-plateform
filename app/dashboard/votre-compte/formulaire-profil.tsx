@@ -10,9 +10,11 @@ const ETAT_INITIAL: EtatProfil = { erreur: null, succes: false };
 export function FormulaireProfil({
   prenomInitial,
   nomInitial,
+  telephoneInitial,
 }: {
   prenomInitial: string;
   nomInitial: string;
+  telephoneInitial: string;
 }) {
   const [etat, action, pending] = useActionState(
     modifierProfilAction,
@@ -20,10 +22,12 @@ export function FormulaireProfil({
   );
   const [prenom, setPrenom] = useState(prenomInitial);
   const [nom, setNom] = useState(nomInitial);
+  const [telephone, setTelephone] = useState(telephoneInitial);
 
   const modifie =
     prenom.trim() !== prenomInitial.trim() ||
-    nom.trim() !== nomInitial.trim();
+    nom.trim() !== nomInitial.trim() ||
+    telephone.trim() !== telephoneInitial.trim();
 
   return (
     <form action={action} className="space-y-4">
@@ -64,6 +68,25 @@ export function FormulaireProfil({
             className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           />
         </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="telephone"
+          className="mb-1 block text-xs font-medium text-slate-500"
+        >
+          Téléphone (optionnel)
+        </label>
+        <input
+          id="telephone"
+          name="telephone"
+          type="tel"
+          maxLength={32}
+          value={telephone}
+          onChange={(e) => setTelephone(e.target.value)}
+          placeholder="+33 6 12 34 56 78"
+          className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100 md:w-1/2"
+        />
       </div>
 
       <p className="text-xs text-slate-500">

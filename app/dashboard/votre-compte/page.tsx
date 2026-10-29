@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   Bell,
+  Building2,
   CreditCard,
   Download,
   LogOut,
@@ -16,6 +17,11 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { BoutonResetMdp } from "./bouton-reset-mdp";
 import { FormulaireProfil } from "./formulaire-profil";
+import {
+  FormulaireSociete,
+  type SocieteInitial,
+} from "./formulaire-societe";
+import { SectionAdministrateurs } from "./section-admins";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +49,21 @@ export default async function PageVotreCompte() {
     (user.user_metadata as Record<string, unknown> | undefined) ?? {};
   const prenomInitial = typeof meta.prenom === "string" ? meta.prenom : "";
   const nomInitial = typeof meta.nom === "string" ? meta.nom : "";
+  const telephoneInitial =
+    typeof meta.telephone === "string" ? meta.telephone : "";
+
+  const societeMeta = (meta.societe as Record<string, unknown> | undefined) ?? {};
+  const societeInitial: SocieteInitial = {
+    raisonSociale: lireChamp(societeMeta.raisonSociale),
+    numeroTva: lireChamp(societeMeta.numeroTva),
+    siret: lireChamp(societeMeta.siret),
+    adresseLigne1: lireChamp(societeMeta.adresseLigne1),
+    adresseLigne2: lireChamp(societeMeta.adresseLigne2),
+    codePostal: lireChamp(societeMeta.codePostal),
+    ville: lireChamp(societeMeta.ville),
+    pays: lireChamp(societeMeta.pays),
+    emailFacturation: lireChamp(societeMeta.emailFacturation),
+  };
 
   return (
     <div className="flex-1 px-6 py-10 md:px-14 lg:px-16">
@@ -70,6 +91,13 @@ export default async function PageVotreCompte() {
           dateCreation={dateCreation}
           prenomInitial={prenomInitial}
           nomInitial={nomInitial}
+          telephoneInitial={telephoneInitial}
+        />
+        <SectionSociete societeInitial={societeInitial} />
+        <SectionAdministrateurs
+          prenom={prenomInitial}
+          nom={nomInitial}
+          email={email}
         />
         <SectionNotifications />
         <SectionFacturation />
@@ -87,11 +115,13 @@ function SectionProfil({
   dateCreation,
   prenomInitial,
   nomInitial,
+  telephoneInitial,
 }: {
   email: string;
   dateCreation: string;
   prenomInitial: string;
   nomInitial: string;
+  telephoneInitial: string;
 }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -107,6 +137,7 @@ function SectionProfil({
       <FormulaireProfil
         prenomInitial={prenomInitial}
         nomInitial={nomInitial}
+        telephoneInitial={telephoneInitial}
       />
 
       <div className="mt-6 grid gap-5 border-t border-slate-100 pt-5 md:grid-cols-2">
@@ -132,6 +163,10 @@ function SectionProfil({
   );
 }
 
+function lireChamp(valeur: unknown): string {
+  return typeof valeur === "string" ? valeur : "";
+}
+
 function ChampLecture({
   label,
   valeur,
@@ -153,6 +188,28 @@ function ChampLecture({
         <span className="truncate text-sm text-slate-900">{valeur}</span>
       </div>
     </div>
+  );
+}
+
+/* ─── Société ──────────────────────────────────────────────────── */
+
+function SectionSociete({ societeInitial }: { societeInitial: SocieteInitial }) {
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="mb-2 flex items-center gap-2 text-base font-semibold text-slate-900">
+        <Building2
+          className="h-5 w-5 text-indigo-700"
+          strokeWidth={2.2}
+          aria-hidden
+        />
+        Entreprise & facturation
+      </h2>
+      <p className="mb-5 text-sm text-slate-600">
+        Raison sociale, numéro de TVA et adresse. Utilisés par Stripe
+        pour émettre vos factures d&apos;abonnement.
+      </p>
+      <FormulaireSociete initial={societeInitial} />
+    </section>
   );
 }
 
