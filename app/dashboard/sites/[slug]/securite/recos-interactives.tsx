@@ -202,9 +202,9 @@ export function RecosInteractives({
         </div>
       ) : (
         <ul className="space-y-4">
-          {recosFiltrees.map((r, i) => (
+          {recosFiltrees.map((r) => (
             <li
-              key={i}
+              key={`${r.pilier}:${r.titre}`}
               className="rounded-xl border border-slate-200 bg-slate-50 p-5"
             >
               <div className="flex items-start justify-between gap-3">
