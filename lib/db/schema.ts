@@ -1148,3 +1148,25 @@ export const coutsFournisseursMensuel = pgTable(
     index("idx_couts_fournisseurs_categorie").on(t.categorie),
   ],
 );
+
+/* ─── Tokens API Forteresse Ataraxis ────────────────────────────── */
+
+export const tokensApiForteresse = pgTable(
+  "tokens_api_forteresse",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nom: text("nom").notNull(),
+    tokenHash: text("token_hash").notNull().unique(),
+    creeParUserId: uuid("cree_par_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    derniereUtilisationLe: timestamp("derniere_utilisation_le", {
+      withTimezone: true,
+    }),
+    revoqueLe: timestamp("revoque_le", { withTimezone: true }),
+  },
+  (t) => [index("idx_tokens_forteresse_hash").on(t.tokenHash)],
+);
