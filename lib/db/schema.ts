@@ -119,6 +119,11 @@ export const sites = pgTable("sites", {
 /* ─── Site configs ──────────────────────────────────────────────── */
 /* Un seul enregistrement par site. 1-1. */
 
+export const remediationSecuriteModeEnum = pgEnum(
+  "remediation_securite_mode",
+  ["desactive", "validation", "automatique"],
+);
+
 export const siteConfigs = pgTable("site_configs", {
   siteId: uuid("site_id")
     .primaryKey()
@@ -151,6 +156,11 @@ export const siteConfigs = pgTable("site_configs", {
   mentionsLegalesUrl: text("mentions_legales_url"),
   politiqueConfUrl: text("politique_conf_url"),
   emailNotification: text("email_notification"),
+  modeRemediationSecurite: remediationSecuriteModeEnum(
+    "mode_remediation_securite",
+  )
+    .notNull()
+    .default("desactive"),
   creeLe: timestamp("cree_le", { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -547,6 +557,61 @@ export const securityIncidents = pgTable(
     index("idx_security_incidents_site_id").on(t.siteId),
     index("idx_security_incidents_statut").on(t.statut),
     index("idx_security_incidents_detecte_le").on(t.detecteLe),
+  ],
+);
+
+/* ─── Interventions AXI Security Shield (remédiation, migration 0020) */
+
+export const interventionSecuriteStatutEnum = pgEnum(
+  "intervention_securite_statut",
+  [
+    "en_attente_validation",
+    "programmee",
+    "en_cours",
+    "terminee",
+    "echec",
+    "refusee",
+    "annulee",
+  ],
+);
+
+export const securiteInterventions = pgTable(
+  "securite_interventions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    auditId: uuid("audit_id").references(() => securityAudits.id, {
+      onDelete: "set null",
+    }),
+    findingCode: text("finding_code").notNull(),
+    pilier: text("pilier").notNull(),
+    titre: text("titre").notNull(),
+    descriptionAction: text("description_action").notNull(),
+    statut: interventionSecuriteStatutEnum("statut")
+      .notNull()
+      .default("en_attente_validation"),
+    modeDeclenche: remediationSecuriteModeEnum("mode_declenche")
+      .notNull()
+      .default("validation"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    programmeePour: timestamp("programmee_pour", { withTimezone: true }),
+    executeLe: timestamp("execute_le", { withTimezone: true }),
+    termineLe: timestamp("termine_le", { withTimezone: true }),
+    resultat: jsonb("resultat"),
+    erreur: text("erreur"),
+    valideParUserId: uuid("valide_par_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    valideLe: timestamp("valide_le", { withTimezone: true }),
+  },
+  (t) => [
+    index("idx_securite_interventions_site").on(t.siteId),
+    index("idx_securite_interventions_statut").on(t.statut),
+    index("idx_securite_interventions_cree_le").on(t.creeLe),
   ],
 );
 

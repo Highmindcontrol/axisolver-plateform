@@ -5,7 +5,12 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import { sites, securityAudits, securityIncidents } from "@/lib/db/schema";
+import {
+  sites,
+  securityAudits,
+  securityIncidents,
+  siteConfigs,
+} from "@/lib/db/schema";
 import { auditerSite } from "@/lib/engines/security/auditer-site";
 
 export type EtatAuditSecurity = {
@@ -118,4 +123,67 @@ export async function resoudreIncidentAction(
 
   revalidatePath(`/dashboard/sites/${slug}/securite`);
   return { erreur: null, ok: true };
+}
+
+/**
+ * Change le mode de remédiation AXI Security Shield pour un site :
+ * - desactive : AXI n'intervient jamais, se contente d'auditer et alerter
+ * - validation : AXI propose les actions, l'utilisateur valide chacune
+ * - automatique : AXI exécute dès qu'il détecte un problème qu'il sait traiter
+ */
+export type EtatModeRemediation = {
+  erreur: string | null;
+  ok?: boolean;
+  mode?: "desactive" | "validation" | "automatique";
+};
+
+export async function definirModeRemediationAction(
+  _prev: EtatModeRemediation,
+  formData: FormData,
+): Promise<EtatModeRemediation> {
+  const slug = String(formData.get("slug") ?? "").trim();
+  const mode = String(formData.get("mode") ?? "").trim();
+  if (!slug) return { erreur: "slug manquant" };
+  if (!["desactive", "validation", "automatique"].includes(mode)) {
+    return { erreur: "mode invalide" };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { erreur: "Vous devez être connecté." };
+
+  const [site] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
+    .limit(1);
+  if (!site) return { erreur: "Site introuvable." };
+
+  try {
+    await db
+      .update(siteConfigs)
+      .set({
+        modeRemediationSecurite: mode as "desactive" | "validation" | "automatique",
+        majLe: new Date(),
+      })
+      .where(eq(siteConfigs.siteId, site.id));
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("mode_remediation_securite") || msg.includes("column")) {
+      return {
+        erreur:
+          "Migration 0020 pas encore appliquée en prod — applique le SQL puis réessaie.",
+      };
+    }
+    return { erreur: `Impossible d'enregistrer : ${msg}` };
+  }
+
+  revalidatePath(`/dashboard/sites/${slug}/securite`);
+  return {
+    erreur: null,
+    ok: true,
+    mode: mode as "desactive" | "validation" | "automatique",
+  };
 }
