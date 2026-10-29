@@ -86,17 +86,20 @@ export function ToggleConversation({
         </span>
       </button>
 
-      {ouvert && (
-        <div
-          id="panneau-conversation-axi"
-          className="relative flex flex-col overflow-hidden border-b border-slate-200"
-        >
+      <div
+        id="panneau-conversation-axi"
+        aria-hidden={!ouvert}
+        className={`grid overflow-hidden transition-[grid-template-rows] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          ouvert ? "grid-rows-[1fr] border-b border-slate-200" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="relative min-h-0 overflow-hidden">
           <BackdropFondu />
           <div className="relative z-10 px-6 py-10 md:px-14 lg:px-16">
             <TroisEcrans prenom={prenom} sites={sites} />
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }

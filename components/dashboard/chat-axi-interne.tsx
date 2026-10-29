@@ -57,8 +57,8 @@ export function ChatAxiInterne({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-slate-800 bg-slate-900 shadow-lg">
-      <header className="flex items-center justify-between gap-3 border-b border-slate-800 px-5 py-3">
+    <div className="flex h-full flex-col">
+      <header className="flex items-center justify-between gap-3 pb-4">
         <div className="flex items-center gap-2">
           <span
             className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-white shadow"
@@ -75,7 +75,7 @@ export function ChatAxiInterne({
         </div>
       </header>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5">
+      <div className="flex-1 space-y-3 overflow-y-auto py-2">
         {messages.map((m) => (
           <Bulle key={m.id} role={m.role}>
             {m.content}
@@ -84,7 +84,7 @@ export function ChatAxiInterne({
       </div>
 
       <form
-        className="flex items-end gap-2 border-t border-slate-800 bg-slate-900 px-4 py-3"
+        className="flex items-end gap-2 pt-4"
         onSubmit={(e) => {
           e.preventDefault();
           envoyer();
@@ -101,11 +101,11 @@ export function ChatAxiInterne({
           }}
           rows={1}
           placeholder="Écrivez à AXI…"
-          className="flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-100 outline-none transition-colors placeholder:text-slate-500 focus:border-indigo-500"
+          className="flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 outline-none transition-colors placeholder:text-slate-500 focus:border-indigo-500"
         />
         <button
           type="button"
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 transition-colors hover:border-indigo-500 hover:text-indigo-300"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-800/60 text-slate-400 transition-colors hover:border-indigo-500 hover:text-indigo-300"
           title="Dicter (bientôt)"
           aria-label="Dicter un message"
           disabled

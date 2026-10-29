@@ -15,10 +15,10 @@ export function AiletteChantiers({
   sites: ReadonlyArray<SiteChantier>;
 }) {
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-white/30 bg-white/60 p-5 shadow-sm backdrop-blur">
-      <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+    <div className="flex h-full flex-col">
+      <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-100">
         <span
-          className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600/10 text-indigo-700"
+          className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/20 text-indigo-300"
           aria-hidden
         >
           <Globe className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -27,11 +27,11 @@ export function AiletteChantiers({
       </h2>
 
       {sites.length === 0 ? (
-        <div className="mt-5 flex-1 rounded-xl border border-dashed border-slate-300 p-5 text-center text-xs text-slate-500">
+        <div className="mt-5 flex-1 rounded-xl border border-dashed border-slate-700 p-5 text-center text-xs text-slate-400">
           Aucun site enregistré pour l&apos;instant.{" "}
           <Link
             href="/dashboard/sites/nouveau"
-            className="font-semibold text-indigo-700 underline-offset-2 hover:underline"
+            className="font-semibold text-indigo-300 underline-offset-2 hover:underline"
           >
             En créer un
           </Link>
@@ -43,19 +43,19 @@ export function AiletteChantiers({
             <li key={s.slug}>
               <Link
                 href={`/dashboard/sites/${s.slug}`}
-                className="group block rounded-xl border border-slate-200 bg-white p-3 transition-all hover:border-indigo-300 hover:shadow-sm"
+                className="group block rounded-xl border border-slate-700/60 bg-slate-800/40 p-3 transition-all hover:border-indigo-500/60 hover:bg-slate-800/70"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-900">
+                    <p className="truncate text-sm font-semibold text-slate-100">
                       {s.nomEntreprise}
                     </p>
-                    <p className="mt-0.5 truncate text-[11px] text-slate-500">
+                    <p className="mt-0.5 truncate text-[11px] text-slate-400">
                       {s.domainePrincipal}
                     </p>
                   </div>
                   <ArrowUpRight
-                    className="h-4 w-4 flex-shrink-0 text-slate-400 transition-colors group-hover:text-indigo-600"
+                    className="h-4 w-4 flex-shrink-0 text-slate-500 transition-colors group-hover:text-indigo-300"
                     strokeWidth={2}
                     aria-hidden
                   />
@@ -64,14 +64,14 @@ export function AiletteChantiers({
                   <span
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-medium ${
                       s.verifie
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-amber-50 text-amber-700"
+                        ? "bg-emerald-500/15 text-emerald-300"
+                        : "bg-amber-500/15 text-amber-300"
                     }`}
                   >
                     <ShieldCheck className="h-3 w-3" strokeWidth={2.2} />
                     {s.verifie ? "Vérifié" : "Propriété à vérifier"}
                   </span>
-                  <span className="text-slate-500">
+                  <span className="text-slate-400">
                     {s.conversationsMois} conv.
                   </span>
                 </div>
