@@ -2,6 +2,7 @@ import "server-only";
 
 import type { StatsQuotidiennes } from "./agreger";
 import type { OpportuniteUpsell } from "./upsell";
+import { barChartHoraireSvg } from "./chart-svg";
 
 /**
  * Rendu HTML du rapport quotidien AxiSolver.
@@ -61,6 +62,147 @@ export function rendreRapportHtml(params: {
         <ul style="margin:0;padding:0 0 0 18px;font-size:13px;line-height:1.7;color:#334155">
           ${stats.topQuestions.map((q) => `<li>${escapeHtml(q)}</li>`).join("")}
         </ul>
+      </td>
+    </tr>`
+      : "";
+
+  // ────── Section Évolution vs semaine précédente ──────
+  const comp = stats.comparaisonSemainePrec;
+  const flecheDelta = (d: number | null) =>
+    d === null
+      ? "—"
+      : d > 0
+        ? `<span style="color:#059669;font-weight:600">▲ +${d}%</span>`
+        : d < 0
+          ? `<span style="color:#dc2626;font-weight:600">▼ ${d}%</span>`
+          : `<span style="color:#64748b;font-weight:600">= 0%</span>`;
+  const sectionEvolution =
+    comp.nbConversations > 0 || comp.nbVisiteursUniques > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 24px">
+        <p style="margin:0 0 10px;font-size:13px;font-weight:600;color:#0f172a">Comparaison avec la semaine précédente</p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px">
+          <tr>
+            <td style="padding:14px 16px;font-size:12px;color:#334155">
+              <strong style="color:#0f172a">Conversations :</strong>
+              ${stats.nbConversations} aujourd'hui vs ${comp.nbConversations} il y a 7j · ${flecheDelta(comp.deltaConversationsPct)}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 16px 14px;font-size:12px;color:#334155">
+              <strong style="color:#0f172a">Visiteurs uniques :</strong>
+              ${stats.nbVisiteursUniques} vs ${comp.nbVisiteursUniques} · ${flecheDelta(comp.deltaVisiteursPct)}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`
+      : "";
+
+  // ────── Section Score de satisfaction ──────
+  const score = stats.scoreSatisfaction;
+  const couleurScore =
+    score >= 80 ? "#059669" : score >= 60 ? "#d97706" : "#dc2626";
+  const libelleScore =
+    score >= 80 ? "Excellent" : score >= 60 ? "Correct" : "À améliorer";
+  const sectionScore =
+    stats.nbConversations > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 24px">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#fff;border:1px solid #e2e8f0;border-radius:12px">
+          <tr>
+            <td style="padding:16px 18px">
+              <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:#64748b;letter-spacing:1px;text-transform:uppercase">Score de satisfaction visiteur</p>
+              <div style="font-size:28px;font-weight:800;color:${couleurScore};line-height:1.1">${score}<span style="font-size:14px;color:#94a3b8;font-weight:500">/100</span></div>
+              <p style="margin:4px 0 0;font-size:12px;color:${couleurScore};font-weight:600">${libelleScore}</p>
+              <p style="margin:6px 0 0;font-size:11px;color:#94a3b8;line-height:1.5">Score basé sur le taux de résolution, les tickets chauds/urgents et la longueur des conversations.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`
+      : "";
+
+  // ────── Section Intentions détectées ──────
+  const totalIntentions =
+    stats.nbDemandesRdv + stats.nbDemandesTarif + stats.nbDemandesRappel;
+  const sectionIntentions =
+    totalIntentions > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 24px">
+        <p style="margin:0 0 10px;font-size:13px;font-weight:600;color:#0f172a">Ce que vos visiteurs voulaient</p>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+          <tr>
+            <td width="33%" style="padding-right:6px;vertical-align:top">
+              ${renderCarteStat("Demandes RDV", String(stats.nbDemandesRdv), "")}
+            </td>
+            <td width="34%" style="padding:0 3px;vertical-align:top">
+              ${renderCarteStat("Demandes tarifs", String(stats.nbDemandesTarif), "")}
+            </td>
+            <td width="33%" style="padding-left:6px;vertical-align:top">
+              ${renderCarteStat("Demandes rappel", String(stats.nbDemandesRappel), "")}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`
+      : "";
+
+  // ────── Section Pics d'activité (bar chart) ──────
+  const sectionActiviteHoraire =
+    stats.nbConversations > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 24px">
+        <p style="margin:0 0 10px;font-size:13px;font-weight:600;color:#0f172a">Pics d'activité (24 dernières heures, UTC)</p>
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:12px 10px">
+          ${barChartHoraireSvg({ valeurs: stats.activiteHoraire, couleur: "#4f46e5" })}
+        </div>
+      </td>
+    </tr>`
+      : "";
+
+  // ────── Section Alertes sécurité ──────
+  const sectionAlertesSecurite =
+    stats.alertesSecurite.length > 0
+      ? `
+    <tr>
+      <td style="padding:0 32px 24px">
+        <p style="margin:0 0 10px;font-size:13px;font-weight:600;color:#0f172a">Alertes sécurité</p>
+        ${stats.alertesSecurite
+          .map((a) => {
+            const bg =
+              a.severite === "critique"
+                ? "#fef2f2"
+                : a.severite === "attention"
+                  ? "#fffbeb"
+                  : "#eff6ff";
+            const brd =
+              a.severite === "critique"
+                ? "#fecaca"
+                : a.severite === "attention"
+                  ? "#fde68a"
+                  : "#bfdbfe";
+            const col =
+              a.severite === "critique"
+                ? "#991b1b"
+                : a.severite === "attention"
+                  ? "#92400e"
+                  : "#1e40af";
+            const icon =
+              a.severite === "critique"
+                ? "⛔"
+                : a.severite === "attention"
+                  ? "⚠️"
+                  : "ℹ️";
+            return `<div style="background:${bg};border:1px solid ${brd};border-radius:10px;padding:12px 14px;margin-bottom:8px;color:${col};font-size:12px;line-height:1.5">
+              <span style="margin-right:8px">${icon}</span>${escapeHtml(a.message)}
+            </div>`;
+          })
+          .join("")}
       </td>
     </tr>`
       : "";
@@ -137,6 +279,16 @@ export function rendreRapportHtml(params: {
               </table>
             </td>
           </tr>
+
+          ${sectionEvolution}
+
+          ${sectionScore}
+
+          ${sectionAlertesSecurite}
+
+          ${sectionIntentions}
+
+          ${sectionActiviteHoraire}
 
           ${sectionTopQuestions}
 

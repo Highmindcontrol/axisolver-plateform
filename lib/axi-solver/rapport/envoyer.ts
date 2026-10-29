@@ -83,7 +83,7 @@ export async function envoyerRapportQuotidien(params: {
     `/dashboard/sites/${site.slug}`;
 
   const html = rendreRapportHtml({
-    nomEntreprise: site.nomEntreprise,
+    nomEntreprise: site.nomSite ?? site.nomEntreprise,
     domainePrincipal: site.domainePrincipal,
     slug: site.slug,
     stats,

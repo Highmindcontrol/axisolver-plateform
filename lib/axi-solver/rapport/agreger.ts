@@ -2,7 +2,12 @@ import "server-only";
 
 import { and, eq, gte, lt, sql, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { conversations, tickets } from "@/lib/db/schema";
+import {
+  conversations,
+  securityAudits,
+  securityIncidents,
+  tickets,
+} from "@/lib/db/schema";
 
 /**
  * Agrégation des stats d'activité d'un site AxiSolver sur une période
@@ -13,6 +18,11 @@ import { conversations, tickets } from "@/lib/db/schema";
  * (demandes récurrentes, demandes non résolues) qui alimente le
  * pattern cheval de Troie upsell AXI Initial.
  */
+
+export type AlerteSecurite = {
+  severite: "info" | "attention" | "critique";
+  message: string;
+};
 
 export type StatsQuotidiennes = {
   siteId: string;
@@ -39,6 +49,23 @@ export type StatsQuotidiennes = {
   nbDemandesRdv: number;
   nbDemandesTarif: number;
   nbDemandesRappel: number;
+
+  // Activité horaire : 24 valeurs (conversations par heure UTC)
+  activiteHoraire: number[];
+
+  // Score satisfaction visiteur (heuristique 0-100)
+  scoreSatisfaction: number;
+
+  // Comparaison avec la même journée la semaine précédente
+  comparaisonSemainePrec: {
+    nbConversations: number;
+    nbVisiteursUniques: number;
+    deltaConversationsPct: number | null; // null si semaine préc. à 0
+    deltaVisiteursPct: number | null;
+  };
+
+  // Alertes sécurité remontées (SSL, incidents ouverts, audits KO)
+  alertesSecurite: AlerteSecurite[];
 };
 
 export async function agregerStatsQuotidiennes(params: {
@@ -152,15 +179,135 @@ export async function agregerStatsQuotidiennes(params: {
     .map(([q, nb]) => `${q} (×${nb})`);
 
   const nbConversations = conversationsPeriode.length;
+  const nbVisiteursUniques = visiteursSet.size;
   const nbToursMoyen =
     nbConversations > 0 ? Math.round((nbToursTotal / nbConversations) * 10) / 10 : 0;
+
+  // Activité horaire : 24 cases (0h → 23h UTC)
+  const activiteHoraire = Array<number>(24).fill(0);
+  for (const conv of conversationsPeriode) {
+    const h = new Date(conv.creeLe).getUTCHours();
+    activiteHoraire[h] = (activiteHoraire[h] ?? 0) + 1;
+  }
+
+  // Score satisfaction (heuristique 0-100). Base 100, pénalités pour
+  // tickets chauds/urgents, conversations non résolues, tours moyens
+  // excessifs. Pondération simple et interprétable.
+  let scoreSatisfaction = 100;
+  if (nbConversations > 0) {
+    const partNonResolu = conversationsSansResolution / nbConversations;
+    scoreSatisfaction -= Math.round(partNonResolu * 35);
+  }
+  scoreSatisfaction -= nbTicketsChauds * 4;
+  scoreSatisfaction -= nbTicketsUrgents * 10;
+  if (nbToursMoyen > 8) scoreSatisfaction -= 8;
+  else if (nbToursMoyen > 5) scoreSatisfaction -= 4;
+  scoreSatisfaction = Math.max(0, Math.min(100, scoreSatisfaction));
+
+  // Comparaison avec J-7 : même durée, 7 jours avant
+  const dureeMs = fin.getTime() - debut.getTime();
+  const debutSemPrec = new Date(debut.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const finSemPrec = new Date(debutSemPrec.getTime() + dureeMs);
+  let convSemPrec: Array<{ visiteurId: string | null }> = [];
+  try {
+    convSemPrec = await db
+      .select({ visiteurId: conversations.visiteurId })
+      .from(conversations)
+      .where(
+        and(
+          eq(conversations.siteId, siteId),
+          gte(conversations.creeLe, debutSemPrec),
+          lt(conversations.creeLe, finSemPrec),
+        ),
+      );
+  } catch (e) {
+    console.error("[agreger] comparaison semaine préc. échec:", e);
+  }
+  const visiteursSemPrec = new Set<string>();
+  for (const c of convSemPrec) {
+    if (c.visiteurId) visiteursSemPrec.add(c.visiteurId);
+  }
+  const nbConversationsSemPrec = convSemPrec.length;
+  const nbVisiteursSemPrec = visiteursSemPrec.size;
+  const deltaConversationsPct =
+    nbConversationsSemPrec > 0
+      ? Math.round(
+          ((nbConversations - nbConversationsSemPrec) / nbConversationsSemPrec) *
+            100,
+        )
+      : null;
+  const deltaVisiteursPct =
+    nbVisiteursSemPrec > 0
+      ? Math.round(
+          ((nbVisiteursUniques - nbVisiteursSemPrec) / nbVisiteursSemPrec) *
+            100,
+        )
+      : null;
+
+  // Alertes sécurité : dernier audit + incidents ouverts
+  const alertesSecurite: AlerteSecurite[] = [];
+  try {
+    const [dernierAudit] = await db
+      .select({
+        statut: securityAudits.statut,
+        scoreGlobal: securityAudits.scoreGlobal,
+        creeLe: securityAudits.creeLe,
+      })
+      .from(securityAudits)
+      .where(eq(securityAudits.siteId, siteId))
+      .orderBy(desc(securityAudits.creeLe))
+      .limit(1);
+    if (dernierAudit?.statut === "termine" && dernierAudit.scoreGlobal != null) {
+      if (dernierAudit.scoreGlobal < 50) {
+        alertesSecurite.push({
+          severite: "critique",
+          message: `Score sécurité critique : ${dernierAudit.scoreGlobal}/100. Ouvrez l'onglet Sécurité pour agir.`,
+        });
+      } else if (dernierAudit.scoreGlobal < 75) {
+        alertesSecurite.push({
+          severite: "attention",
+          message: `Score sécurité à surveiller : ${dernierAudit.scoreGlobal}/100.`,
+        });
+      }
+    }
+
+    const incidentsOuverts = await db
+      .select({ severite: securityIncidents.severite })
+      .from(securityIncidents)
+      .where(
+        and(
+          eq(securityIncidents.siteId, siteId),
+          eq(securityIncidents.statut, "ouvert"),
+        ),
+      );
+    const nbCritiques = incidentsOuverts.filter(
+      (i) => i.severite === "critique",
+    ).length;
+    const nbEleves = incidentsOuverts.filter(
+      (i) => i.severite === "haute",
+    ).length;
+    if (nbCritiques > 0) {
+      alertesSecurite.push({
+        severite: "critique",
+        message: `${nbCritiques} incident${nbCritiques > 1 ? "s" : ""} critique${nbCritiques > 1 ? "s" : ""} ouvert${nbCritiques > 1 ? "s" : ""}.`,
+      });
+    }
+    if (nbEleves > 0) {
+      alertesSecurite.push({
+        severite: "attention",
+        message: `${nbEleves} incident${nbEleves > 1 ? "s" : ""} de sévérité élevée en cours.`,
+      });
+    }
+  } catch (e) {
+    console.error("[agreger] alertes sécurité échec:", e);
+  }
 
   return {
     siteId,
     debut,
     fin,
     nbConversations,
-    nbVisiteursUniques: visiteursSet.size,
+    nbVisiteursUniques,
     nbToursTotal,
     nbToursMoyen,
     nbTicketsOuverts,
@@ -172,6 +319,15 @@ export async function agregerStatsQuotidiennes(params: {
     nbDemandesRdv,
     nbDemandesTarif,
     nbDemandesRappel,
+    activiteHoraire,
+    scoreSatisfaction,
+    comparaisonSemainePrec: {
+      nbConversations: nbConversationsSemPrec,
+      nbVisiteursUniques: nbVisiteursSemPrec,
+      deltaConversationsPct,
+      deltaVisiteursPct,
+    },
+    alertesSecurite,
   };
 }
 
