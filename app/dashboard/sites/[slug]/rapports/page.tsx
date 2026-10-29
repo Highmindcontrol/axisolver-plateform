@@ -38,9 +38,18 @@ export default async function PageRapportsSite({
     .where(eq(siteConfigs.siteId, site.id))
     .limit(1);
 
-  // Preview du rapport de la veille (si des données existent)
-  const stats = await agregerStatsQuotidiennes({ siteId: site.id });
-  const opportunite = detecterOpportuniteUpsell(stats);
+  // Preview du rapport de la veille (si des données existent).
+  // Tolère un échec (données partielles / timeout DB) pour éviter 500.
+  let stats: Awaited<ReturnType<typeof agregerStatsQuotidiennes>> | null = null;
+  let opportunite: ReturnType<typeof detecterOpportuniteUpsell> | null = null;
+  let erreurAgregation: string | null = null;
+  try {
+    stats = await agregerStatsQuotidiennes({ siteId: site.id });
+    opportunite = detecterOpportuniteUpsell(stats);
+  } catch (e) {
+    erreurAgregation = e instanceof Error ? e.message : String(e);
+    console.error("[rapports] agregerStatsQuotidiennes échec:", e);
+  }
 
   return (
     <div className="px-6 py-10 md:px-14 lg:px-16">
@@ -112,65 +121,77 @@ export default async function PageRapportsSite({
           <BoutonRenvoyerRapport slug={slug} />
         </header>
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <CarteStat
-            label="Visiteurs"
-            valeur={stats.nbVisiteursUniques.toString()}
-            detail={`${stats.nbConversations} conv.`}
-          />
-          <CarteStat
-            label="Tours moy."
-            valeur={stats.nbToursMoyen.toFixed(1)}
-            detail={`${stats.nbToursTotal} au total`}
-          />
-          <CarteStat
-            label="Tickets"
-            valeur={(
-              stats.nbTicketsOuverts + stats.nbTicketsResolus
-            ).toString()}
-            detail={`${stats.nbTicketsChauds} chaud·s`}
-          />
-          <CarteStat
-            label="Taux résolution"
-            valeur={
-              stats.nbConversations > 0
-                ? `${Math.round(((stats.nbConversations - stats.conversationsSansResolution) / stats.nbConversations) * 100)}%`
-                : "—"
-            }
-            detail={`${stats.conversationsSansResolution} non résolu·es`}
-          />
-        </div>
-
-        {opportunite.nature && (
-          <div className="mt-6 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 p-5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-indigo-700">
-              💡 Opportunité détectée (section upsell du rapport)
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-800">
-              {opportunite.message}
-            </p>
-            {opportunite.gainEstimé && (
-              <p className="mt-2 text-xs text-indigo-800">
-                <strong>Gain estimé :</strong> {opportunite.gainEstimé}
-              </p>
-            )}
+        {!stats && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+            {erreurAgregation
+              ? `Impossible d'afficher la preview : ${erreurAgregation}.`
+              : "Pas encore de données d'activité pour générer la preview."}
           </div>
         )}
 
-        {stats.topQuestions.length > 0 && (
-          <div className="mt-6">
-            <p className="mb-2 text-sm font-semibold text-slate-900">
-              Top questions
-            </p>
-            <ul className="space-y-1 text-sm text-slate-700">
-              {stats.topQuestions.map((q, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="text-slate-400">·</span>
-                  {q}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {stats && (
+          <>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <CarteStat
+                label="Visiteurs"
+                valeur={stats.nbVisiteursUniques.toString()}
+                detail={`${stats.nbConversations} conv.`}
+              />
+              <CarteStat
+                label="Tours moy."
+                valeur={stats.nbToursMoyen.toFixed(1)}
+                detail={`${stats.nbToursTotal} au total`}
+              />
+              <CarteStat
+                label="Tickets"
+                valeur={(
+                  stats.nbTicketsOuverts + stats.nbTicketsResolus
+                ).toString()}
+                detail={`${stats.nbTicketsChauds} chaud·s`}
+              />
+              <CarteStat
+                label="Taux résolution"
+                valeur={
+                  stats.nbConversations > 0
+                    ? `${Math.round(((stats.nbConversations - stats.conversationsSansResolution) / stats.nbConversations) * 100)}%`
+                    : "—"
+                }
+                detail={`${stats.conversationsSansResolution} non résolu·es`}
+              />
+            </div>
+
+            {opportunite?.nature && (
+              <div className="mt-6 rounded-xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-violet-50 p-5">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-indigo-700">
+                  💡 Opportunité détectée (section upsell du rapport)
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-800">
+                  {opportunite.message}
+                </p>
+                {opportunite.gainEstimé && (
+                  <p className="mt-2 text-xs text-indigo-800">
+                    <strong>Gain estimé :</strong> {opportunite.gainEstimé}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {stats.topQuestions.length > 0 && (
+              <div className="mt-6">
+                <p className="mb-2 text-sm font-semibold text-slate-900">
+                  Top questions
+                </p>
+                <ul className="space-y-1 text-sm text-slate-700">
+                  {stats.topQuestions.map((q, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-slate-400">·</span>
+                      {q}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
         )}
       </section>
 
