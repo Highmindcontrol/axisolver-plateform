@@ -5,6 +5,7 @@ import { ArrowRight, Compass, Plus, Shield, Sparkles } from "lucide-react";
 
 import { HeaderSites } from "@/components/dashboard/header-sites";
 import { ToggleConversation } from "@/components/dashboard/toggle-conversation";
+import { afficherPrenom } from "@/lib/auth/afficher-prenom";
 import { IconeSite } from "@/lib/ui/sites-apparence";
 import { db } from "@/lib/db";
 import { siteConfigs, sites, usageConversations } from "@/lib/db/schema";
@@ -84,10 +85,7 @@ export default async function PageDashboard() {
     conversationsMois: conversationsParSite.get(s.id) ?? 0,
   }));
 
-  const prenom = user.email?.split("@")[0] ?? null;
-  const prenomCap = prenom
-    ? prenom.charAt(0).toUpperCase() + prenom.slice(1)
-    : null;
+  const prenomCap = afficherPrenom(user);
 
   // Cas « 0 site » → hero d'onboarding, pas de switcher.
   if (mesSites.length === 0) {

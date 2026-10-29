@@ -4,6 +4,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { BandeauActions } from "@/components/dashboard/bandeau-actions";
 import { HeaderSites } from "@/components/dashboard/header-sites";
 import { ToggleConversation } from "@/components/dashboard/toggle-conversation";
+import { afficherPrenom } from "@/lib/auth/afficher-prenom";
 import { db } from "@/lib/db";
 import { siteConfigs, sites, usageConversations } from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -98,10 +99,7 @@ export default async function LayoutSite({
     conversationsMois: compteParSite.get(s.id) ?? 0,
   }));
 
-  const prenom = user.email?.split("@")[0] ?? null;
-  const prenomCap = prenom
-    ? prenom.charAt(0).toUpperCase() + prenom.slice(1)
-    : null;
+  const prenomCap = afficherPrenom(user);
 
   return (
     <div className="flex flex-col">

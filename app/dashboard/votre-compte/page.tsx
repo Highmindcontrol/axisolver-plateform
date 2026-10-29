@@ -15,6 +15,7 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { BoutonResetMdp } from "./bouton-reset-mdp";
+import { FormulaireProfil } from "./formulaire-profil";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,11 @@ export default async function PageVotreCompte() {
       })
     : "—";
 
+  const meta =
+    (user.user_metadata as Record<string, unknown> | undefined) ?? {};
+  const prenomInitial = typeof meta.prenom === "string" ? meta.prenom : "";
+  const nomInitial = typeof meta.nom === "string" ? meta.nom : "";
+
   return (
     <div className="flex-1 px-6 py-10 md:px-14 lg:px-16">
       <header className="mb-10 flex items-start gap-4">
@@ -59,7 +65,12 @@ export default async function PageVotreCompte() {
       </header>
 
       <div className="space-y-6">
-        <SectionProfil email={email} dateCreation={dateCreation} />
+        <SectionProfil
+          email={email}
+          dateCreation={dateCreation}
+          prenomInitial={prenomInitial}
+          nomInitial={nomInitial}
+        />
         <SectionNotifications />
         <SectionFacturation />
         <SectionRGPD />
@@ -74,9 +85,13 @@ export default async function PageVotreCompte() {
 function SectionProfil({
   email,
   dateCreation,
+  prenomInitial,
+  nomInitial,
 }: {
   email: string;
   dateCreation: string;
+  prenomInitial: string;
+  nomInitial: string;
 }) {
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -89,7 +104,12 @@ function SectionProfil({
         Profil
       </h2>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <FormulaireProfil
+        prenomInitial={prenomInitial}
+        nomInitial={nomInitial}
+      />
+
+      <div className="mt-6 grid gap-5 border-t border-slate-100 pt-5 md:grid-cols-2">
         <ChampLecture label="Adresse email" valeur={email} icone={Mail} />
         <ChampLecture
           label="Compte créé le"
