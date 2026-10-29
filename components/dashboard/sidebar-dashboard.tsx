@@ -9,6 +9,7 @@ import {
   UserCircle,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -62,16 +63,23 @@ export function SidebarDashboard({
       <div className="flex h-16 items-center border-b border-slate-300/60 bg-white px-5">
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 text-sm font-semibold text-slate-900"
-          aria-label="AxiSolver — accueil dashboard"
+          className="flex items-center gap-2.5 text-sm font-semibold text-slate-900"
+          aria-label="AxiSolver Admin — accueil dashboard"
         >
-          <span
-            className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-xs font-bold text-white"
-            aria-hidden
-          >
-            A
+          <Image
+            src="/axisolver-icon.png"
+            alt=""
+            width={32}
+            height={32}
+            priority
+            className="h-8 w-8"
+          />
+          <span className="leading-tight">
+            AxiSolver
+            <span className="ml-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+              Admin
+            </span>
           </span>
-          AxiSolver
         </Link>
       </div>
 
