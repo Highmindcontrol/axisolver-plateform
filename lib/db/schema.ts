@@ -163,6 +163,8 @@ export const siteConfigs = pgTable("site_configs", {
   )
     .notNull()
     .default("desactive"),
+  gaugistaSlug: text("gaugista_slug"),
+  gaugistaActif: boolean("gaugista_actif").notNull().default(false),
   creeLe: timestamp("cree_le", { withTimezone: true }).defaultNow().notNull(),
   majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
 });
