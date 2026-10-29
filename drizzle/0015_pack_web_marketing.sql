@@ -6,8 +6,22 @@
 -- éprouvés) + AxiSolver Premium déployé sur les 5 pages. Pour les
 -- prospects sans site existant.
 --
--- Prérequis : aucun abonnement actif en production, Stripe non
--- encore activé. Pas de risque de perte de données.
+-- IDEMPOTENT : ADD VALUE est protégé par un check sur pg_enum.
 
-ALTER TYPE "plan_abonnement" ADD VALUE 'pack-web-s';
-ALTER TYPE "plan_abonnement" ADD VALUE 'pack-web-l';
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid
+    WHERE t.typname = 'plan_abonnement' AND e.enumlabel = 'pack-web-s'
+  ) THEN
+    ALTER TYPE "plan_abonnement" ADD VALUE 'pack-web-s';
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid
+    WHERE t.typname = 'plan_abonnement' AND e.enumlabel = 'pack-web-l'
+  ) THEN
+    ALTER TYPE "plan_abonnement" ADD VALUE 'pack-web-l';
+  END IF;
+END $$;

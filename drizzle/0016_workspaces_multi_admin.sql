@@ -9,10 +9,12 @@
 -- Doctrine : tout membre « admin » d'un workspace a strictement les
 -- mêmes droits que le créateur (gestion sites, base de connaissances,
 -- audits, facturation, invitation d'autres admins).
+--
+-- IDEMPOTENT : peut être relancé plusieurs fois sans erreur.
 
 /* ─── Table workspaces ──────────────────────────────────────────── */
 
-CREATE TABLE "workspaces" (
+CREATE TABLE IF NOT EXISTS "workspaces" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "nom" text NOT NULL,
   "cree_par_user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE RESTRICT,
@@ -20,16 +22,18 @@ CREATE TABLE "workspaces" (
   "maj_le" timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX "idx_workspaces_cree_par" ON "workspaces" ("cree_par_user_id");
+CREATE INDEX IF NOT EXISTS "idx_workspaces_cree_par"
+  ON "workspaces" ("cree_par_user_id");
 
 /* ─── Table workspace_members ───────────────────────────────────── */
 
-CREATE TYPE "workspace_role" AS ENUM ('admin');
--- Un seul rôle 'admin' pour V1 — doctrine « égalité stricte entre
--- co-administrateurs ». Un rôle 'viewer' pourra être ajouté plus tard
--- sans migration coûteuse (ALTER TYPE ADD VALUE).
+DO $$ BEGIN
+  CREATE TYPE "workspace_role" AS ENUM ('admin');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE TABLE "workspace_members" (
+CREATE TABLE IF NOT EXISTS "workspace_members" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "workspace_id" uuid NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE,
   "user_id" uuid NOT NULL REFERENCES "users"("id") ON DELETE CASCADE,
@@ -38,19 +42,25 @@ CREATE TABLE "workspace_members" (
   UNIQUE ("workspace_id", "user_id")
 );
 
-CREATE INDEX "idx_workspace_members_user" ON "workspace_members" ("user_id");
-CREATE INDEX "idx_workspace_members_workspace" ON "workspace_members" ("workspace_id");
+CREATE INDEX IF NOT EXISTS "idx_workspace_members_user"
+  ON "workspace_members" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_workspace_members_workspace"
+  ON "workspace_members" ("workspace_id");
 
 /* ─── Table workspace_invitations ───────────────────────────────── */
 
-CREATE TYPE "workspace_invitation_statut" AS ENUM (
-  'en_attente',
-  'acceptee',
-  'expiree',
-  'revoquee'
-);
+DO $$ BEGIN
+  CREATE TYPE "workspace_invitation_statut" AS ENUM (
+    'en_attente',
+    'acceptee',
+    'expiree',
+    'revoquee'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
-CREATE TABLE "workspace_invitations" (
+CREATE TABLE IF NOT EXISTS "workspace_invitations" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   "workspace_id" uuid NOT NULL REFERENCES "workspaces"("id") ON DELETE CASCADE,
   "email" text NOT NULL,
@@ -65,20 +75,36 @@ CREATE TABLE "workspace_invitations" (
   "cree_le" timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX "idx_workspace_invitations_token" ON "workspace_invitations" ("token");
-CREATE INDEX "idx_workspace_invitations_workspace" ON "workspace_invitations" ("workspace_id");
-CREATE INDEX "idx_workspace_invitations_email" ON "workspace_invitations" ("email");
+CREATE INDEX IF NOT EXISTS "idx_workspace_invitations_token"
+  ON "workspace_invitations" ("token");
+CREATE INDEX IF NOT EXISTS "idx_workspace_invitations_workspace"
+  ON "workspace_invitations" ("workspace_id");
+CREATE INDEX IF NOT EXISTS "idx_workspace_invitations_email"
+  ON "workspace_invitations" ("email");
 
 /* ─── Sites : workspace_id ──────────────────────────────────────── */
 
-ALTER TABLE "sites" ADD COLUMN "workspace_id" uuid REFERENCES "workspaces"("id") ON DELETE CASCADE;
-CREATE INDEX "idx_sites_workspace_id" ON "sites" ("workspace_id");
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'sites'
+      AND column_name = 'workspace_id'
+  ) THEN
+    ALTER TABLE "sites" ADD COLUMN "workspace_id" uuid
+      REFERENCES "workspaces"("id") ON DELETE CASCADE;
+  END IF;
+END $$;
 
-/* ─── Backfill ──────────────────────────────────────────────────── */
+CREATE INDEX IF NOT EXISTS "idx_sites_workspace_id"
+  ON "sites" ("workspace_id");
+
+/* ─── Backfill (idempotent) ─────────────────────────────────────── */
 --
--- Pour chaque user existant avec au moins un site, on crée un
--- workspace personnel, on l'ajoute comme admin principal, puis on
--- associe tous ses sites à ce workspace.
+-- Pour chaque user existant avec au moins un site qui n'a pas encore
+-- de workspace_id, on crée un workspace personnel, on l'ajoute comme
+-- admin principal, puis on associe tous ses sites orphelins à ce
+-- workspace. Si l'user a déjà un workspace, on réutilise celui-ci.
 
 DO $$
 DECLARE
@@ -88,18 +114,32 @@ BEGIN
   FOR user_record IN
     SELECT DISTINCT u.id, COALESCE(u.email, 'Compte AxiSolver') AS email
     FROM "users" u
-    WHERE EXISTS (SELECT 1 FROM "sites" s WHERE s."owner_user_id" = u.id)
+    WHERE EXISTS (
+      SELECT 1 FROM "sites" s
+      WHERE s."owner_user_id" = u.id
+        AND s."workspace_id" IS NULL
+    )
   LOOP
-    INSERT INTO "workspaces" ("nom", "cree_par_user_id")
-    VALUES (user_record.email || ' — compte', user_record.id)
-    RETURNING "id" INTO new_workspace_id;
+    -- Récupère un workspace existant pour cet user, sinon en crée un.
+    SELECT w.id INTO new_workspace_id
+    FROM "workspaces" w
+    WHERE w."cree_par_user_id" = user_record.id
+    LIMIT 1;
+
+    IF new_workspace_id IS NULL THEN
+      INSERT INTO "workspaces" ("nom", "cree_par_user_id")
+      VALUES (user_record.email || ' — compte', user_record.id)
+      RETURNING "id" INTO new_workspace_id;
+    END IF;
 
     INSERT INTO "workspace_members" ("workspace_id", "user_id", "role")
-    VALUES (new_workspace_id, user_record.id, 'admin');
+    VALUES (new_workspace_id, user_record.id, 'admin')
+    ON CONFLICT DO NOTHING;
 
     UPDATE "sites"
     SET "workspace_id" = new_workspace_id
-    WHERE "owner_user_id" = user_record.id;
+    WHERE "owner_user_id" = user_record.id
+      AND "workspace_id" IS NULL;
   END LOOP;
 END $$;
 
@@ -109,7 +149,7 @@ ALTER TABLE "workspaces" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "workspace_members" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "workspace_invitations" ENABLE ROW LEVEL SECURITY;
 
--- Un user voit les workspaces dont il est membre.
+DROP POLICY IF EXISTS "workspaces_select_membre" ON "workspaces";
 CREATE POLICY "workspaces_select_membre" ON "workspaces"
   FOR SELECT USING (
     EXISTS (
@@ -119,8 +159,7 @@ CREATE POLICY "workspaces_select_membre" ON "workspaces"
     )
   );
 
--- Un user voit ses propres membreships + ceux des workspaces où il
--- est lui-même admin (pour afficher la liste des co-admins).
+DROP POLICY IF EXISTS "workspace_members_select_membre" ON "workspace_members";
 CREATE POLICY "workspace_members_select_membre" ON "workspace_members"
   FOR SELECT USING (
     "user_id" = auth.uid()
@@ -131,7 +170,8 @@ CREATE POLICY "workspace_members_select_membre" ON "workspace_members"
     )
   );
 
--- Les invitations sont visibles aux membres du workspace cible.
+DROP POLICY IF EXISTS "workspace_invitations_select_membre"
+  ON "workspace_invitations";
 CREATE POLICY "workspace_invitations_select_membre" ON "workspace_invitations"
   FOR SELECT USING (
     EXISTS (
@@ -141,17 +181,12 @@ CREATE POLICY "workspace_invitations_select_membre" ON "workspace_invitations"
     )
   );
 
--- Les écritures passent par service_role dans les server actions
--- (vérif permissions côté application avec ownership strict).
-
-/* ─── Helper SQL : user_a_acces_site ────────────────────────────── */
+/* ─── Helper SQL : user_a_acces_site v2 ─────────────────────────── */
 --
--- Fonction utilitaire pour les futures RLS sites/configs/… qui
--- veulent vérifier qu'un user a accès à un site via son workspace.
--- Compatibilité : garde aussi la voie legacy via owner_user_id tant
--- que la migration n'est pas totalement propagée.
+-- Remplace la version créée dans 0001 : prend désormais aussi en
+-- compte workspace_members en plus de owner_user_id et site_membres.
 
-CREATE OR REPLACE FUNCTION user_a_acces_site(site_id_param uuid)
+CREATE OR REPLACE FUNCTION user_a_acces_site(p_site_id uuid)
 RETURNS boolean
 LANGUAGE sql
 STABLE
@@ -164,10 +199,14 @@ AS $$
     LEFT JOIN workspace_members wm
       ON wm.workspace_id = s.workspace_id
      AND wm.user_id = auth.uid()
-    WHERE s.id = site_id_param
+    LEFT JOIN site_membres sm
+      ON sm.site_id = s.id
+     AND sm.user_id = auth.uid()
+    WHERE s.id = p_site_id
       AND (
         s.owner_user_id = auth.uid()
         OR wm.user_id IS NOT NULL
+        OR sm.user_id IS NOT NULL
       )
   );
 $$;
