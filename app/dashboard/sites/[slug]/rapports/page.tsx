@@ -25,18 +25,51 @@ export default async function PageRapportsSite({
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
-  const [site] = await db
-    .select()
-    .from(sites)
-    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
-    .limit(1);
+  let site:
+    | {
+        id: string;
+        slug: string;
+        nomEntreprise: string;
+        nomSite: string | null;
+        domainePrincipal: string;
+      }
+    | undefined;
+  try {
+    const rows = await db
+      .select({
+        id: sites.id,
+        slug: sites.slug,
+        nomEntreprise: sites.nomEntreprise,
+        nomSite: sites.nomSite,
+        domainePrincipal: sites.domainePrincipal,
+      })
+      .from(sites)
+      .where(
+        and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)),
+      )
+      .limit(1);
+    site = rows[0];
+  } catch (e) {
+    console.error("[rapports] lookup site échec:", e);
+  }
   if (!site) notFound();
 
-  const [config] = await db
-    .select()
-    .from(siteConfigs)
-    .where(eq(siteConfigs.siteId, site.id))
-    .limit(1);
+  let config:
+    | { nomAssistant: string; emailNotification: string | null }
+    | undefined;
+  try {
+    const rows = await db
+      .select({
+        nomAssistant: siteConfigs.nomAssistant,
+        emailNotification: siteConfigs.emailNotification,
+      })
+      .from(siteConfigs)
+      .where(eq(siteConfigs.siteId, site.id))
+      .limit(1);
+    config = rows[0];
+  } catch (e) {
+    console.error("[rapports] lookup config échec:", e);
+  }
 
   // Preview du rapport de la veille (si des données existent).
   // Tolère un échec (données partielles / timeout DB) pour éviter 500.
