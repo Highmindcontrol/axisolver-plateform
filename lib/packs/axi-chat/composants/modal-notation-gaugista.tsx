@@ -1,8 +1,9 @@
 "use client";
 
 import { Check, Loader2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useFormulaireGaugista } from "../hooks/use-formulaire-gaugista";
 import { useNotationGaugista } from "../hooks/use-notation-gaugista";
 import type {
   JaugeConfig,
@@ -21,31 +22,49 @@ import { JAUGES_AXISOLVER_DEFAUT } from "../types";
 export function ModalNotationGaugista({
   config,
   urlGaugista,
+  urlFormulaire,
   entetes,
   onFerme,
   onEnvoye,
 }: {
   config?: NotationGaugistaConfig;
   urlGaugista: string;
+  /**
+   * URL d'un endpoint GET qui renvoie `{ jauges: [...] }` — si fourni,
+   * les jauges viennent de Gaugista (option B dynamique). Sinon on
+   * utilise config.jauges ou JAUGES_AXISOLVER_DEFAUT.
+   */
+  urlFormulaire?: string;
   entetes?: Record<string, string>;
   onFerme: () => void;
   onEnvoye?: (notes: Record<string, number>, commentaire?: string) => void;
 }) {
-  const jauges: JaugeConfig[] =
-    config?.jauges && config.jauges.length > 0
-      ? config.jauges
-      : JAUGES_AXISOLVER_DEFAUT;
+  const {
+    etat: etatFormulaire,
+    jauges: jaugesDynamiques,
+    erreur: erreurFormulaire,
+  } = useFormulaireGaugista(urlFormulaire);
 
-  const [notes, setNotes] = useState<Record<string, number>>(() => {
+  const jauges: JaugeConfig[] = useMemo(() => {
+    if (jaugesDynamiques && jaugesDynamiques.length > 0) return jaugesDynamiques;
+    if (config?.jauges && config.jauges.length > 0) return config.jauges;
+    return JAUGES_AXISOLVER_DEFAUT;
+  }, [jaugesDynamiques, config?.jauges]);
+
+  const [notes, setNotes] = useState<Record<string, number>>({});
+  const [commentaire, setCommentaire] = useState("");
+
+  // Initialise / resynchronise les notes quand la liste de jauges change
+  // (après chargement dynamique du formulaire Gaugista).
+  useEffect(() => {
     const init: Record<string, number> = {};
     for (const j of jauges) {
       const min = j.min ?? 0;
       const max = j.max ?? 10;
       init[j.cle] = j.valeurInitiale ?? Math.round((min + max) / 2);
     }
-    return init;
-  });
-  const [commentaire, setCommentaire] = useState("");
+    setNotes(init);
+  }, [jauges]);
 
   const { etat, erreur, envoyer } = useNotationGaugista({
     urlGaugista,
@@ -80,6 +99,63 @@ export function ModalNotationGaugista({
     if (valeurs.length === 0) return 0;
     return valeurs.reduce((a, b) => a + b, 0) / valeurs.length;
   }, [notes]);
+
+  // Pendant le chargement dynamique des jauges (option B)
+  if (urlFormulaire && etatFormulaire === "chargement") {
+    return (
+      <div
+        role="status"
+        className="flex h-full flex-col items-center justify-center p-8 text-center"
+      >
+        <Loader2
+          className="mb-3 h-6 w-6 animate-spin"
+          strokeWidth={2}
+          style={{ color: "var(--axi-chat-accent)" }}
+        />
+        <p
+          className="text-xs"
+          style={{ color: "var(--axi-chat-texte-secondaire)" }}
+        >
+          Chargement du questionnaire…
+        </p>
+      </div>
+    );
+  }
+
+  if (urlFormulaire && etatFormulaire === "erreur") {
+    return (
+      <div
+        role="alert"
+        className="flex h-full flex-col items-center justify-center p-8 text-center"
+      >
+        <p
+          className="text-sm font-semibold"
+          style={{ color: "var(--axi-chat-texte)" }}
+        >
+          Impossible de charger le questionnaire.
+        </p>
+        <p
+          className="mt-1 text-xs"
+          style={{ color: "var(--axi-chat-texte-tertiaire)" }}
+        >
+          {erreurFormulaire ?? "Réessayez plus tard."}
+        </p>
+        <button
+          type="button"
+          onClick={onFerme}
+          className="mt-5 px-4 py-2 text-xs font-semibold"
+          style={{
+            borderRadius: "var(--axi-chat-rayon)",
+            border: `1px solid var(--axi-chat-bordure)`,
+            background: "var(--axi-chat-surface)",
+            color: "var(--axi-chat-texte)",
+          }}
+        >
+          Fermer
+        </button>
+      </div>
+    );
+  }
 
   if (etat === "envoye") {
     return (

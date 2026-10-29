@@ -263,6 +263,7 @@ export function WidgetChat({
           <div className="flex-1 overflow-y-auto p-5">
             <ModalNotationGaugista
               urlGaugista={`/api/widget/${slug}/notation`}
+              urlFormulaire={`/api/widget/${slug}/notation/formulaire`}
               config={{
                 avecCommentaire: true,
                 titre: "Merci de noter cette conversation",

@@ -63,6 +63,7 @@ export { ZoneSaisie } from "./composants/zone-saisie";
 
 /* ─── Hooks (dictée, TTS, pièces jointes, Gaugista) ───────── */
 export { useDictee } from "./hooks/use-dictee";
+export { useFormulaireGaugista } from "./hooks/use-formulaire-gaugista";
 export { useNotationGaugista } from "./hooks/use-notation-gaugista";
 export { usePiecesJointes } from "./hooks/use-pieces-jointes";
 export { useVoixSynthese } from "./hooks/use-voix-synthese";
