@@ -12,6 +12,7 @@ import {
   index,
   uniqueIndex,
   vector,
+  customType,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -612,6 +613,68 @@ export const securiteInterventions = pgTable(
     index("idx_securite_interventions_site").on(t.siteId),
     index("idx_securite_interventions_statut").on(t.statut),
     index("idx_securite_interventions_cree_le").on(t.creeLe),
+  ],
+);
+
+/* ─── Accès au site pour AXI Security Shield (migration 0021) ──── */
+
+export const securityShieldAccesTypeEnum = pgEnum(
+  "security_shield_acces_type",
+  [
+    "ssh",
+    "ftp",
+    "sftp",
+    "wordpress_rest",
+    "cloudflare_api",
+    "cpanel_api",
+    "plesk_api",
+  ],
+);
+
+export const siteAccesSecurite = pgTable(
+  "site_acces_securite",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    type: securityShieldAccesTypeEnum("type").notNull(),
+    libelle: text("libelle").notNull(),
+    parametresPublics: jsonb("parametres_publics")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    credentielsChiffres: customType<{
+      data: Buffer;
+      driverData: Buffer;
+    }>({
+      dataType() {
+        return "bytea";
+      },
+    })("credentiels_chiffres").notNull(),
+    credentielsMeta: jsonb("credentiels_meta")
+      .$type<{ iv: string; tag: string }>()
+      .notNull()
+      .default({ iv: "", tag: "" }),
+    actif: boolean("actif").notNull().default(true),
+    derniereConnexionLe: timestamp("derniere_connexion_le", {
+      withTimezone: true,
+    }),
+    derniereConnexionOk: boolean("derniere_connexion_ok"),
+    derniereConnexionErreur: text("derniere_connexion_erreur"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    majLe: timestamp("maj_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    creeParUserId: uuid("cree_par_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+  },
+  (t) => [
+    index("idx_site_acces_securite_site").on(t.siteId),
+    index("idx_site_acces_securite_type").on(t.type),
   ],
 );
 

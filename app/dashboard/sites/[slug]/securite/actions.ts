@@ -5,13 +5,9 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import {
-  sites,
-  securityAudits,
-  securityIncidents,
-  siteConfigs,
-} from "@/lib/db/schema";
+import { sites, securityAudits, securityIncidents } from "@/lib/db/schema";
 import { auditerSite } from "@/lib/engines/security/auditer-site";
+import { changerMode } from "@/lib/packs/security-shield";
 
 export type EtatAuditSecurity = {
   erreur: string | null;
@@ -162,21 +158,12 @@ export async function definirModeRemediationAction(
   if (!site) return { erreur: "Site introuvable." };
 
   try {
-    await db
-      .update(siteConfigs)
-      .set({
-        modeRemediationSecurite: mode as "desactive" | "validation" | "automatique",
-        majLe: new Date(),
-      })
-      .where(eq(siteConfigs.siteId, site.id));
+    await changerMode({
+      siteId: site.id,
+      mode: mode as "desactive" | "validation" | "automatique",
+    });
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    if (msg.includes("mode_remediation_securite") || msg.includes("column")) {
-      return {
-        erreur:
-          "Migration 0020 pas encore appliquée en prod — applique le SQL puis réessaie.",
-      };
-    }
     return { erreur: `Impossible d'enregistrer : ${msg}` };
   }
 

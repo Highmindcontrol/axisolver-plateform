@@ -22,6 +22,7 @@ import {
   Globe,
   FolderLock,
   ShieldCheck,
+  KeyRound,
 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
@@ -595,6 +596,15 @@ function ScoreGlobalCarte({
           >
             <FileText className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
             Rapport pour le webmaster
+          </Link>
+
+          {/* Bouton 3 : Accès au site pour AXI */}
+          <Link
+            href={`/dashboard/sites/${slug}/securite/acces`}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
+          >
+            <KeyRound className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
+            Accès au site pour AXI
           </Link>
 
           {/* Toggle mode AXI Security Shield */}
