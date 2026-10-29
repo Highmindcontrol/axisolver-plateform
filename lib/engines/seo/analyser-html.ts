@@ -1,4 +1,4 @@
-import { JSDOM } from "jsdom";
+import * as cheerio from "cheerio";
 import type { FindingSeo } from "./types";
 
 /**
@@ -14,9 +14,9 @@ export function analyserHtml(params: {
   const { html, url, tailleOctets, tempsReponseMs } = params;
   const findings: FindingSeo[] = [];
 
-  let doc: Document;
+  let $: cheerio.CheerioAPI;
   try {
-    doc = new JSDOM(html, { url }).window.document;
+    $ = cheerio.load(html);
   } catch {
     findings.push({
       pilier: "technique",
@@ -29,7 +29,7 @@ export function analyserHtml(params: {
 
   // ─── Pilier TECHNIQUE ────────────────────────────────────────────
 
-  const title = doc.querySelector("title")?.textContent?.trim() ?? "";
+  const title = $("title").text().trim();
   if (!title) {
     findings.push({
       pilier: "technique",
@@ -56,10 +56,7 @@ export function analyserHtml(params: {
   }
 
   const metaDesc =
-    doc
-      .querySelector('meta[name="description"]')
-      ?.getAttribute("content")
-      ?.trim() ?? "";
+    $('meta[name="description"]').attr("content")?.trim() ?? "";
   if (!metaDesc) {
     findings.push({
       pilier: "technique",
@@ -86,8 +83,7 @@ export function analyserHtml(params: {
     });
   }
 
-  const canonical = doc.querySelector('link[rel="canonical"]');
-  if (!canonical) {
+  if ($('link[rel="canonical"]').length === 0) {
     findings.push({
       pilier: "technique",
       code: "canonical_absent",
@@ -97,9 +93,8 @@ export function analyserHtml(params: {
     });
   }
 
-  const robotsMeta = doc
-    .querySelector('meta[name="robots"]')
-    ?.getAttribute("content")
+  const robotsMeta = $('meta[name="robots"]')
+    .attr("content")
     ?.toLowerCase();
   if (robotsMeta?.includes("noindex")) {
     findings.push({
@@ -112,7 +107,7 @@ export function analyserHtml(params: {
     });
   }
 
-  const htmlLang = doc.documentElement.getAttribute("lang");
+  const htmlLang = $("html").attr("lang");
   if (!htmlLang) {
     findings.push({
       pilier: "technique",
@@ -122,9 +117,9 @@ export function analyserHtml(params: {
     });
   }
 
-  const ogTitle = doc.querySelector('meta[property="og:title"]');
-  const ogImage = doc.querySelector('meta[property="og:image"]');
-  const ogDesc = doc.querySelector('meta[property="og:description"]');
+  const ogTitle = $('meta[property="og:title"]').length > 0;
+  const ogImage = $('meta[property="og:image"]').length > 0;
+  const ogDesc = $('meta[property="og:description"]').length > 0;
   if (!ogTitle || !ogImage || !ogDesc) {
     findings.push({
       pilier: "technique",
@@ -133,35 +128,35 @@ export function analyserHtml(params: {
       message:
         "Balises Open Graph incomplètes (title/description/image). Les partages sur réseaux sociaux seront moins engageants.",
       details: {
-        og_title: !!ogTitle,
-        og_description: !!ogDesc,
-        og_image: !!ogImage,
+        og_title: ogTitle,
+        og_description: ogDesc,
+        og_image: ogImage,
       },
     });
   }
 
   // ─── Pilier CONTENU ──────────────────────────────────────────────
 
-  const h1s = Array.from(doc.querySelectorAll("h1"));
-  if (h1s.length === 0) {
+  const h1Count = $("h1").length;
+  if (h1Count === 0) {
     findings.push({
       pilier: "contenu",
       code: "h1_absent",
       severite: "haute",
       message: "Aucune balise <h1> détectée. C'est le titre éditorial principal de la page.",
     });
-  } else if (h1s.length > 1) {
+  } else if (h1Count > 1) {
     findings.push({
       pilier: "contenu",
       code: "h1_multiple",
       severite: "moyenne",
-      message: `${h1s.length} balises <h1> détectées. Une seule H1 par page est recommandée.`,
-      details: { count: h1s.length },
+      message: `${h1Count} balises <h1> détectées. Une seule H1 par page est recommandée.`,
+      details: { count: h1Count },
     });
   }
 
-  const h2s = doc.querySelectorAll("h2").length;
-  const h3s = doc.querySelectorAll("h3").length;
+  const h2s = $("h2").length;
+  const h3s = $("h3").length;
   if (h2s === 0 && h3s === 0) {
     findings.push({
       pilier: "contenu",
@@ -172,7 +167,7 @@ export function analyserHtml(params: {
     });
   }
 
-  const texteBrut = (doc.body?.textContent ?? "").replace(/\s+/g, " ").trim();
+  const texteBrut = $("body").text().replace(/\s+/g, " ").trim();
   const nbMots = texteBrut.split(/\s+/).filter((m) => m.length > 1).length;
   if (nbMots < 300) {
     findings.push({
@@ -184,49 +179,54 @@ export function analyserHtml(params: {
     });
   }
 
-  const imgsSansAlt = Array.from(doc.querySelectorAll("img")).filter(
-    (img) => !img.getAttribute("alt")?.trim(),
-  );
-  if (imgsSansAlt.length > 0) {
+  let nbImagesSansAlt = 0;
+  $("img").each((_, img) => {
+    if (!$(img).attr("alt")?.trim()) nbImagesSansAlt++;
+  });
+  if (nbImagesSansAlt > 0) {
     findings.push({
       pilier: "contenu",
       code: "images_sans_alt",
-      severite: imgsSansAlt.length >= 5 ? "haute" : "moyenne",
-      message: `${imgsSansAlt.length} image(s) sans attribut alt. Mauvais pour l'accessibilité et le SEO image.`,
-      details: { nb_images_sans_alt: imgsSansAlt.length },
+      severite: nbImagesSansAlt >= 5 ? "haute" : "moyenne",
+      message: `${nbImagesSansAlt} image(s) sans attribut alt. Mauvais pour l'accessibilité et le SEO image.`,
+      details: { nb_images_sans_alt: nbImagesSansAlt },
     });
   }
 
-  const liensInternes = Array.from(doc.querySelectorAll("a[href]")).filter(
-    (a) => {
-      const href = a.getAttribute("href") ?? "";
-      return (
-        href.startsWith("/") ||
-        href.startsWith("#") ||
-        (() => {
-          try {
-            return new URL(href).hostname === new URL(url).hostname;
-          } catch {
-            return false;
-          }
-        })()
-      );
-    },
-  );
-  if (liensInternes.length < 3) {
+  let nbLiensInternes = 0;
+  const hostLocal = (() => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return "";
+    }
+  })();
+  $("a[href]").each((_, a) => {
+    const href = $(a).attr("href") ?? "";
+    if (href.startsWith("/") || href.startsWith("#")) {
+      nbLiensInternes++;
+      return;
+    }
+    try {
+      if (new URL(href).hostname === hostLocal) nbLiensInternes++;
+    } catch {
+      // href invalide — ignore
+    }
+  });
+  if (nbLiensInternes < 3) {
     findings.push({
       pilier: "contenu",
       code: "liens_internes_rares",
       severite: "basse",
-      message: `Seulement ${liensInternes.length} lien(s) interne(s) détecté(s). Le maillage interne aide Google à explorer le site.`,
-      details: { nb_liens_internes: liensInternes.length },
+      message: `Seulement ${nbLiensInternes} lien(s) interne(s) détecté(s). Le maillage interne aide Google à explorer le site.`,
+      details: { nb_liens_internes: nbLiensInternes },
     });
   }
 
   // ─── Pilier MOBILE ───────────────────────────────────────────────
 
-  const viewport = doc.querySelector('meta[name="viewport"]');
-  if (!viewport) {
+  const viewportContent = $('meta[name="viewport"]').attr("content");
+  if (viewportContent === undefined) {
     findings.push({
       pilier: "mobile",
       code: "viewport_absent",
@@ -235,7 +235,7 @@ export function analyserHtml(params: {
         "Balise meta viewport absente. Le site ne sera pas correctement affiché sur mobile — critère de ranking Google.",
     });
   } else {
-    const content = viewport.getAttribute("content")?.toLowerCase() ?? "";
+    const content = viewportContent.toLowerCase();
     if (!content.includes("width=device-width")) {
       findings.push({
         pilier: "mobile",
@@ -287,7 +287,7 @@ export function analyserHtml(params: {
     });
   }
 
-  const scripts = doc.querySelectorAll("script[src]").length;
+  const scripts = $("script[src]").length;
   if (scripts > 20) {
     findings.push({
       pilier: "performance",

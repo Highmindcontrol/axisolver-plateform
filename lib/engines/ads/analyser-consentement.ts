@@ -1,4 +1,4 @@
-import { JSDOM } from "jsdom";
+import * as cheerio from "cheerio";
 import type { FindingAds, TrackerDetecte } from "./types";
 
 /**
@@ -15,12 +15,12 @@ export function analyserConsentement(params: {
   url: string;
   trackers: TrackerDetecte[];
 }): FindingAds[] {
-  const { html, url, trackers } = params;
+  const { html, trackers } = params;
   const findings: FindingAds[] = [];
 
-  let doc: Document;
+  let $: cheerio.CheerioAPI;
   try {
-    doc = new JSDOM(html, { url }).window.document;
+    $ = cheerio.load(html);
   } catch {
     return findings;
   }
@@ -28,7 +28,7 @@ export function analyserConsentement(params: {
   const cmpConnue = trackers.find((t) => t.categorie === "cmp");
 
   // ─── Bandeau cookies détectable ─────────────────────────────────
-  const indicesBandeau = detecterBandeauCookies(doc, html);
+  const indicesBandeau = detecterBandeauCookies($, html);
 
   if (!cmpConnue && !indicesBandeau.detecte) {
     findings.push({
@@ -59,16 +59,14 @@ export function analyserConsentement(params: {
 
   // ─── Détection pré-cochage (interdit CNIL) ───────────────────────
   if (indicesBandeau.detecte) {
-    const inputsPreCoches = Array.from(
-      doc.querySelectorAll('input[type="checkbox"][checked]'),
-    );
-    if (inputsPreCoches.length > 0) {
+    const nbPreCoches = $('input[type="checkbox"][checked]').length;
+    if (nbPreCoches > 0) {
       findings.push({
         pilier: "consentement",
         code: "pre_cochage_detecte",
         severite: "haute",
-        message: `${inputsPreCoches.length} case(s) à cocher pré-cochée(s) détectée(s). La CNIL interdit le pré-cochage pour le consentement cookies.`,
-        details: { count: inputsPreCoches.length },
+        message: `${nbPreCoches} case(s) à cocher pré-cochée(s) détectée(s). La CNIL interdit le pré-cochage pour le consentement cookies.`,
+        details: { count: nbPreCoches },
       });
     }
   }
@@ -77,7 +75,7 @@ export function analyserConsentement(params: {
 }
 
 function detecterBandeauCookies(
-  doc: Document,
+  $: cheerio.CheerioAPI,
   html: string,
 ): { detecte: boolean; indices: string[] } {
   const indices: string[] = [];
@@ -95,7 +93,7 @@ function detecterBandeauCookies(
   ];
   for (const sel of selecteurs) {
     try {
-      if (doc.querySelector(sel)) {
+      if ($(sel).length > 0) {
         indices.push(sel);
       }
     } catch {
@@ -104,7 +102,7 @@ function detecterBandeauCookies(
   }
 
   // Mots-clés dans le texte
-  const texte = (doc.body?.textContent ?? "").toLowerCase();
+  const texte = $("body").text().toLowerCase();
   const motsCles = [
     "accepter les cookies",
     "accepter tous",

@@ -1,4 +1,4 @@
-import { JSDOM } from "jsdom";
+import * as cheerio from "cheerio";
 import type { FindingSecurity } from "./types";
 
 /**
@@ -14,9 +14,9 @@ export function analyserContenu(params: {
   const findings: FindingSecurity[] = [];
   const estHttps = url.startsWith("https://");
 
-  let doc: Document;
+  let $: cheerio.CheerioAPI;
   try {
-    doc = new JSDOM(html, { url }).window.document;
+    $ = cheerio.load(html);
   } catch {
     return findings;
   }
@@ -26,9 +26,9 @@ export function analyserContenu(params: {
     const mixedResources: string[] = [];
     const selectors = ["script[src]", "link[href]", "img[src]", "iframe[src]"];
     for (const sel of selectors) {
-      doc.querySelectorAll(sel).forEach((el) => {
+      $(sel).each((_, el) => {
         const attr = sel.includes("[src]") ? "src" : "href";
-        const val = el.getAttribute(attr) ?? "";
+        const val = $(el).attr(attr) ?? "";
         if (val.startsWith("http://")) {
           mixedResources.push(`${sel.split("[")[0]}: ${val}`);
         }
@@ -50,13 +50,13 @@ export function analyserContenu(params: {
 
   // ─── Iframes tiers sans sandbox ──────────────────────────────────
   const iframesSansSandbox: string[] = [];
-  doc.querySelectorAll("iframe[src]").forEach((el) => {
-    const src = el.getAttribute("src") ?? "";
+  $("iframe[src]").each((_, el) => {
+    const src = $(el).attr("src") ?? "";
     if (!src) return;
     try {
       const h = new URL(src, url).hostname;
       const hostLocal = new URL(url).hostname;
-      if (h !== hostLocal && !el.hasAttribute("sandbox")) {
+      if (h !== hostLocal && $(el).attr("sandbox") === undefined) {
         iframesSansSandbox.push(h);
       }
     } catch {
@@ -75,8 +75,8 @@ export function analyserContenu(params: {
 
   // ─── Formulaires non-HTTPS ───────────────────────────────────────
   const formsHttp: string[] = [];
-  doc.querySelectorAll("form[action]").forEach((el) => {
-    const action = el.getAttribute("action") ?? "";
+  $("form[action]").each((_, el) => {
+    const action = $(el).attr("action") ?? "";
     if (action.startsWith("http://")) {
       formsHttp.push(action);
     }
@@ -92,9 +92,7 @@ export function analyserContenu(params: {
   }
 
   // ─── Versions CMS visibles (meta generator) ──────────────────────
-  const generator = doc
-    .querySelector('meta[name="generator"]')
-    ?.getAttribute("content");
+  const generator = $('meta[name="generator"]').attr("content");
   if (generator && /\d/.test(generator)) {
     findings.push({
       pilier: "contenu",
@@ -106,10 +104,12 @@ export function analyserContenu(params: {
   }
 
   // ─── Target="_blank" sans rel="noopener" ─────────────────────────
-  const liensNoopener = Array.from(doc.querySelectorAll('a[target="_blank"]'));
-  const liensSansNoopener = liensNoopener.filter((a) => {
-    const rel = a.getAttribute("rel")?.toLowerCase() ?? "";
-    return !rel.includes("noopener");
+  const liensSansNoopener: number[] = [];
+  $('a[target="_blank"]').each((_, el) => {
+    const rel = $(el).attr("rel")?.toLowerCase() ?? "";
+    if (!rel.includes("noopener")) {
+      liensSansNoopener.push(1);
+    }
   });
   if (liensSansNoopener.length > 0) {
     findings.push({
