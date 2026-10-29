@@ -49,13 +49,48 @@ const config: ConfigAxiChat = {
 
 ## Channels disponibles
 
-| Channel                 | Usage                                   | Statut |
-| ----------------------- | --------------------------------------- | ------ |
-| `back-office-copilote`  | Triptyque dashboard (ailettes + chat)   | ✅ V1  |
-| `back-office-panneau`   | Panneau latéral AxiHub-style            | ⏳ V2  |
-| `widget-flottant`       | Bulle bas-droite sur site visiteur      | ⏳ V2  |
-| `widget-embarque`       | Iframe/div inline dans une page         | ⏳ V2  |
-| `plein-ecran`           | Modale conversation immersive           | ⏳ V2  |
+| Channel                 | Usage                                                  | Statut |
+| ----------------------- | ------------------------------------------------------ | ------ |
+| `back-office-copilote`  | Triptyque dashboard (ailettes + chat)                  | ✅ V1  |
+| `bandeau-toggle`        | Bandeau + panneau déroulant qui pousse la page         | ✅ V1  |
+| `widget-flottant`       | Bulle flottante (4 positions) + panneau overlay        | ✅ V1  |
+| `back-office-panneau`   | Panneau latéral AxiHub-style                           | ⏳ V2  |
+| `widget-embarque`       | Iframe/div inline dans une page                        | ⏳ V2  |
+| `plein-ecran`           | Modale conversation immersive                          | ⏳ V2  |
+
+### Variante `bandeau-toggle`
+
+Reproduit le pattern du dashboard admin : barre pleine largeur avec
+bouton toggle + panneau conversation qui descend en poussant la page
+vers le bas (pas d'overlay). Idéal pour s'installer juste **sous le
+menu principal** d'un site client.
+
+```tsx
+<AxiChatBandeauToggle
+  config={config}
+  position="haut"              // 'haut' | 'bas'
+  libelleFerme="Parler à AXI"
+  libelleOuvert="Conversation en cours"
+  defautOuvert={false}
+  dureeMs={1800}               // vitesse d'ouverture/fermeture
+/>
+```
+
+### Variante `widget-flottant`
+
+Bulle fixe ancrée dans un coin de l'écran. Panneau de conversation qui
+apparaît en overlay (ne pousse pas la page). 4 positions possibles.
+
+```tsx
+<AxiChatWidgetFlottant
+  config={config}
+  position="bas-droite"         // 'bas-droite' | 'bas-gauche' | 'haut-droite' | 'haut-gauche'
+  teaser="Besoin d'aide ? Parlons-en."   // optionnel
+  tailleBulle={56}
+  largeurPanneau={400}
+  hauteurPanneau={600}
+/>
+```
 
 ## Palettes de thème incluses
 

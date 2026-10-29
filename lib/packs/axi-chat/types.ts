@@ -15,9 +15,22 @@
 export type ChannelAxiChat =
   | "back-office-copilote" // triptyque dashboard (ailettes + chat)
   | "back-office-panneau" // panneau latéral AxiHub-style
-  | "widget-flottant" // bulle bas-droite sur site visiteur
+  | "bandeau-toggle" // barre + panneau déroulant qui pousse la page
+  | "widget-flottant" // bulle flottante sur site visiteur
   | "widget-embarque" // iframe/div dans une page du site
   | "plein-ecran"; // overlay immersif (modale conversation)
+
+/* ────── Positions pour variantes site visiteur ──────────────── */
+
+/** Position d'ancrage d'un widget flottant (4 coins). */
+export type PositionWidgetFlottant =
+  | "bas-droite"
+  | "bas-gauche"
+  | "haut-droite"
+  | "haut-gauche";
+
+/** Position d'un bandeau toggle sur la page. */
+export type PositionBandeau = "haut" | "bas";
 
 /* ────── Thème ────────────────────────────────────────────────── */
 

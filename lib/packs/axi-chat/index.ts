@@ -31,6 +31,8 @@ export type {
   OrdreAxi,
   PaletteTheme,
   PieceJointe,
+  PositionBandeau,
+  PositionWidgetFlottant,
   RoleMessage,
   SecteurPage,
   SuggestionRapide,
@@ -59,3 +61,5 @@ export { AxiChatRoot } from "./composants/axi-chat-root";
 
 /* ─── Variantes (surfaces prêtes à l'emploi) ────────────────── */
 export { AxiChatCopilote } from "./variantes/back-office-copilote";
+export { AxiChatBandeauToggle } from "./variantes/bandeau-toggle";
+export { AxiChatWidgetFlottant } from "./variantes/widget-flottant";
