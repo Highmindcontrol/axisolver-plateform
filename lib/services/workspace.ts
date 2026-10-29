@@ -75,6 +75,51 @@ export async function getWorkspaceActif(
 }
 
 /**
+ * Idempotent : retourne le workspace actif, et le crée si l'user
+ * n'en a pas encore. Appelé par les pages qui ont besoin d'une
+ * garantie de workspace (comme Votre compte > Co-administrateurs).
+ *
+ * `nomDefaut` sert à nommer le workspace si on doit le créer
+ * (typiquement l'email de l'user).
+ */
+export async function ensureWorkspaceActif(
+  userId: string,
+  nomDefaut: string,
+): Promise<WorkspaceActif | null> {
+  const existant = await getWorkspaceActif(userId);
+  if (existant) return existant;
+
+  try {
+    const [cree] = await db
+      .insert(workspaces)
+      .values({
+        nom: `${nomDefaut} — compte`,
+        creeParUserId: userId,
+      })
+      .returning({
+        id: workspaces.id,
+        nom: workspaces.nom,
+        creeParUserId: workspaces.creeParUserId,
+      });
+
+    if (!cree) return null;
+
+    await db
+      .insert(workspaceMembers)
+      .values({
+        workspaceId: cree.id,
+        userId,
+        role: "admin",
+      })
+      .onConflictDoNothing();
+
+    return cree;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Liste les membres actifs d'un workspace (avec métadonnées user
  * récupérées côté Supabase Auth par l'appelant si besoin). Retourne
  * les workspace_members en l'état ; l'appelant fera la jointure

@@ -4,7 +4,7 @@ import type { User } from "@supabase/supabase-js";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import {
-  getWorkspaceActif,
+  ensureWorkspaceActif,
   listerInvitationsEnAttente,
   listerMembres,
 } from "@/lib/services/workspace";
@@ -28,7 +28,17 @@ export async function SectionAdministrateurs({
 }: {
   user: User;
 }) {
-  const workspace = await getWorkspaceActif(user.id);
+  // Nom par défaut si on doit créer le workspace à la volée : prénom
+  // + nom si fournis, sinon email, sinon « Mon compte ».
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const prenomMeta = typeof meta.prenom === "string" ? meta.prenom : "";
+  const nomMeta = typeof meta.nom === "string" ? meta.nom : "";
+  const nomDefaut =
+    [prenomMeta, nomMeta].filter(Boolean).join(" ") ||
+    user.email ||
+    "Mon compte";
+
+  const workspace = await ensureWorkspaceActif(user.id, nomDefaut);
 
   if (!workspace) {
     return <SectionBientotDisponible user={user} />;
