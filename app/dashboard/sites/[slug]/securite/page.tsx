@@ -350,12 +350,12 @@ export default async function PageSecuriteSite({
             ]}
           />
         </div>
-        <div className="mt-5 rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 text-xs text-indigo-900">
+        <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs text-emerald-900">
           <p>
-            <strong>Comment déléguer :</strong> pour chaque recommandation
-            marquée <em>&ldquo;Pris en charge par AXI Security Shield&rdquo;</em>, tu
-            peux demander à AXI de la traiter automatiquement en activant
-            l&apos;abonnement AxiSolver Security Shield.
+            <strong>AXI Security Shield est inclus dans ton abonnement
+            AxiSolver.</strong> Pour chaque recommandation, AXI peut
+            exécuter l&apos;intervention directement — il te suffit de
+            l&apos;autoriser.
           </p>
         </div>
       </section>

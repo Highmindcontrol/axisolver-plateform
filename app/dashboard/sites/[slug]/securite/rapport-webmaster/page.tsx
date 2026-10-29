@@ -127,17 +127,21 @@ export default async function PageRapportWebmaster({
             Note au webmaster
           </p>
           <p>
-            Ce rapport liste les actions à mener pour renforcer la sécurité
-            du site. Chaque recommandation est accompagnée des étapes
-            concrètes et des extraits de configuration (Nginx, Apache,
-            WordPress, Node/Express). Les points sont triés par priorité :
-            commencer par les éléments critiques et de haute priorité.
+            Ce rapport détaille les actions de renforcement sécurité
+            identifiées sur le site. Chaque recommandation est accompagnée
+            des étapes concrètes et des extraits de configuration (Nginx,
+            Apache, WordPress, Node/Express). Les points sont triés par
+            priorité.
           </p>
           <p className="mt-2">
-            Les éléments marqués{" "}
-            <strong>&ldquo;Pris en charge par AXI Security Shield&rdquo;</strong>{" "}
-            peuvent être automatisés via l&apos;abonnement AxiSolver. Pour
-            les autres, suivre les instructions ci-dessous.
+            <strong>
+              Toutes ces actions sont prises en charge par AXI Security
+              Shield, inclus dans l&apos;abonnement AxiSolver du client.
+            </strong>{" "}
+            AXI exécutera ces interventions directement si l&apos;accès au
+            site lui est donné. Les instructions ci-dessous sont fournies
+            pour transparence et contrôle, ou si tu préfères les traiter
+            toi-même en interne.
           </p>
         </section>
 
