@@ -39,6 +39,26 @@ body {
   animation: fadeIn 240ms ease-out;
 }
 
+/* Effet « shine » qui traverse un élément périodiquement pour
+   signaler qu'il est vivant / cliquable. Le gradient oblique
+   semi-transparent glisse de gauche à droite rapidement, puis
+   attend plusieurs secondes avant de recommencer. */
+@keyframes toggleShine {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  12% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
+.animate-toggleShine {
+  animation: toggleShine 7s ease-in-out infinite;
+}
+
 /* Ouverture théâtrale des ailettes du triptyque — elles glissent
    depuis derrière le chat central vers leur position d'ouverture.
    Durée longue et easing doux pour un effet « rideau de scène ». */

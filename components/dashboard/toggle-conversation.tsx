@@ -39,17 +39,32 @@ export function ToggleConversation({
         onClick={() => setOuvert((v) => !v)}
         aria-expanded={ouvert}
         aria-controls="panneau-conversation-axi"
-        className="group flex w-full items-center justify-between gap-5 border-b border-slate-200 bg-white px-6 py-6 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
+        className="group relative flex w-full items-center justify-between gap-5 overflow-hidden border-b border-slate-200 bg-white px-6 py-6 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
       >
-        <div className="flex items-center gap-5">
-          <Image
-            src="/axi-mascotte-bouton.png"
-            alt=""
-            width={120}
-            height={120}
-            priority
-            className="h-14 w-14 flex-shrink-0 rounded-full"
+        {/* Shine qui traverse périodiquement pour signaler que le
+            bouton est vivant et attend un clic. Pointer-events none
+            pour ne pas gêner l'interaction. */}
+        {!ouvert && (
+          <span
+            aria-hidden
+            className="animate-toggleShine pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-transparent via-indigo-200/60 to-transparent"
           />
+        )}
+
+        <div className="relative flex items-center gap-5">
+          <span
+            className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-950 shadow-md ring-1 ring-slate-900/10"
+            aria-hidden
+          >
+            <Image
+              src="/axi-mascotte-bouton.png"
+              alt=""
+              width={160}
+              height={160}
+              priority
+              className="h-full w-full object-cover"
+            />
+          </span>
           <div>
             <p className="text-base font-semibold text-slate-900">
               {ouvert ? "Conversation avec AXI" : "Converser avec AXI"}
@@ -62,7 +77,7 @@ export function ToggleConversation({
           </div>
         </div>
         <span
-          className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
+          className={`relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
             ouvert ? "rotate-180" : ""
           }`}
           aria-hidden
