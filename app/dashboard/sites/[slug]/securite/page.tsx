@@ -18,6 +18,9 @@ import { FormulaireAuditSecurity } from "./formulaire-audit";
 import { BoutonResoudreIncident } from "./bouton-resoudre";
 
 export const dynamic = "force-dynamic";
+// Les audits sécurité peuvent prendre 20-30s (fetch 15s + TLS/expo/reputation).
+// On relève le timeout Vercel (default 15s) pour éviter le 500 côté client.
+export const maxDuration = 60;
 
 export default async function PageSecuriteSite({
   params,

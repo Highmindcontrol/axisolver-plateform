@@ -16,6 +16,9 @@ import { sites, seoAudits } from "@/lib/db/schema";
 import { FormulaireAuditSeo } from "./formulaire-audit";
 
 export const dynamic = "force-dynamic";
+// Audit SEO : fetch + analyse HTML + mots-clés. Peut dépasser 15s
+// → maxDuration explicite.
+export const maxDuration = 60;
 
 export default async function PageSeoSite({
   params,

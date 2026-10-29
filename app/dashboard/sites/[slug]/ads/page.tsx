@@ -18,6 +18,9 @@ import { sites, adsAudits } from "@/lib/db/schema";
 import { FormulaireAuditAds } from "./formulaire-audit";
 
 export const dynamic = "force-dynamic";
+// Audits Ads : fetch + analyseurs trackers/visibilite/consentement/remarketing.
+// Peut dépasser le défaut 15s → maxDuration explicite.
+export const maxDuration = 60;
 
 export default async function PageAdsSite({
   params,
