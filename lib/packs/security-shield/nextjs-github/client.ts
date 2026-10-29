@@ -117,39 +117,70 @@ export async function verifierToken(params: {
   utilisateur?: string;
   droitsEcriture?: boolean;
 }> {
+  // Nettoie le token des espaces/invisibles collés par erreur
+  const token = params.token.trim();
+  const proprietaire = params.proprietaire.trim();
+  const repo = params.repo.trim();
+
+  if (!token || !proprietaire || !repo) {
+    return {
+      ok: false,
+      message: `Paramètre manquant : token=${token ? "OK" : "VIDE"} propriétaire="${proprietaire}" repo="${repo}"`,
+    };
+  }
+
+  // Pré-check 1 : le token lui-même (y a-t-il un user derrière ?)
+  // Un fine-grained PAT a besoin d'accéder à /user ou à une route spécifique.
+  // On teste d'abord /repos/{owner}/{repo} et on remonte le vrai message
+  // d'erreur de GitHub.
+  const url = `${API}/repos/${proprietaire}/${repo}`;
   try {
-    const res = await fetch(
-      `${API}/repos/${params.proprietaire}/${params.repo}`,
-      {
-        headers: entetes(params.token),
-        signal: AbortSignal.timeout(8000),
-      },
-    );
+    const res = await fetch(url, {
+      headers: entetes(token),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    const bodyBrut = await res.text().catch(() => "");
+    let messageGithub = "";
+    try {
+      const parsed = JSON.parse(bodyBrut) as { message?: string };
+      messageGithub = parsed.message ?? "";
+    } catch {
+      messageGithub = bodyBrut.slice(0, 200);
+    }
+
     if (res.status === 401) {
       return {
         ok: false,
-        message:
-          "Token invalide (401). Vérifier que tu l'as copié intégralement et qu'il n'est pas expiré.",
+        message: `Token invalide (401). GitHub dit : "${messageGithub}". Vérifier que tu l'as copié intégralement et qu'il n'est pas expiré/révoqué.`,
       };
     }
     if (res.status === 404) {
       return {
         ok: false,
-        message:
-          "Repo introuvable (404). Vérifier le propriétaire et le nom du repo, et que le token a accès à ce repo.",
+        message: `GitHub renvoie 404 sur ${url.replace(API, "api.github.com")}. Message GitHub : "${messageGithub}". Causes possibles : (1) propriétaire/repo mal orthographiés (sensibles à la casse), (2) le fine-grained token n'a pas ce repo dans "Only select repositories", (3) la permission "Contents" du token est sur "No access" au lieu de "Read and write".`,
+      };
+    }
+    if (res.status === 403) {
+      return {
+        ok: false,
+        message: `Interdit (403). Message GitHub : "${messageGithub}". Probablement un problème de permissions du token (Contents doit être sur Read and write).`,
       };
     }
     if (!res.ok) {
-      return { ok: false, message: `GitHub ${res.status} ${res.statusText}` };
+      return {
+        ok: false,
+        message: `GitHub ${res.status} ${res.statusText}. Message : "${messageGithub}"`,
+      };
     }
-    const data = (await res.json()) as {
+    const data = JSON.parse(bodyBrut) as {
       permissions?: { push?: boolean };
       owner?: { login?: string };
     };
     return {
       ok: true,
       message: data.permissions?.push
-        ? "Token OK avec droits d'écriture."
+        ? `Token OK avec droits d'écriture sur ${proprietaire}/${repo}.`
         : "Token OK mais sans droits d'écriture — AXI pourra lire mais pas pousser de commits.",
       utilisateur: data.owner?.login,
       droitsEcriture: data.permissions?.push ?? false,
