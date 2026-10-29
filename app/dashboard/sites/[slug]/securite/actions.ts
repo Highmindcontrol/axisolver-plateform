@@ -5,12 +5,19 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import { sites, securityAudits, securityIncidents } from "@/lib/db/schema";
+import {
+  sites,
+  securityAudits,
+  securityIncidents,
+  securiteInterventions,
+} from "@/lib/db/schema";
 import { auditerSite } from "@/lib/engines/security/auditer-site";
 import {
   changerMode,
   creerIntervention,
   executerIntervention,
+  lireMode,
+  marquerExecution,
 } from "@/lib/packs/security-shield";
 import { CATALOGUE } from "@/lib/engines/security/recommandations";
 import { enArrierePlan } from "@/lib/background";
@@ -229,7 +236,13 @@ export async function declencherRemediationAction(
     .limit(1);
   if (!site) return { erreur: "Site introuvable.", succes: false };
 
-  // Crée l'intervention
+  // Lit le mode AXI pour ce site : automatique / validation / desactive
+  const mode = await lireMode(site.id);
+
+  // Crée l'intervention selon le mode
+  const statut =
+    mode === "automatique" ? "programmee" : "en_attente_validation";
+
   let interventionId: string;
   try {
     const res = await creerIntervention({
@@ -240,9 +253,9 @@ export async function declencherRemediationAction(
       titre: reco.titre,
       descriptionAction:
         reco.pris_en_charge_axi?.cout_avec_axi ?? reco.description,
-      statut: "programmee",
-      modeDeclenche: "validation",
-      valideParUserId: user.id,
+      statut,
+      modeDeclenche: mode === "desactive" ? "validation" : mode,
+      valideParUserId: mode === "automatique" ? user.id : undefined,
     });
     interventionId = res.id;
   } catch (e) {
@@ -257,7 +270,18 @@ export async function declencherRemediationAction(
     return { erreur: `Impossible de créer l'intervention : ${msg}`, succes: false };
   }
 
-  // Exécute immédiatement
+  // Si mode validation : on s'arrête là, l'utilisateur approuvera plus tard
+  if (mode === "validation") {
+    revalidatePath(`/dashboard/sites/${slug}/securite`);
+    return {
+      erreur: null,
+      succes: true,
+      journal:
+        "Intervention en attente de ta validation (mode « avec validation » actif).",
+    };
+  }
+
+  // Mode automatique : exécute immédiatement
   const resultat = await executerIntervention({
     interventionId,
     siteId: site.id,
@@ -269,4 +293,110 @@ export async function declencherRemediationAction(
     succes: resultat.ok,
     journal: resultat.journal,
   };
+}
+
+/**
+ * Approuve une intervention AXI en attente de validation : la fait
+ * passer en « programmee », puis la lance en arrière-plan.
+ */
+export type EtatValidation = {
+  erreur: string | null;
+  succes: boolean;
+  journal?: string;
+};
+
+export async function approuverInterventionAction(
+  _prev: EtatValidation,
+  formData: FormData,
+): Promise<EtatValidation> {
+  const slug = String(formData.get("slug") ?? "").trim();
+  const interventionId = String(formData.get("interventionId") ?? "").trim();
+  if (!slug || !interventionId)
+    return { erreur: "paramètres manquants", succes: false };
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { erreur: "Vous devez être connecté.", succes: false };
+
+  const [site] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
+    .limit(1);
+  if (!site) return { erreur: "Site introuvable.", succes: false };
+
+  // Marque comme validée + lance l'exécution
+  await marquerExecution({
+    interventionId,
+    siteId: site.id,
+    statut: "programmee",
+  });
+
+  // Enregistre qui a validé (date + user)
+  await db
+    .update(securiteInterventions)
+    .set({ valideParUserId: user.id, valideLe: new Date() })
+    .where(
+      and(
+        eq(securiteInterventions.id, interventionId),
+        eq(securiteInterventions.siteId, site.id),
+      ),
+    );
+
+  // Lance l'exécution en arrière-plan
+  enArrierePlan(
+    executerIntervention({ interventionId, siteId: site.id }).then(() => {}),
+  );
+
+  revalidatePath(`/dashboard/sites/${slug}/securite`);
+  return {
+    erreur: null,
+    succes: true,
+    journal: "Intervention approuvée et en cours d'exécution.",
+  };
+}
+
+export async function refuserInterventionAction(
+  _prev: EtatValidation,
+  formData: FormData,
+): Promise<EtatValidation> {
+  const slug = String(formData.get("slug") ?? "").trim();
+  const interventionId = String(formData.get("interventionId") ?? "").trim();
+  if (!slug || !interventionId)
+    return { erreur: "paramètres manquants", succes: false };
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { erreur: "Vous devez être connecté.", succes: false };
+
+  const [site] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
+    .limit(1);
+  if (!site) return { erreur: "Site introuvable.", succes: false };
+
+  await marquerExecution({
+    interventionId,
+    siteId: site.id,
+    statut: "refusee",
+    erreur: "Refusée par l'utilisateur.",
+  });
+
+  await db
+    .update(securiteInterventions)
+    .set({ valideParUserId: user.id, valideLe: new Date() })
+    .where(
+      and(
+        eq(securiteInterventions.id, interventionId),
+        eq(securiteInterventions.siteId, site.id),
+      ),
+    );
+
+  revalidatePath(`/dashboard/sites/${slug}/securite`);
+  return { erreur: null, succes: true };
 }

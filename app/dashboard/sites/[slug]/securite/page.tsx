@@ -35,6 +35,7 @@ import {
   type RecommandationSecurity,
 } from "@/lib/db/schema";
 import {
+  listerInterventions,
   verifierPluginPourSite,
   verifierRemediationDisponible,
 } from "@/lib/packs/security-shield";
@@ -44,6 +45,7 @@ import { BoutonResoudreIncident } from "./bouton-resoudre";
 import { RecosInteractives } from "./recos-interactives";
 import { SelecteurModeRemediation } from "./selecteur-mode-remediation";
 import { BandeauPlugin } from "./bandeau-plugin";
+import { SectionInterventions } from "./section-interventions";
 
 export const dynamic = "force-dynamic";
 // Les audits sécurité peuvent prendre 20-30s (fetch 15s + TLS/expo/reputation).
@@ -99,6 +101,9 @@ export default async function PageSecuriteSite({
   const remediationActive =
     !!statutPlugin?.installe ||
     remediationDispo.typeAcces === "github_repo";
+
+  // Interventions AXI récentes + en attente de validation
+  const interventions = await listerInterventions(site.id, 30);
 
   const dernier = audits[0] ?? null;
   const auditsTermines = audits.filter((a) => a.statut === "termine");
@@ -344,6 +349,9 @@ export default async function PageSecuriteSite({
           </p>
         </section>
       )}
+
+      {/* ────── Interventions AXI (en attente + journal) ────── */}
+      <SectionInterventions interventions={interventions} slug={slug} />
 
       {/* ────── Catalogue capacités AxiSolver Security Shield ────── */}
       <section className="mb-10 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm">
