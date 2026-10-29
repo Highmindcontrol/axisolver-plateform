@@ -7,6 +7,7 @@ import {
   jsonb,
   integer,
   boolean,
+  numeric,
   pgEnum,
   primaryKey,
   index,
@@ -1095,4 +1096,55 @@ export const profilsPlateforme = pgTable(
       .notNull(),
   },
   (t) => [index("idx_profils_plateforme_role").on(t.role)],
+);
+
+/* ─── Coûts fournisseurs mensuels (super-admin) ─────────────────── */
+
+export const categorieCoutFournisseurEnum = pgEnum(
+  "categorie_cout_fournisseur",
+  [
+    "ia_llm",
+    "voix",
+    "infra",
+    "paiements",
+    "email",
+    "seo",
+    "outillage",
+    "autre",
+  ],
+);
+
+export const coutsFournisseursMensuel = pgTable(
+  "couts_fournisseurs_mensuel",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bucketMois: text("bucket_mois").notNull(),
+    fournisseur: text("fournisseur").notNull(),
+    categorie: categorieCoutFournisseurEnum("categorie").notNull(),
+    montantEurHt: numeric("montant_eur_ht", {
+      precision: 10,
+      scale: 2,
+    })
+      .notNull()
+      .default("0"),
+    notes: text("notes"),
+    saisiParUserId: uuid("saisi_par_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    majLe: timestamp("maj_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("couts_fournisseurs_unique").on(
+      t.bucketMois,
+      t.fournisseur,
+      t.categorie,
+    ),
+    index("idx_couts_fournisseurs_mois").on(t.bucketMois),
+    index("idx_couts_fournisseurs_categorie").on(t.categorie),
+  ],
 );
