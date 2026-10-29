@@ -89,7 +89,7 @@ export function ToggleConversation({
       <div
         id="panneau-conversation-axi"
         aria-hidden={!ouvert}
-        className={`grid overflow-hidden transition-[grid-template-rows] duration-[1200ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        className={`grid overflow-hidden transition-[grid-template-rows] duration-[1800ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           ouvert ? "grid-rows-[1fr] border-b border-slate-200" : "grid-rows-[0fr]"
         }`}
       >
