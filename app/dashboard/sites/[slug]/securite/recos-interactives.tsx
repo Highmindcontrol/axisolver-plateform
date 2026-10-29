@@ -14,6 +14,8 @@ import type {
   FindingSecurity,
   RecommandationSecurity,
 } from "@/lib/db/schema";
+import { CATALOGUE } from "@/lib/engines/security/recommandations";
+import { BoutonDeclencherRemediation } from "./bouton-declencher-remediation";
 
 type Pilier = FindingSecurity["pilier"];
 type Priorite = "critique" | "haute" | "moyenne" | "basse";
@@ -33,10 +35,16 @@ export function RecosInteractives({
   recommandations,
   findings,
   pilierPreselectionne,
+  slug,
+  auditId,
+  pluginInstalle,
 }: {
   recommandations: RecommandationSecurity[];
   findings: FindingSecurity[];
   pilierPreselectionne?: Pilier | null;
+  slug: string;
+  auditId?: string;
+  pluginInstalle: boolean;
 }) {
   const [filtrePilier, setFiltrePilier] = useState<Pilier | null>(
     pilierPreselectionne ?? null,
@@ -226,22 +234,37 @@ export function RecosInteractives({
                 </div>
               </div>
               {r.pris_en_charge_axi && (
-                <div className="mt-3 flex items-start gap-2 rounded-lg border border-slate-900/10 bg-gradient-to-br from-slate-900 to-slate-700 p-3 text-white">
-                  <Shield
-                    className="mt-0.5 h-3.5 w-3.5 flex-shrink-0"
-                    strokeWidth={2.5}
-                    aria-hidden
-                  />
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
-                      Pris en charge par {r.pris_en_charge_axi.pack}
-                    </p>
-                    {r.pris_en_charge_axi.cout_avec_axi && (
-                      <p className="mt-0.5 text-xs">
-                        {r.pris_en_charge_axi.cout_avec_axi}
+                <div className="mt-3 flex items-start justify-between gap-3 rounded-lg border border-slate-900/10 bg-gradient-to-br from-slate-900 to-slate-700 p-3 text-white">
+                  <div className="flex items-start gap-2">
+                    <Shield
+                      className="mt-0.5 h-3.5 w-3.5 flex-shrink-0"
+                      strokeWidth={2.5}
+                      aria-hidden
+                    />
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
+                        Pris en charge par {r.pris_en_charge_axi.pack}
                       </p>
-                    )}
+                      {r.pris_en_charge_axi.cout_avec_axi && (
+                        <p className="mt-0.5 text-xs">
+                          {r.pris_en_charge_axi.cout_avec_axi}
+                        </p>
+                      )}
+                    </div>
                   </div>
+                  {pluginInstalle &&
+                    (() => {
+                      const code = Object.keys(CATALOGUE).find(
+                        (c) => CATALOGUE[c].titre === r.titre,
+                      );
+                      return code ? (
+                        <BoutonDeclencherRemediation
+                          slug={slug}
+                          findingCode={code}
+                          auditId={auditId}
+                        />
+                      ) : null;
+                    })()}
                 </div>
               )}
             </li>

@@ -34,10 +34,12 @@ import {
   type FindingSecurity,
   type RecommandationSecurity,
 } from "@/lib/db/schema";
+import { verifierPluginPourSite } from "@/lib/packs/security-shield";
 import { FormulaireAuditSecurity } from "./formulaire-audit";
 import { BoutonResoudreIncident } from "./bouton-resoudre";
 import { RecosInteractives } from "./recos-interactives";
 import { SelecteurModeRemediation } from "./selecteur-mode-remediation";
+import { BandeauPlugin } from "./bandeau-plugin";
 
 export const dynamic = "force-dynamic";
 // Les audits sécurité peuvent prendre 20-30s (fetch 15s + TLS/expo/reputation).
@@ -84,6 +86,11 @@ export default async function PageSecuriteSite({
   } catch {
     // Migration 0020 non appliquée — reste sur 'desactive'
   }
+
+  // Vérifie si un accès est configuré + si le plugin WP est installé
+  const statutPlugin = await verifierPluginPourSite(site.id);
+  const aAccesConfigure = statutPlugin !== null;
+  const pluginActif = !!statutPlugin?.installe;
 
   const dernier = audits[0] ?? null;
   const auditsTermines = audits.filter((a) => a.statut === "termine");
@@ -138,6 +145,13 @@ export default async function PageSecuriteSite({
           fichiers, cookies, contenu, réputation.
         </p>
       </header>
+
+      {/* ────── Bandeau plugin AXI Security Shield ────── */}
+      <BandeauPlugin
+        statutPlugin={statutPlugin}
+        aAcces={aAccesConfigure}
+        slug={slug}
+      />
 
       {/* ────── Bandeau monitoring automatique ────── */}
       <section className="mb-10 flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50/60 p-4 text-xs text-blue-900 md:flex-row md:items-center md:justify-between">
@@ -244,6 +258,9 @@ export default async function PageSecuriteSite({
           <RecosInteractives
             recommandations={recos}
             findings={findings}
+            slug={slug}
+            auditId={dernier.id}
+            pluginInstalle={pluginActif}
           />
         </section>
       )}

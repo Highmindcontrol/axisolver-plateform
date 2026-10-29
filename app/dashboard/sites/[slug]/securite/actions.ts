@@ -7,7 +7,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { sites, securityAudits, securityIncidents } from "@/lib/db/schema";
 import { auditerSite } from "@/lib/engines/security/auditer-site";
-import { changerMode } from "@/lib/packs/security-shield";
+import {
+  changerMode,
+  creerIntervention,
+  executerIntervention,
+} from "@/lib/packs/security-shield";
+import { CATALOGUE } from "@/lib/engines/security/recommandations";
 
 export type EtatAuditSecurity = {
   erreur: string | null;
@@ -172,5 +177,88 @@ export async function definirModeRemediationAction(
     erreur: null,
     ok: true,
     mode: mode as "desactive" | "validation" | "automatique",
+  };
+}
+
+/**
+ * Déclenche la remédiation d'une recommandation : crée une intervention,
+ * puis appelle le plugin WordPress AXI Security Shield pour appliquer
+ * concrètement la correction côté site.
+ */
+export type EtatDeclencherRemediation = {
+  erreur: string | null;
+  succes: boolean;
+  journal?: string;
+};
+
+export async function declencherRemediationAction(
+  _prev: EtatDeclencherRemediation,
+  formData: FormData,
+): Promise<EtatDeclencherRemediation> {
+  const slug = String(formData.get("slug") ?? "").trim();
+  const findingCode = String(formData.get("findingCode") ?? "").trim();
+  const auditId = String(formData.get("auditId") ?? "").trim() || undefined;
+
+  if (!slug || !findingCode) {
+    return { erreur: "paramètres manquants", succes: false };
+  }
+
+  const reco = CATALOGUE[findingCode];
+  if (!reco) {
+    return { erreur: "Code de recommandation inconnu.", succes: false };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { erreur: "Vous devez être connecté.", succes: false };
+
+  const [site] = await db
+    .select({ id: sites.id })
+    .from(sites)
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
+    .limit(1);
+  if (!site) return { erreur: "Site introuvable.", succes: false };
+
+  // Crée l'intervention
+  let interventionId: string;
+  try {
+    const res = await creerIntervention({
+      siteId: site.id,
+      auditId: auditId ?? null,
+      findingCode,
+      pilier: reco.pilier,
+      titre: reco.titre,
+      descriptionAction:
+        reco.pris_en_charge_axi?.cout_avec_axi ?? reco.description,
+      statut: "programmee",
+      modeDeclenche: "validation",
+      valideParUserId: user.id,
+    });
+    interventionId = res.id;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("securite_interventions")) {
+      return {
+        erreur:
+          "Migration 0020 pas encore appliquée. Lance le SQL puis réessaie.",
+        succes: false,
+      };
+    }
+    return { erreur: `Impossible de créer l'intervention : ${msg}`, succes: false };
+  }
+
+  // Exécute immédiatement
+  const resultat = await executerIntervention({
+    interventionId,
+    siteId: site.id,
+  });
+
+  revalidatePath(`/dashboard/sites/${slug}/securite`);
+  return {
+    erreur: resultat.ok ? null : resultat.journal,
+    succes: resultat.ok,
+    journal: resultat.journal,
   };
 }
