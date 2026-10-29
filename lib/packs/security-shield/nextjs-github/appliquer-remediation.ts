@@ -65,6 +65,58 @@ export async function appliquerRemediationGithub(params: {
     });
   }
 
+  // ─── Codes inapplicables à Next.js (WordPress / PHP uniquement) ──
+  const inapplicableNextjs: Record<string, string> = {
+    interfaces_admin_exposees:
+      "Cette correction concerne les sites WordPress / PHP (restreindre /wp-admin, /phpmyadmin). Un site Next.js n'expose pas ces chemins — l'audit a probablement remonté un faux positif. Rien à faire côté GitHub.",
+    cms_version_exposee:
+      "Cette correction concerne WordPress (balise meta generator). Next.js n'ajoute pas de meta generator par défaut, c'est un faux positif de l'audit.",
+    cookie_sans_secure:
+      "Cette correction concerne la couche applicative (code qui pose les cookies de session). Pas automatisable via vercel.json. Si tu utilises next-auth, les cookies sont déjà Secure par défaut en production.",
+    cookie_sans_httponly:
+      "Idem cookies_sans_secure : couche applicative. next-auth et la plupart des libs modernes posent HttpOnly par défaut.",
+    cookie_sans_samesite:
+      "Idem : couche applicative. next-auth pose SameSite=Lax par défaut.",
+    cookie_samesite_none_sans_secure:
+      "Couche applicative — à corriger dans le code qui pose le cookie.",
+    csp_unsafe_inline:
+      "Nécessite un refactor du code (externaliser scripts inline, utiliser des nonces). Pas automatisable via vercel.json — AXI peut t'aider à faire ça dans un PR séparé.",
+    csp_unsafe_eval:
+      "Nécessite un refactor du code (retirer les eval). Pas automatisable via vercel.json.",
+    form_action_http:
+      "Correction côté HTML/templates. AXI peut analyser le code source et proposer un PR correctif (chantier futur).",
+    target_blank_sans_noopener:
+      "Correction côté HTML/MDX. AXI peut analyser les sources et poser un PR (chantier futur).",
+    iframes_tiers_sans_sandbox:
+      "Correction côté HTML/JSX. AXI peut analyser les composants qui embarquent des iframes (chantier futur).",
+    mixed_content:
+      "Il faut scanner le code source pour trouver les ressources http://. AXI peut faire ce scan + PR correctif (chantier futur).",
+    tls_connexion_impossible:
+      "Problème d'infrastructure réseau (DNS, pare-feu, config Vercel). Pas corrigeable automatiquement — vérifier la config du domaine custom dans Vercel.",
+    cert_expire:
+      "Les certificats SSL sur Vercel sont gérés automatiquement par Let's Encrypt. Si expiration, vérifier le statut du domaine dans Vercel Dashboard.",
+    cert_expiration_imminente:
+      "Idem : SSL Vercel auto-renouvelé. Vérifier Vercel Dashboard si vraiment urgent.",
+    cert_expiration_proche:
+      "SSL Vercel auto-renouvelé — rien à faire.",
+    san_absent:
+      "SSL Vercel gère ça automatiquement.",
+    protocole_tls_obsolete:
+      "Vercel sert TLS 1.2+1.3 par défaut, pas de config nécessaire.",
+    x_powered_by_expose:
+      "Next.js masque X-Powered-By par défaut. Si le header est présent, c'est injecté par Vercel — pas de contrôle utilisateur.",
+    server_version_exposee:
+      "Vercel masque la version serveur. Rien à corriger côté config.",
+  };
+
+  if (inapplicableNextjs[params.code]) {
+    return {
+      succes: false,
+      code: params.code,
+      journal: inapplicableNextjs[params.code],
+    };
+  }
+
   // ─── Headers HTTP via vercel.json ────────────────────────────────
   const patchs = headersPourCode(params.code, params.options ?? {});
   const estForceHttps =
@@ -76,7 +128,7 @@ export async function appliquerRemediationGithub(params: {
     return {
       succes: false,
       code: params.code,
-      journal: `Remédiation « ${params.code} » pas (encore) implémentée côté Next.js/GitHub.`,
+      journal: `Remédiation « ${params.code} » pas prise en charge pour un site Next.js via GitHub. Vérifie le catalogue de capacités dans la page Sécurité.`,
     };
   }
 
