@@ -9,7 +9,10 @@ import {
   workspaceMembers,
   workspaces,
 } from "@/lib/db/schema";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  createSupabaseAdminClient,
+  createSupabaseServerClient,
+} from "@/lib/supabase/server";
 
 export type EtatAcceptation = {
   erreur: string | null;
@@ -73,52 +76,65 @@ export async function accepterInvitationAction(
     };
   }
 
-  // Signup Supabase (ou récupération si email déjà en base)
+  // Création de compte via l'Admin API Supabase : email_confirm à true
+  // directement (le lien d'invitation valide déjà l'email), ce qui évite
+  // l'envoi d'un email de confirmation parasite. Si l'email existe
+  // déjà en base, on bascule sur un signInWithPassword classique.
   const supabase = await createSupabaseServerClient();
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-    email: invitation.email,
-    password: motDePasse,
-    options: {
-      data: {
-        full_name: [prenom, nom].filter(Boolean).join(" ") || invitation.email,
+  const supabaseAdmin = createSupabaseAdminClient();
+  const fullName =
+    [prenom, nom].filter(Boolean).join(" ") || invitation.email;
+
+  let userId: string | null = null;
+
+  const { data: createData, error: createError } =
+    await supabaseAdmin.auth.admin.createUser({
+      email: invitation.email,
+      password: motDePasse,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
         prenom: prenom || null,
         nom: nom || null,
       },
-    },
-  });
+    });
 
-  let userId: string | null = signUpData?.user?.id ?? null;
-
-  if (signUpError) {
-    const msg = signUpError.message.toLowerCase();
+  if (createError) {
+    const msg = createError.message.toLowerCase();
     const dejaExistant =
       msg.includes("already") ||
       msg.includes("exists") ||
       msg.includes("registered");
 
     if (!dejaExistant) {
-      return { erreur: `Création de compte refusée : ${signUpError.message}` };
+      return { erreur: `Création de compte refusée : ${createError.message}` };
     }
-
-    // Email déjà enregistré → on tente une connexion directe.
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: invitation.email,
-        password: motDePasse,
-      });
-    if (signInError) {
-      return {
-        erreur:
-          "Un compte existe déjà avec cette adresse. Si vous êtes son propriétaire, le mot de passe fourni est incorrect — réinitialisez-le via « Mot de passe oublié ».",
-      };
-    }
-    userId = signInData.user?.id ?? null;
+    // Email déjà enregistré → connexion avec le mot de passe fourni.
+  } else {
+    userId = createData?.user?.id ?? null;
   }
+
+  // Dans tous les cas on ouvre une session côté client en se connectant
+  // avec le mot de passe (soit celui qu'on vient d'enregistrer, soit
+  // celui déjà existant).
+  const { data: signInData, error: signInError } =
+    await supabase.auth.signInWithPassword({
+      email: invitation.email,
+      password: motDePasse,
+    });
+
+  if (signInError) {
+    return {
+      erreur:
+        "Un compte existe déjà avec cette adresse. Si vous êtes son propriétaire, le mot de passe saisi est incorrect — réinitialisez-le via « Mot de passe oublié ».",
+    };
+  }
+  userId = signInData.user?.id ?? userId;
 
   if (!userId) {
     return {
       erreur:
-        "Compte créé mais session non établie. Confirmez votre email puis cliquez à nouveau sur le lien d'invitation.",
+        "Session non établie après création du compte. Essayez de vous reconnecter.",
     };
   }
 
