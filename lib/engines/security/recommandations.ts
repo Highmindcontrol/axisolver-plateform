@@ -8,14 +8,14 @@ import type { FindingSecurity, RecommandationSecurity } from "./types";
  * l'upsell vers AXI Shield (pack AxiHub).
  */
 
-type Catalogue = Record<
+export type Catalogue = Record<
   string,
   Omit<RecommandationSecurity, "pilier"> & {
     pilier: FindingSecurity["pilier"];
   }
 >;
 
-const CATALOGUE: Catalogue = {
+export const CATALOGUE: Catalogue = {
   // ─── Pilier headers ───────────────────────────────────────────
   hsts_absent: {
     pilier: "headers",

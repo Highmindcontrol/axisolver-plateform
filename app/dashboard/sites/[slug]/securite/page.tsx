@@ -13,6 +13,14 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  FileText,
+  ArrowRight,
+  Eye,
+  Lock,
+  Wifi,
+  Cookie,
+  Globe,
+  FolderLock,
 } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
@@ -87,17 +95,23 @@ export default async function PageSecuriteSite({
   return (
     <div className="px-6 py-10 md:px-14 lg:px-16">
       <header className="mb-10">
-        <Link
-          href={`/dashboard/sites/${slug}`}
-          className="mb-5 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-700"
-        >
-          <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Retour à {site.nomSite ?? site.nomEntreprise}
-        </Link>
-        <p className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-slate-700">
-          <Shield className="h-3 w-3" strokeWidth={2.5} />
-          AxiSolver Shield
-        </p>
+        <div className="mb-5 flex items-start justify-between gap-6">
+          <Link
+            href={`/dashboard/sites/${slug}`}
+            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-700"
+          >
+            <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
+            Retour à {site.nomSite ?? site.nomEntreprise}
+          </Link>
+          <p className="hidden items-center gap-2 text-right text-xl font-semibold uppercase tracking-[0.22em] text-slate-900 sm:inline-flex md:text-2xl lg:text-3xl">
+            <Shield
+              className="h-5 w-5 md:h-6 md:w-6 lg:h-7 lg:w-7"
+              strokeWidth={2}
+              aria-hidden
+            />
+            AxiSolver Security Shield
+          </p>
+        </div>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
           Sécurité de {site.domainePrincipal}
         </h1>
@@ -256,6 +270,96 @@ export default async function PageSecuriteSite({
         </section>
       )}
 
+      {/* ────── Catalogue capacités AxiSolver Shield ────── */}
+      <section className="mb-10 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 shadow-sm">
+        <header className="mb-5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-700">
+            Ce que surveille AxiSolver Security Shield
+          </p>
+          <h2 className="mt-2 text-base font-semibold text-slate-900">
+            6 piliers audités, surveillés en continu, traités automatiquement
+          </h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Catalogue complet pour savoir ce que tu peux déléguer à AXI.
+          </p>
+        </header>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <CapacitePilier
+            icone={Lock}
+            titre="Headers HTTP"
+            audits={[
+              "HSTS (Strict-Transport-Security)",
+              "Content-Security-Policy",
+              "X-Frame-Options (clickjacking)",
+              "X-Content-Type-Options (nosniff)",
+              "Referrer-Policy & Permissions-Policy",
+              "Masquage versions serveur / X-Powered-By",
+            ]}
+          />
+          <CapacitePilier
+            icone={Shield}
+            titre="TLS / HTTPS"
+            audits={[
+              "Validité connexion port 443",
+              "Expiration certificat SSL",
+              "Subject Alternative Name (SAN)",
+              "Protocoles autorisés (TLS 1.2 / 1.3)",
+              "Alerte renouvellement certificat",
+            ]}
+          />
+          <CapacitePilier
+            icone={FolderLock}
+            titre="Exposition fichiers"
+            audits={[
+              ".env, .git/config, backups SQL",
+              "wp-admin, phpmyadmin, administrator",
+              "robots.txt & security.txt",
+              "Fichiers config PHP exposés",
+            ]}
+          />
+          <CapacitePilier
+            icone={Cookie}
+            titre="Cookies"
+            audits={[
+              "Attribut Secure sur les cookies",
+              "Attribut HttpOnly (protection XSS)",
+              "Attribut SameSite (protection CSRF)",
+              "Cohérence SameSite=None + Secure",
+            ]}
+          />
+          <CapacitePilier
+            icone={Eye}
+            titre="Contenu de la page"
+            audits={[
+              "Mixed content (http dans page https)",
+              "Iframes tiers sans sandbox",
+              "Formulaires avec action HTTP",
+              "Version CMS visible (meta generator)",
+              "Liens target=_blank sans noopener",
+            ]}
+          />
+          <CapacitePilier
+            icone={Globe}
+            titre="Réputation / monitoring"
+            audits={[
+              "Redirection HTTP → HTTPS forcée",
+              "Détection changement HTML",
+              "Hash HTML surveillé toutes les 6h",
+              "Alerte si noindex apparaît",
+              "Alerte si cert devient invalide",
+            ]}
+          />
+        </div>
+        <div className="mt-5 rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 text-xs text-indigo-900">
+          <p>
+            <strong>Comment déléguer :</strong> pour chaque recommandation
+            marquée <em>&ldquo;Pris en charge par AXI Shield&rdquo;</em>, tu
+            peux demander à AXI de la traiter automatiquement en activant
+            l&apos;abonnement AxiSolver Shield.
+          </p>
+        </div>
+      </section>
+
       {/* ────── Historique en tableau alterné ────── */}
       {audits.length > 1 && (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -404,7 +508,7 @@ function ScoreGlobalCarte({
           </div>
         </div>
 
-        {/* Colonne droite : certificat SSL + bouton relancer */}
+        {/* Colonne droite : certificat SSL + boutons */}
         <div className="flex flex-col items-stretch gap-3 md:items-end">
           {joursSsl !== null && (
             <div className="rounded-xl bg-white/15 p-3 text-right backdrop-blur-sm">
@@ -421,6 +525,13 @@ function ScoreGlobalCarte({
             </div>
           )}
           <FormulaireAuditSecurity slug={slug} />
+          <Link
+            href={`/dashboard/sites/${slug}/securite/rapport-webmaster`}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-sm transition hover:bg-white/20"
+          >
+            <FileText className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
+            Rapport pour le webmaster
+          </Link>
         </div>
       </div>
     </div>
@@ -549,4 +660,36 @@ function compteurRecosParPilier(
     out[r.pilier] = (out[r.pilier] ?? 0) + 1;
   }
   return out;
+}
+
+function CapacitePilier({
+  icone: Icone,
+  titre,
+  audits,
+}: {
+  icone: typeof Shield;
+  titre: string;
+  audits: string[];
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mb-3 flex items-center gap-2">
+        <span
+          className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white"
+          aria-hidden
+        >
+          <Icone className="h-4 w-4" strokeWidth={2} />
+        </span>
+        <h3 className="text-sm font-semibold text-slate-900">{titre}</h3>
+      </div>
+      <ul className="space-y-1.5 text-xs text-slate-700">
+        {audits.map((a, i) => (
+          <li key={i} className="flex items-start gap-1.5">
+            <span className="mt-0.5 text-slate-400">·</span>
+            <span>{a}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
