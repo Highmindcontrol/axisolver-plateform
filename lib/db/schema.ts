@@ -95,6 +95,11 @@ export const sites = pgTable("sites", {
     onDelete: "cascade",
   }),
   nomEntreprise: text("nom_entreprise").notNull(),
+  // Nom affiché du site dans le dashboard (ex: « Coryphea »,
+  // « Neuroactif »). Distinct de nom_entreprise qui reste pour la
+  // raison sociale cliente (facturation). Nullable pour compat
+  // avec les sites créés avant la migration 0017.
+  nomSite: text("nom_site"),
   domainePrincipal: text("domaine_principal").notNull(),
   domainesAutorises: text("domaines_autorises").array().notNull().default([]),
   plan: planSiteEnum("plan").notNull().default("beta"),

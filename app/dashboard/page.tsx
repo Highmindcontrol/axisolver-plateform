@@ -38,6 +38,7 @@ export default async function PageDashboard() {
       id: sites.id,
       slug: sites.slug,
       nomEntreprise: sites.nomEntreprise,
+      nomSite: sites.nomSite,
       domainePrincipal: sites.domainePrincipal,
       proprieteVerifieeLe: sites.proprieteVerifieeLe,
       branding: siteConfigs.branding,
@@ -73,14 +74,14 @@ export default async function PageDashboard() {
 
   const sitesHeader = mesSites.map((s) => ({
     slug: s.slug,
-    nomEntreprise: s.nomEntreprise,
+    nomEntreprise: s.nomSite ?? s.nomEntreprise,
     couleur: s.branding?.couleurPrincipale ?? "#4f46e5",
     picto: s.branding?.picto ?? "globe",
   }));
 
   const sitesChantier = mesSites.map((s) => ({
     slug: s.slug,
-    nomEntreprise: s.nomEntreprise,
+    nomEntreprise: s.nomSite ?? s.nomEntreprise,
     domainePrincipal: s.domainePrincipal,
     verifie: s.proprieteVerifieeLe !== null,
     conversationsMois: conversationsParSite.get(s.id) ?? 0,
@@ -104,7 +105,7 @@ export default async function PageDashboard() {
           <SectionRecap
             sites={mesSites.map((s) => ({
               slug: s.slug,
-              nomEntreprise: s.nomEntreprise,
+              nomEntreprise: s.nomSite ?? s.nomEntreprise,
               domainePrincipal: s.domainePrincipal,
               verifie: s.proprieteVerifieeLe !== null,
               couleur: s.branding?.couleurPrincipale ?? "#4f46e5",

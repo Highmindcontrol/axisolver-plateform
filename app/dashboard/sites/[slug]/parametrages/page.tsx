@@ -131,7 +131,7 @@ export default async function PageParametrages({
           Paramétrages
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-          {site.nomEntreprise}
+          {site.nomSite ?? site.nomEntreprise}
         </h1>
         <p className="mt-1 text-sm text-slate-600">
           <span className="font-mono text-slate-700">
@@ -226,7 +226,7 @@ export default async function PageParametrages({
           </div>
           <iframe
             src={`/embed/${slug}`}
-            title={`Aperçu AXI pour ${site.nomEntreprise}`}
+            title={`Aperçu AXI pour ${site.nomSite ?? site.nomEntreprise}`}
             className="h-[600px] w-full border-0"
           />
         </div>

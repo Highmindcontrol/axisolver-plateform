@@ -42,7 +42,7 @@ export async function creerSiteAction(
   _prev: EtatCreationSite,
   formData: FormData,
 ): Promise<EtatCreationSite> {
-  const nomEntreprise = String(formData.get("nomEntreprise") ?? "").trim();
+  const nomSite = String(formData.get("nomSite") ?? "").trim();
   const domainePrincipal = String(formData.get("domainePrincipal") ?? "")
     .trim()
     .toLowerCase()
@@ -56,8 +56,8 @@ export async function creerSiteAction(
   const couleur = HEX_REGEX.test(couleurBrute) ? couleurBrute : "#4f46e5";
   const picto = PICTO_REGEX.test(pictoBrut) ? pictoBrut : "globe";
 
-  if (!nomEntreprise || nomEntreprise.length < 2) {
-    return { erreur: "Nom de l'entreprise requis (2 caractères minimum)." };
+  if (!nomSite || nomSite.length < 2) {
+    return { erreur: "Nom du site requis (2 caractères minimum)." };
   }
   if (!domainePrincipal || !DOMAINE_REGEX.test(domainePrincipal)) {
     return {
@@ -92,7 +92,11 @@ export async function creerSiteAction(
       .values({
         slug,
         ownerUserId: user.id,
-        nomEntreprise,
+        // nom_entreprise reste pour compat historique : on y copie le
+        // nom du site tant qu'on ne branche pas la raison sociale
+        // depuis Votre compte > Entreprise & facturation.
+        nomEntreprise: nomSite,
+        nomSite,
         domainePrincipal,
         domainesAutorises: [domainePrincipal, `www.${domainePrincipal}`],
         plan: "beta",

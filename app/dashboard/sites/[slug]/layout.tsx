@@ -46,6 +46,7 @@ export default async function LayoutSite({
       id: sites.id,
       slug: sites.slug,
       nomEntreprise: sites.nomEntreprise,
+      nomSite: sites.nomSite,
       domainePrincipal: sites.domainePrincipal,
       proprieteVerifieeLe: sites.proprieteVerifieeLe,
       branding: siteConfigs.branding,
@@ -83,7 +84,7 @@ export default async function LayoutSite({
 
   const sitesHeader = mesSites.map((s) => ({
     slug: s.slug,
-    nomEntreprise: s.nomEntreprise,
+    nomEntreprise: s.nomSite ?? s.nomEntreprise,
     couleur: s.branding?.couleurPrincipale ?? "#4f46e5",
     picto: s.branding?.picto ?? "globe",
   }));
@@ -94,7 +95,7 @@ export default async function LayoutSite({
 
   const sitesChantier = mesSites.map((s) => ({
     slug: s.slug,
-    nomEntreprise: s.nomEntreprise,
+    nomEntreprise: s.nomSite ?? s.nomEntreprise,
     domainePrincipal: s.domainePrincipal,
     verifie: s.proprieteVerifieeLe !== null,
     conversationsMois: compteParSite.get(s.id) ?? 0,

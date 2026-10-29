@@ -42,6 +42,7 @@ export default async function LayoutDashboard({
     .select({
       slug: sites.slug,
       nomEntreprise: sites.nomEntreprise,
+      nomSite: sites.nomSite,
       domainePrincipal: sites.domainePrincipal,
       branding: siteConfigs.branding,
     })
@@ -52,7 +53,7 @@ export default async function LayoutDashboard({
 
   const mesSites = mesSitesRaw.map((s) => ({
     slug: s.slug,
-    nomEntreprise: s.nomEntreprise,
+    nomEntreprise: s.nomSite ?? s.nomEntreprise,
     domainePrincipal: s.domainePrincipal,
     couleur: s.branding?.couleurPrincipale ?? "#4f46e5",
     picto: s.branding?.picto ?? "globe",

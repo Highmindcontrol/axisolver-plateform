@@ -198,7 +198,7 @@ export default async function PageSiteOverview({
           {site.slug}
         </p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">
-          {site.nomEntreprise}
+          {site.nomSite ?? site.nomEntreprise}
         </h1>
         <p className="mt-1 text-sm text-slate-600">
           <span className="font-mono text-slate-900">

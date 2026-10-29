@@ -41,21 +41,25 @@ export function FormulaireNouveauSite() {
     >
       <div>
         <label
-          htmlFor="nomEntreprise"
+          htmlFor="nomSite"
           className="mb-1.5 block text-sm font-medium text-slate-900"
         >
-          Nom de l&apos;entreprise{" "}
-          <span className="text-rose-600">*</span>
+          Nom du site <span className="text-rose-600">*</span>
         </label>
         <input
-          id="nomEntreprise"
-          name="nomEntreprise"
+          id="nomSite"
+          name="nomSite"
           type="text"
           required
           maxLength={120}
-          placeholder="Cabinet Dupont & Associés"
+          placeholder="Ex. Ataraxis.group, Neuroactif, Cabinet Dupont…"
           className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
         />
+        <p className="mt-1.5 text-xs text-slate-500">
+          Ce qui identifie ce site dans votre dashboard. La raison sociale
+          de la société cliente se renseigne séparément dans « Votre
+          compte » pour la facturation.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

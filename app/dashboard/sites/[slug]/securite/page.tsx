@@ -68,7 +68,7 @@ export default async function PageSecuriteSite({
           className="mb-5 inline-flex items-center gap-2 text-sm text-slate-600 hover:text-indigo-700"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
-          Retour à {site.nomEntreprise}
+          Retour à {site.nomSite ?? site.nomEntreprise}
         </Link>
         <p className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-slate-700">
           <Shield className="h-3 w-3" strokeWidth={2.5} />
