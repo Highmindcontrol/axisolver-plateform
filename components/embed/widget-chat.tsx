@@ -1,8 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, X, Loader2 } from "lucide-react";
+import { CheckSquare, Send, X, Loader2 } from "lucide-react";
 import type { BrandingConfig } from "@/lib/db/schema";
+import {
+  ModalNotationGaugista,
+  useTheme,
+  type ThemeAxiChat,
+} from "@/lib/packs/axi-chat";
 
 /**
  * <WidgetChat> — composant chat multi-tenant pour l'embed sur sites
@@ -32,6 +37,7 @@ export function WidgetChat({
   branding,
   langueDefaut,
   afficherPropulsePar,
+  gaugistaActif = false,
 }: {
   slug: string;
   nomAssistant: string;
@@ -40,6 +46,7 @@ export function WidgetChat({
   branding: BrandingConfig;
   langueDefaut: string;
   afficherPropulsePar: boolean;
+  gaugistaActif?: boolean;
 }) {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -50,7 +57,18 @@ export function WidgetChat({
   ]);
   const [input, setInput] = useState("");
   const [enCours, setEnCours] = useState(false);
+  const [notationOuverte, setNotationOuverte] = useState(false);
   const visiteurAParle = messages.some((m) => m.role === "user");
+
+  // Thème sombre pour la modale Gaugista (hérite des accents du site)
+  const themeGaugista: ThemeAxiChat = {
+    mode: "personnalise",
+    palette: {
+      accent: branding.couleurPrincipale || "#4f46e5",
+      accentSecondaire: branding.couleurSecondaire || "#8b5cf6",
+    },
+  };
+  const { variablesCss } = useTheme(themeGaugista);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -211,15 +229,56 @@ export function WidgetChat({
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={fermer}
-          aria-label="Fermer la conversation"
-          className="rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
-        >
-          <X className="h-4 w-4" strokeWidth={2.2} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {gaugistaActif && visiteurAParle && (
+            <button
+              type="button"
+              onClick={() => setNotationOuverte(true)}
+              aria-label="Terminer et noter la conversation"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-white/25"
+            >
+              <CheckSquare className="h-3 w-3" strokeWidth={2.4} />
+              Terminer
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={fermer}
+            aria-label="Fermer la conversation"
+            className="rounded-full p-1.5 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+          >
+            <X className="h-4 w-4" strokeWidth={2.2} />
+          </button>
+        </div>
       </header>
+
+      {notationOuverte && (
+        <div
+          className="absolute inset-0 z-20 flex flex-col overflow-hidden"
+          style={{
+            ...variablesCss,
+            background: "var(--axi-chat-fond)",
+          }}
+        >
+          <div className="flex-1 overflow-y-auto p-5">
+            <ModalNotationGaugista
+              urlGaugista={`/api/widget/${slug}/notation`}
+              config={{
+                avecCommentaire: true,
+                titre: "Merci de noter cette conversation",
+                sousTitre:
+                  "Votre retour aide à améliorer AXI. Glissez chaque jauge selon votre expérience.",
+                sourceRef: `embed-${slug}-${Date.now()}`,
+              }}
+              onFerme={() => setNotationOuverte(false)}
+              onEnvoye={() => {
+                // Après envoi réussi, le modal affiche son écran de
+                // remerciement ; au clic Fermer, on reste sur le chat.
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div

@@ -33,6 +33,7 @@ export default async function PageEmbed({
       branding={config.config.branding}
       langueDefaut={config.config.langueDefaut}
       afficherPropulsePar={config.config.branding.afficherPropulsePar}
+      gaugistaActif={config.config.gaugistaActif}
     />
   );
 }

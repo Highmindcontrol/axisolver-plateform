@@ -42,6 +42,8 @@ export type ConfigSiteChargee = {
     branding: BrandingConfig;
     mentionsLegalesUrl: string | null;
     politiqueConfUrl: string | null;
+    gaugistaSlug: string | null;
+    gaugistaActif: boolean;
   };
 
   optionsAccueil: Array<{ id: string; libelle: string }>;
@@ -98,6 +100,8 @@ export async function chargerConfigSite(
       branding: configRow.branding,
       mentionsLegalesUrl: configRow.mentionsLegalesUrl,
       politiqueConfUrl: configRow.politiqueConfUrl,
+      gaugistaSlug: configRow.gaugistaSlug,
+      gaugistaActif: configRow.gaugistaActif,
     },
     optionsAccueil: options.map((o) => ({ id: o.id, libelle: o.libelle })),
   };
