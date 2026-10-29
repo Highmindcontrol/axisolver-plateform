@@ -41,12 +41,13 @@ export function ToggleConversation({
         aria-controls="panneau-conversation-axi"
         className="group relative flex w-full items-center justify-between gap-5 overflow-hidden border-b border-slate-200 bg-white px-6 py-6 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
       >
-        {/* Shine doré fin qui traverse de gauche à droite toutes
-            les 7 secondes pour signaler que le bouton est vivant. */}
+        {/* Reflet lumineux fin qui traverse de gauche à droite toutes
+            les 7 secondes pour signaler que le bouton est vivant.
+            Blanc translucide + léger blur, effet verre. */}
         {!ouvert && (
           <span
             aria-hidden
-            className="animate-toggleShine pointer-events-none absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"
+            className="animate-toggleShine pointer-events-none absolute top-0 bottom-0 left-0 w-32 bg-gradient-to-r from-transparent via-white/80 to-transparent blur-[2px]"
           />
         )}
 
