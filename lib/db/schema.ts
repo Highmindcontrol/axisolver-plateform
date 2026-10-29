@@ -878,3 +878,30 @@ export const workspaceInvitations = pgTable(
     index("idx_workspace_invitations_email").on(t.email),
   ],
 );
+
+/* ─── Destinataires supplémentaires du rapport quotidien ─────── */
+
+export const siteRapportDestinataires = pgTable(
+  "site_rapport_destinataires",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    prenom: text("prenom"),
+    ajouteParUserId: uuid("ajoute_par_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("site_rapport_destinataires_site_email_unique").on(
+      t.siteId,
+      t.email,
+    ),
+    index("idx_site_rapport_destinataires_site").on(t.siteId),
+  ],
+);

@@ -3,7 +3,12 @@ import "server-only";
 import { and, eq, isNotNull } from "drizzle-orm";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import { sites, siteConfigs, users } from "@/lib/db/schema";
+import {
+  siteConfigs,
+  siteRapportDestinataires,
+  sites,
+  users,
+} from "@/lib/db/schema";
 import { agregerStatsQuotidiennes } from "./agreger";
 import { detecterOpportuniteUpsell } from "./upsell";
 import { rendreRapportHtml } from "./rendre";
@@ -104,41 +109,150 @@ export async function envoyerRapportQuotidien(params: {
     return { ok: true, destinataire, nbStats: stats.nbConversations };
   }
 
-  const subject = `Rapport AxiSolver — ${site.nomEntreprise} · ${stats.nbVisiteursUniques} visiteur·s hier`;
+  const nomSite = site.nomSite ?? site.nomEntreprise;
+  const subject = `Rapport AxiSolver — ${nomSite} · ${stats.nbVisiteursUniques} visiteur·s hier`;
   const expediteurEmail =
     process.env.CONTACT_FROM_EMAIL ?? "noreply@axisolver.app";
   const expediteurNom = process.env.CONTACT_FROM_NAME ?? "AxiSolver";
 
+  // Envoi à l'admin principal (sans bannière)
+  const resPrincipal = await envoyerViaBrevo({
+    apiKey,
+    expediteurEmail,
+    expediteurNom,
+    subject,
+    html,
+    to: destinataire,
+  });
+  if (!resPrincipal.ok) {
+    return {
+      ok: false,
+      raison: resPrincipal.raison,
+      destinataire,
+    };
+  }
+
+  // Envoi aux destinataires supplémentaires : récupère chaque ligne
+  // + nom de celui qui les a ajoutés pour la mention. Tolère l'absence
+  // de la table (migration 0018 pas appliquée).
+  try {
+    const supabase = createSupabaseAdminClient();
+    const destSupp = await db
+      .select({
+        email: siteRapportDestinataires.email,
+        prenom: siteRapportDestinataires.prenom,
+        ajouteParUserId: siteRapportDestinataires.ajouteParUserId,
+      })
+      .from(siteRapportDestinataires)
+      .where(eq(siteRapportDestinataires.siteId, site.id));
+
+    for (const d of destSupp) {
+      let nomAjouteur = "l'administrateur du compte";
+      if (d.ajouteParUserId) {
+        try {
+          const { data } = await supabase.auth.admin.getUserById(
+            d.ajouteParUserId,
+          );
+          const meta = (data.user?.user_metadata ?? {}) as Record<
+            string,
+            unknown
+          >;
+          const prenom =
+            typeof meta.prenom === "string" ? meta.prenom.trim() : "";
+          const nom = typeof meta.nom === "string" ? meta.nom.trim() : "";
+          const complet = [prenom, nom].filter(Boolean).join(" ");
+          nomAjouteur = complet || data.user?.email || nomAjouteur;
+        } catch {
+          // Fallback silencieux : "l'administrateur du compte"
+        }
+      }
+
+      const salutation = d.prenom
+        ? `Bonjour ${d.prenom},`
+        : "Bonjour,";
+      const banniere = `
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px; background:#eef2ff; border-left:3px solid #4f46e5; border-radius:8px;">
+  <tr>
+    <td style="padding:14px 18px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size:13px; color:#312e81; line-height:1.5;">
+      ${salutation}<br/>
+      Vous recevez cet email car <strong>${nomAjouteur}</strong> vous a ajouté comme
+      destinataire du rapport quotidien AxiSolver pour le site
+      <strong>${nomSite}</strong>.
+    </td>
+  </tr>
+</table>`;
+
+      const htmlAvecBanniere = html.replace(
+        /(<body[^>]*>)/i,
+        `$1${banniere}`,
+      );
+
+      await envoyerViaBrevo({
+        apiKey,
+        expediteurEmail,
+        expediteurNom,
+        subject,
+        html: htmlAvecBanniere,
+        to: d.email,
+        toName: d.prenom ?? undefined,
+      });
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (
+      !(
+        msg.includes("relation") &&
+        msg.includes("site_rapport_destinataires") &&
+        msg.includes("does not exist")
+      )
+    ) {
+      console.error("[rapport] envoi destinataires supp échec:", msg);
+    }
+  }
+
+  return { ok: true, destinataire, nbStats: stats.nbConversations };
+}
+
+/** Envoi d'un email via Brevo. Factorisé pour main + destinataires supp. */
+async function envoyerViaBrevo(params: {
+  apiKey: string;
+  expediteurEmail: string;
+  expediteurNom: string;
+  subject: string;
+  html: string;
+  to: string;
+  toName?: string;
+}): Promise<{ ok: true } | { ok: false; raison: string }> {
   try {
     const res = await fetch(BREVO_ENDPOINT, {
       method: "POST",
       headers: {
         accept: "application/json",
-        "api-key": apiKey,
+        "api-key": params.apiKey,
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        sender: { name: expediteurNom, email: expediteurEmail },
-        to: [{ email: destinataire }],
-        subject,
-        htmlContent: html,
+        sender: { name: params.expediteurNom, email: params.expediteurEmail },
+        to: [
+          params.toName
+            ? { email: params.to, name: params.toName }
+            : { email: params.to },
+        ],
+        subject: params.subject,
+        htmlContent: params.html,
       }),
     });
-
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       return {
         ok: false,
         raison: `Brevo ${res.status} ${res.statusText} : ${detail}`,
-        destinataire,
       };
     }
+    return { ok: true };
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return { ok: false, raison: msg, destinataire };
+    return { ok: false, raison: e instanceof Error ? e.message : String(e) };
   }
-
-  return { ok: true, destinataire, nbStats: stats.nbConversations };
 }
 
 /**

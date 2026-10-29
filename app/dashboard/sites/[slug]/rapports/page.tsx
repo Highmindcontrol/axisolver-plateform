@@ -2,13 +2,17 @@ import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { and, eq } from "drizzle-orm";
-import { ChevronLeft, Mail, Clock } from "lucide-react";
+import { ChevronLeft, Mail, Clock, UserPlus } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import { sites, siteConfigs } from "@/lib/db/schema";
+import { sites, siteConfigs, siteRapportDestinataires } from "@/lib/db/schema";
 import { agregerStatsQuotidiennes } from "@/lib/axi-solver/rapport/agreger";
 import { detecterOpportuniteUpsell } from "@/lib/axi-solver/rapport/upsell";
 import { BoutonRenvoyerRapport } from "./bouton-renvoyer";
+import {
+  BoutonRetirerDestinataire,
+  FormulaireAjoutDestinataire,
+} from "./formulaire-destinataire";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +75,29 @@ export default async function PageRapportsSite({
     console.error("[rapports] lookup config échec:", e);
   }
 
+  // Destinataires supplémentaires du rapport. Lecture tolérante
+  // tant que la table n'est pas appliquée en prod.
+  let destinatairesSupp: Array<{
+    id: string;
+    email: string;
+    prenom: string | null;
+    creeLe: Date;
+  }> = [];
+  try {
+    destinatairesSupp = await db
+      .select({
+        id: siteRapportDestinataires.id,
+        email: siteRapportDestinataires.email,
+        prenom: siteRapportDestinataires.prenom,
+        creeLe: siteRapportDestinataires.creeLe,
+      })
+      .from(siteRapportDestinataires)
+      .where(eq(siteRapportDestinataires.siteId, site.id))
+      .orderBy(siteRapportDestinataires.creeLe);
+  } catch (e) {
+    console.error("[rapports] lookup destinataires échec:", e);
+  }
+
   // Preview du rapport de la veille (si des données existent).
   // Tolère un échec (données partielles / timeout DB) pour éviter 500.
   let stats: Awaited<ReturnType<typeof agregerStatsQuotidiennes>> | null = null;
@@ -108,7 +135,7 @@ export default async function PageRapportsSite({
       </header>
 
       <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <header className="mb-4 flex items-center gap-3">
+        <header className="mb-5 flex items-center gap-3">
           <span
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white"
             aria-hidden
@@ -117,27 +144,86 @@ export default async function PageRapportsSite({
           </span>
           <div>
             <h2 className="text-base font-semibold text-slate-900">
-              Destinataire du rapport
+              Destinataires du rapport
             </h2>
             <p className="mt-0.5 text-xs text-slate-500">
-              Configurable dans Paramètres du site → Email de notification
+              Par défaut, les emails sont envoyés à l&apos;adresse de
+              l&apos;administrateur du compte.
             </p>
           </div>
         </header>
-        <p className="text-sm text-slate-700">
-          {config?.emailNotification ? (
-            <>
-              Rapport envoyé à{" "}
-              <strong className="font-mono">{config.emailNotification}</strong>
-            </>
-          ) : (
-            <>
-              Pas d&apos;email de notification spécifique configuré — le
-              rapport sera envoyé à l&apos;email de votre compte AxiSolver
-              ({user.email}).
-            </>
-          )}
-        </p>
+
+        {/* Destinataire par défaut (admin du compte) */}
+        <div className="mb-5 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+          <div className="flex items-start gap-3">
+            <Mail
+              className="mt-0.5 h-4 w-4 flex-shrink-0 text-indigo-700"
+              strokeWidth={2.2}
+              aria-hidden
+            />
+            <div>
+              <p className="text-sm font-medium text-slate-900">
+                {config?.emailNotification ?? user.email}
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                {config?.emailNotification
+                  ? "Email de notification configuré pour ce site."
+                  : "Email de l'administrateur du compte AxiSolver."}
+              </p>
+            </div>
+          </div>
+          <span className="flex-shrink-0 rounded-full bg-indigo-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-800">
+            Par défaut
+          </span>
+        </div>
+
+        {/* Liste des destinataires supplémentaires */}
+        {destinatairesSupp.length > 0 && (
+          <ul className="mb-5 space-y-2">
+            {destinatairesSupp.map((d) => (
+              <li
+                key={d.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4"
+              >
+                <div className="flex items-start gap-3">
+                  <UserPlus
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500"
+                    strokeWidth={2.2}
+                    aria-hidden
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {d.prenom ? `${d.prenom} — ` : ""}
+                      {d.email}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Ajouté le{" "}
+                      {d.creeLe.toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <BoutonRetirerDestinataire slug={slug} destinataireId={d.id} />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Formulaire d'ajout */}
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-5">
+          <p className="mb-1 text-sm font-medium text-slate-900">
+            Ajouter un destinataire
+          </p>
+          <p className="mb-4 text-xs leading-relaxed text-slate-600">
+            La personne recevra chaque matin le rapport du site avec une
+            mention claire indiquant que vous l&apos;avez ajoutée comme
+            destinataire.
+          </p>
+          <FormulaireAjoutDestinataire slug={slug} />
+        </div>
       </section>
 
       <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
