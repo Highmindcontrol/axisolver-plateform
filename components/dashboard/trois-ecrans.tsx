@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
+import { AxiChatCopilote, type ConfigAxiChat } from "@/lib/packs/axi-chat";
+
 import { AiletteCarnet, type OrdreSession } from "./ailette-carnet";
 import { AiletteChantiers } from "./ailette-chantiers";
-import { ChatAxiInterne } from "./chat-axi-interne";
 
 type SiteChantier = {
   slug: string;
@@ -15,10 +16,13 @@ type SiteChantier = {
 };
 
 /**
- * <TroisEcrans> — bloc 3 colonnes dashboard : ailette sites (gauche)
- * + chat AXI permanent (centre) + carnet de session (droite).
+ * Triptyque dashboard — consomme le pack @axi-chat (variante
+ * back-office-copilote) et lui fournit les ailettes gauche (sites) +
+ * droite (carnet de session) via les slots du composant.
  *
- * Reproduit la structure AxiHub pour homogénéiser l'écosystème.
+ * Toute la logique de chat (messages, saisie, envoi backend, thème)
+ * vit maintenant dans le pack. Ce composant ne connaît QUE les
+ * spécificités AxiSolver (sites, carnet).
  */
 export function TroisEcrans({
   prenom,
@@ -27,37 +31,36 @@ export function TroisEcrans({
   prenom: string | null;
   sites: ReadonlyArray<SiteChantier>;
 }) {
-  // Les ordres pris pendant la session courante — vides au prochain
-  // rendu server. Le chat AXI alimentera cette liste lorsqu'il
-  // orchestrera des actions (ingérer un PDF, créer un site, etc.).
   const [ordresSession] = useState<OrdreSession[]>([]);
 
+  const config: ConfigAxiChat = {
+    channel: "back-office-copilote",
+    theme: { mode: "sombre" },
+    contexte: {
+      prenomUtilisateur: prenom,
+      nomAssistant: "AXI",
+      sousTitre: "Votre copilote AxiSolver",
+      langue: "fr",
+    },
+    endpoints: {
+      // Endpoint à brancher dans un prochain lot ; tant qu'il n'existe
+      // pas, le composant affiche l'accueil et récupère une erreur
+      // propre si l'utilisateur envoie un message.
+      urlChat: "/api/dashboard/chat",
+    },
+    fonctionnalites: {
+      dictee: false,
+      piecesJointes: false,
+      voixSynthese: false,
+      suggestionsRapides: false,
+    },
+  };
+
   return (
-    <section
-      className="relative flex items-stretch gap-4 md:gap-6"
-      style={{ height: "68vh", minHeight: "600px" }}
-    >
-      <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-10 md:block">
-        <AiletteChantiers sites={sites} />
-      </aside>
-
-      <div
-        aria-hidden
-        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-slate-600/40 to-transparent md:block"
-      />
-
-      <main className="relative z-10 flex min-w-0 flex-1 flex-col pt-10">
-        <ChatAxiInterne prenom={prenom} />
-      </main>
-
-      <div
-        aria-hidden
-        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-slate-600/40 to-transparent md:block"
-      />
-
-      <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-10 md:block">
-        <AiletteCarnet ordres={ordresSession} />
-      </aside>
-    </section>
+    <AxiChatCopilote
+      config={config}
+      aileteGauche={<AiletteChantiers sites={sites} />}
+      aileteDroite={<AiletteCarnet ordres={ordresSession} />}
+    />
   );
 }
