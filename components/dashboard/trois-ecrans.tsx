@@ -43,7 +43,7 @@ export function TroisEcrans({
 
       <div
         aria-hidden
-        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-slate-300/40 to-transparent md:block"
+        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-slate-600/40 to-transparent md:block"
       />
 
       <main className="relative z-10 flex min-w-0 flex-1 flex-col pt-10">
@@ -52,7 +52,7 @@ export function TroisEcrans({
 
       <div
         aria-hidden
-        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-slate-300/40 to-transparent md:block"
+        className="hidden w-px self-stretch bg-gradient-to-b from-transparent via-slate-600/40 to-transparent md:block"
       />
 
       <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-10 md:block">

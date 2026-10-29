@@ -57,8 +57,8 @@ export function ChatAxiInterne({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-white/40 bg-white/80 shadow-md backdrop-blur">
-      <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-3">
+    <div className="flex h-full flex-col rounded-2xl border border-slate-800 bg-slate-900 shadow-lg">
+      <header className="flex items-center justify-between gap-3 border-b border-slate-800 px-5 py-3">
         <div className="flex items-center gap-2">
           <span
             className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-indigo-700 text-white shadow"
@@ -67,8 +67,8 @@ export function ChatAxiInterne({
             <Sparkles className="h-3.5 w-3.5" strokeWidth={2.2} />
           </span>
           <div>
-            <p className="text-sm font-semibold text-slate-900">AXI</p>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-sm font-semibold text-slate-100">AXI</p>
+            <p className="text-[11px] text-slate-400">
               Votre copilote AxiSolver
             </p>
           </div>
@@ -84,7 +84,7 @@ export function ChatAxiInterne({
       </div>
 
       <form
-        className="flex items-end gap-2 border-t border-slate-200 bg-white/90 px-4 py-3"
+        className="flex items-end gap-2 border-t border-slate-800 bg-slate-900 px-4 py-3"
         onSubmit={(e) => {
           e.preventDefault();
           envoyer();
@@ -101,11 +101,11 @@ export function ChatAxiInterne({
           }}
           rows={1}
           placeholder="Écrivez à AXI…"
-          className="flex-1 resize-none rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-indigo-500"
+          className="flex-1 resize-none rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm text-slate-100 outline-none transition-colors placeholder:text-slate-500 focus:border-indigo-500"
         />
         <button
           type="button"
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 transition-colors hover:border-indigo-500 hover:text-indigo-700"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-800 text-slate-400 transition-colors hover:border-indigo-500 hover:text-indigo-300"
           title="Dicter (bientôt)"
           aria-label="Dicter un message"
           disabled
@@ -115,7 +115,7 @@ export function ChatAxiInterne({
         <button
           type="submit"
           disabled={!brouillon.trim()}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/20 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-500/30 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Envoyer"
         >
           <Send className="h-4 w-4" strokeWidth={2.2} aria-hidden />
@@ -139,7 +139,7 @@ function Bulle({
         className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           estUser
             ? "bg-gradient-to-br from-indigo-600 to-violet-600 text-white"
-            : "bg-slate-100 text-slate-800"
+            : "bg-slate-800 text-slate-100"
         }`}
       >
         {children}

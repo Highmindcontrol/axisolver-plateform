@@ -104,9 +104,9 @@ export function ToggleConversation({
 function BackdropFondu() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-slate-50 to-violet-50" />
-      <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
-      <div className="absolute top-1/3 right-1/4 h-80 w-80 rounded-full bg-violet-300/25 blur-3xl" />
+      <div className="absolute inset-0 bg-slate-900" />
+      <div className="absolute -top-24 left-1/4 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
+      <div className="absolute top-1/3 right-1/4 h-80 w-80 rounded-full bg-violet-500/15 blur-3xl" />
     </div>
   );
 }
