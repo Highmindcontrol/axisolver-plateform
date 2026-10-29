@@ -26,8 +26,10 @@ export type {
   ContexteAxiChat,
   EndpointsAxiChat,
   FonctionnalitesAxiChat,
+  JaugeConfig,
   MessageAxi,
   ModeTheme,
+  NotationGaugistaConfig,
   OrdreAxi,
   PaletteTheme,
   PieceJointe,
@@ -38,6 +40,7 @@ export type {
   SuggestionRapide,
   ThemeAxiChat,
 } from "./types";
+export { JAUGES_AXISOLVER_DEFAUT } from "./types";
 
 /* ─── Thème ──────────────────────────────────────────────────── */
 export {
@@ -54,11 +57,13 @@ export { paletteDepuisPreset, useTheme } from "./theme/use-theme";
 export { ApercuPiecesJointes } from "./composants/apercu-pieces-jointes";
 export { BulleMessage } from "./composants/bulle-message";
 export { EnteteChat } from "./composants/entete-chat";
+export { ModalNotationGaugista } from "./composants/modal-notation-gaugista";
 export { SuggestionsRapides } from "./composants/suggestions-rapides";
 export { ZoneSaisie } from "./composants/zone-saisie";
 
-/* ─── Hooks (dictée, TTS, pièces jointes) ─────────────────── */
+/* ─── Hooks (dictée, TTS, pièces jointes, Gaugista) ───────── */
 export { useDictee } from "./hooks/use-dictee";
+export { useNotationGaugista } from "./hooks/use-notation-gaugista";
 export { usePiecesJointes } from "./hooks/use-pieces-jointes";
 export { useVoixSynthese } from "./hooks/use-voix-synthese";
 

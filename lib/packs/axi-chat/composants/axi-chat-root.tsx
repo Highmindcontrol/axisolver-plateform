@@ -16,6 +16,7 @@ import type {
 import { ApercuPiecesJointes } from "./apercu-pieces-jointes";
 import { BulleMessage } from "./bulle-message";
 import { EnteteChat } from "./entete-chat";
+import { ModalNotationGaugista } from "./modal-notation-gaugista";
 import { SuggestionsRapides } from "./suggestions-rapides";
 import { ZoneSaisie } from "./zone-saisie";
 
@@ -65,6 +66,16 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
     urlUpload: config.endpoints.urlUpload ?? "",
     entetes: config.endpoints.entetes,
   });
+
+  // ─── Notation Gaugista ────────────────────────────────────
+  const [notationOuverte, setNotationOuverte] = useState(false);
+  const peutNoter =
+    !!config.fonctionnalites?.notationGaugista &&
+    !!config.endpoints.urlGaugista;
+  const declencheurs = config.notationGaugista?.declencheurs ?? [
+    "bouton",
+    "fermeture",
+  ];
 
   const suggestionsCourantes =
     messages.length > 0 &&
@@ -123,6 +134,9 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
     }
   }
 
+  const peutDeclencherParBouton =
+    peutNoter && declencheurs.includes("bouton");
+
   return (
     <div
       className="flex h-full flex-col"
@@ -132,13 +146,30 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
         color: "var(--axi-chat-texte)",
       }}
     >
-      <EnteteChat contexte={config.contexte} />
+      {notationOuverte && config.endpoints.urlGaugista ? (
+        <ModalNotationGaugista
+          config={config.notationGaugista}
+          urlGaugista={config.endpoints.urlGaugista}
+          entetes={config.endpoints.entetes}
+          onFerme={() => setNotationOuverte(false)}
+          onEnvoye={(n, c) => config.surNotation?.(n, c)}
+        />
+      ) : (
+        <>
+          <EnteteChat
+            contexte={config.contexte}
+            onTerminer={
+              peutDeclencherParBouton
+                ? () => setNotationOuverte(true)
+                : undefined
+            }
+          />
 
-      <div className="flex-1 space-y-3 overflow-y-auto py-2">
-        {messages.map((m) => (
-          <BulleMessage key={m.id} message={m} />
-        ))}
-      </div>
+          <div className="flex-1 space-y-3 overflow-y-auto py-2">
+            {messages.map((m) => (
+              <BulleMessage key={m.id} message={m} />
+            ))}
+          </div>
 
       {config.fonctionnalites?.suggestionsRapides &&
         suggestionsCourantes.length > 0 && (
@@ -190,6 +221,8 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
           accept={piecesJointes.input.accept}
           onChange={piecesJointes.input.onChange}
         />
+      )}
+        </>
       )}
     </div>
   );

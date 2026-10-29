@@ -184,6 +184,65 @@ export type EndpointsAxiChat = {
   entetes?: Record<string, string>;
 };
 
+/* ────── Notation Gaugista ────────────────────────────────────── */
+
+/**
+ * Définition d'une jauge Gaugista (0-10 par défaut).
+ * Correspond à une clé du JSON `notes` envoyé à l'API Gaugista.
+ */
+export type JaugeConfig = {
+  /** Clé stable (envoyée telle quelle dans notes_json côté Gaugista). */
+  cle: string;
+  /** Libellé court affiché (ex: "Utile"). */
+  libelle: string;
+  /** Question longue facultative affichée en gris sous le libellé. */
+  question?: string;
+  /** Valeur min (défaut 0). */
+  min?: number;
+  /** Valeur max (défaut 10). */
+  max?: number;
+  /** Valeur initiale au premier affichage (défaut : (min+max)/2). */
+  valeurInitiale?: number;
+};
+
+export type NotationGaugistaConfig = {
+  /** Jauges à afficher. 4 par défaut si vide. */
+  jauges?: JaugeConfig[];
+  /** Titre du modal (défaut: "Merci de noter cette conversation"). */
+  titre?: string;
+  /** Sous-titre explicatif. */
+  sousTitre?: string;
+  /** Autoriser un commentaire libre global. */
+  avecCommentaire?: boolean;
+  /** Placeholder du commentaire. */
+  placeholderCommentaire?: string;
+  /** Libellé du bouton envoyer. */
+  libelleEnvoyer?: string;
+  /**
+   * Déclencheur : 'bouton' (bouton 'Terminer' explicite), 'fermeture'
+   * (quand on ferme le panneau), 'inactivite' (après X secondes
+   * d'inactivité, voir inactiviteSec), 'manuel' (contrôlé externement).
+   * Défaut : ['bouton', 'fermeture'].
+   */
+  declencheurs?: Array<"bouton" | "fermeture" | "inactivite" | "manuel">;
+  /** Seuil d'inactivité en secondes si declencheurs inclut 'inactivite'. */
+  inactiviteSec?: number;
+  /** Référence externe (ex: id de conversation AxiSolver). */
+  sourceRef?: string;
+};
+
+/** 4 jauges par défaut AxiSolver (doctrine fin de conversation visiteur). */
+export const JAUGES_AXISOLVER_DEFAUT: JaugeConfig[] = [
+  { cle: "utile", libelle: "Utile", question: "AXI vous a-t-il été utile ?" },
+  { cle: "claire", libelle: "Claire", question: "Les réponses étaient-elles claires ?" },
+  { cle: "rapide", libelle: "Rapide", question: "Avez-vous obtenu une réponse rapide ?" },
+  {
+    cle: "recommanderait",
+    libelle: "Recommanderait",
+    question: "Recommanderiez-vous AXI à un proche ?",
+  },
+];
+
 /* ────── Configuration racine ─────────────────────────────────── */
 
 export type ConfigAxiChat = {
@@ -193,6 +252,8 @@ export type ConfigAxiChat = {
   fonctionnalites?: FonctionnalitesAxiChat;
   endpoints: EndpointsAxiChat;
   messagesInitiaux?: MessageAxi[];
+  /** Configuration de la notation Gaugista (si fonctionnalites.notationGaugista). */
+  notationGaugista?: NotationGaugistaConfig;
   /** Message d'accueil AXI (généré si absent, à partir du prénom). */
   accueilPersonnalise?: string;
   /** Placeholder du champ de saisie. */
@@ -201,4 +262,6 @@ export type ConfigAxiChat = {
   surMessage?: (message: MessageAxi) => void;
   surOrdre?: (ordre: OrdreAxi) => void;
   surFermeture?: () => void;
+  /** Callback après envoi réussi de la notation Gaugista. */
+  surNotation?: (notes: Record<string, number>, commentaire?: string) => void;
 };
