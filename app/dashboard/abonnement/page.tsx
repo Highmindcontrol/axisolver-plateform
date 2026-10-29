@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CreditCard, Check, AlertCircle, Clock } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -8,6 +7,8 @@ import {
   etatAbonnement,
 } from "@/lib/stripe/verifier-quotas";
 import { BoutonPortailStripe } from "./bouton-portail";
+import { GrilleFormules } from "./grille-formules";
+import { SectionPacksSupplementaires } from "./section-packs-supp";
 
 export const dynamic = "force-dynamic";
 
@@ -79,8 +80,8 @@ export default async function PageAbonnement() {
           <BoutonPortailStripe />
         </section>
       ) : (
-        <section className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-6">
-          <header className="mb-3 flex items-center gap-3">
+        <section className="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <header className="flex items-center gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
               <AlertCircle className="h-5 w-5" strokeWidth={2} />
             </span>
@@ -89,17 +90,12 @@ export default async function PageAbonnement() {
                 Aucun abonnement actif
               </h2>
               <p className="mt-0.5 text-xs text-amber-700">
-                Vous êtes en mode découverte, limité à 50 conversations
-                par mois tous sites confondus.
+                Tu es en mode découverte, limité à 50 conversations par
+                mois tous sites confondus. Choisis une formule ci-dessous
+                pour activer AxiSolver sur ton site.
               </p>
             </div>
           </header>
-          <Link
-            href="/tarifs"
-            className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-indigo-600 to-violet-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:brightness-110"
-          >
-            Voir les formules AxiSolver
-          </Link>
         </section>
       )}
 
@@ -171,6 +167,13 @@ export default async function PageAbonnement() {
           </div>
         </div>
       </section>
+
+      <SectionPacksSupplementaires planActuel={abonnement.plan ?? null} />
+
+      <GrilleFormules
+        planActuel={abonnement.plan ?? null}
+        utilisateurConnecte={true}
+      />
     </div>
   );
 }
