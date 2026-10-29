@@ -1,4 +1,5 @@
 import {
+  type AnyPgColumn,
   pgTable,
   text,
   uuid,
@@ -9,6 +10,7 @@ import {
   pgEnum,
   primaryKey,
   index,
+  uniqueIndex,
   vector,
 } from "drizzle-orm/pg-core";
 
@@ -85,6 +87,12 @@ export const sites = pgTable("sites", {
   // gaugista, ataraxis.group…) rattachés à aucun compte client humain.
   ownerUserId: uuid("owner_user_id").references(() => users.id, {
     onDelete: "set null",
+  }),
+  // Workspace propriétaire (introduit par la migration 0016). Les
+  // permissions passent par workspace_members (égalité stricte entre
+  // co-admins). Legacy owner_user_id conservé pour historique.
+  workspaceId: uuid("workspace_id").references((): AnyPgColumn => workspaces.id, {
+    onDelete: "cascade",
   }),
   nomEntreprise: text("nom_entreprise").notNull(),
   domainePrincipal: text("domaine_principal").notNull(),
@@ -778,4 +786,90 @@ export const siteMembres = pgTable(
       .notNull(),
   },
   (t) => [primaryKey({ columns: [t.siteId, t.userId] })],
+);
+
+/* ─── Workspaces (compte client multi-admin, migration 0016) ────── */
+/* Un workspace regroupe plusieurs admins ayant les mêmes droits sur
+ * un ensemble de sites. Les permissions passent par workspace_members.
+ */
+
+export const workspaces = pgTable(
+  "workspaces",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nom: text("nom").notNull(),
+    creeParUserId: uuid("cree_par_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [index("idx_workspaces_cree_par").on(t.creeParUserId)],
+);
+
+export const workspaceRoleEnum = pgEnum("workspace_role", ["admin"]);
+
+export const workspaceMembers = pgTable(
+  "workspace_members",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: workspaceRoleEnum("role").notNull().default("admin"),
+    ajouteLe: timestamp("ajoute_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    uniqueIndex("workspace_members_workspace_user_unique").on(
+      t.workspaceId,
+      t.userId,
+    ),
+    index("idx_workspace_members_user").on(t.userId),
+    index("idx_workspace_members_workspace").on(t.workspaceId),
+  ],
+);
+
+export const workspaceInvitationStatutEnum = pgEnum(
+  "workspace_invitation_statut",
+  ["en_attente", "acceptee", "expiree", "revoquee"],
+);
+
+export const workspaceInvitations = pgTable(
+  "workspace_invitations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    prenom: text("prenom"),
+    nom: text("nom"),
+    token: text("token").notNull().unique(),
+    statut: workspaceInvitationStatutEnum("statut")
+      .notNull()
+      .default("en_attente"),
+    creeParUserId: uuid("cree_par_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "set null" }),
+    expireLe: timestamp("expire_le", { withTimezone: true }).notNull(),
+    accepteParUserId: uuid("accepte_par_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    accepteLe: timestamp("accepte_le", { withTimezone: true }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("idx_workspace_invitations_token").on(t.token),
+    index("idx_workspace_invitations_workspace").on(t.workspaceId),
+    index("idx_workspace_invitations_email").on(t.email),
+  ],
 );
