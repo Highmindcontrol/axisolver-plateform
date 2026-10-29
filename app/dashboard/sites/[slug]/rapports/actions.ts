@@ -46,8 +46,13 @@ export async function renvoyerRapportMaintenantAction(
     .limit(1);
   if (!site) return { erreur: "Site introuvable." };
 
-  const resultat = await envoyerRapportQuotidien({ siteId: site.id });
+  const resultat = await envoyerRapportQuotidien({
+    siteId: site.id,
+    forcer: true,
+    mode: "manuel",
+  });
   if (resultat.ok) {
+    revalidatePath(`/dashboard/sites/${slug}/rapports`);
     return { erreur: null, ok: true, destinataire: resultat.destinataire };
   }
   return { erreur: resultat.raison };

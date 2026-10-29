@@ -3,10 +3,18 @@ import "server-only";
 import { and, eq, gte, lt, sql, desc } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
+  adsAudits,
   conversations,
+  seoAudits,
   securityAudits,
   securityIncidents,
   tickets,
+  type FindingAds,
+  type FindingSecurity,
+  type FindingSeo,
+  type RecommandationAds,
+  type RecommandationSecurity,
+  type RecommandationSeo,
 } from "@/lib/db/schema";
 
 /**
@@ -22,6 +30,25 @@ import {
 export type AlerteSecurite = {
   severite: "info" | "attention" | "critique";
   message: string;
+};
+
+/** Résumé synthétique d'un pilier (Ads/SEO/Sécurité) pour le rapport. */
+export type ResumePilier = {
+  disponible: boolean; // true si un audit terminé existe
+  scoreGlobal: number | null; // 0-100
+  statut: "ok" | "attention" | "critique" | "indisponible";
+  dateAudit: Date | null;
+  nbRecosCritiques: number;
+  nbRecosHautes: number;
+  topRecos: Array<{ titre: string; priorite: string }>; // top 3
+};
+
+/** Résumé Sécurité : résumé pilier + incidents ouverts par sévérité. */
+export type ResumeSecurite = ResumePilier & {
+  nbIncidentsOuverts: number;
+  nbIncidentsCritiques: number;
+  nbIncidentsHauts: number;
+  sslExpirationJours: number | null; // null si pas d'info
 };
 
 export type StatsQuotidiennes = {
@@ -66,6 +93,11 @@ export type StatsQuotidiennes = {
 
   // Alertes sécurité remontées (SSL, incidents ouverts, audits KO)
   alertesSecurite: AlerteSecurite[];
+
+  // Résumés piliers Ads / SEO / Sécurité (sections dédiées du rapport)
+  resumeAds: ResumePilier;
+  resumeSeo: ResumePilier;
+  resumeSecurite: ResumeSecurite;
 };
 
 export async function agregerStatsQuotidiennes(params: {
@@ -302,6 +334,11 @@ export async function agregerStatsQuotidiennes(params: {
     console.error("[agreger] alertes sécurité échec:", e);
   }
 
+  // Résumés Ads / SEO / Sécurité — dernier audit "termine" par pilier
+  const resumeAds = await resumerAds(siteId);
+  const resumeSeo = await resumerSeo(siteId);
+  const resumeSecurite = await resumerSecurite(siteId);
+
   return {
     siteId,
     debut,
@@ -328,7 +365,201 @@ export async function agregerStatsQuotidiennes(params: {
       deltaVisiteursPct,
     },
     alertesSecurite,
+    resumeAds,
+    resumeSeo,
+    resumeSecurite,
   };
+}
+
+/** Statut dérivé d'un score (0-100). Même seuils que le dashboard. */
+function statutDepuisScore(
+  score: number | null,
+): "ok" | "attention" | "critique" | "indisponible" {
+  if (score === null) return "indisponible";
+  if (score >= 75) return "ok";
+  if (score >= 50) return "attention";
+  return "critique";
+}
+
+/** Résume le dernier audit Ads terminé pour la section rapport. */
+async function resumerAds(siteId: string): Promise<ResumePilier> {
+  const vide: ResumePilier = {
+    disponible: false,
+    scoreGlobal: null,
+    statut: "indisponible",
+    dateAudit: null,
+    nbRecosCritiques: 0,
+    nbRecosHautes: 0,
+    topRecos: [],
+  };
+  try {
+    const [audit] = await db
+      .select({
+        scoreGlobal: adsAudits.scoreGlobal,
+        recommandations: adsAudits.recommandations,
+        termineLe: adsAudits.termineLe,
+        creeLe: adsAudits.creeLe,
+      })
+      .from(adsAudits)
+      .where(and(eq(adsAudits.siteId, siteId), eq(adsAudits.statut, "termine")))
+      .orderBy(desc(adsAudits.creeLe))
+      .limit(1);
+    if (!audit) return vide;
+    const recos = (audit.recommandations as RecommandationAds[]) ?? [];
+    return {
+      disponible: true,
+      scoreGlobal: audit.scoreGlobal ?? null,
+      statut: statutDepuisScore(audit.scoreGlobal ?? null),
+      dateAudit: audit.termineLe ?? audit.creeLe,
+      nbRecosCritiques: recos.filter((r) => r.priorite === "critique").length,
+      nbRecosHautes: recos.filter((r) => r.priorite === "haute").length,
+      topRecos: recos
+        .filter((r) => r.priorite === "critique" || r.priorite === "haute")
+        .slice(0, 3)
+        .map((r) => ({ titre: r.titre, priorite: r.priorite })),
+    };
+  } catch (e) {
+    console.error("[agreger] résumé Ads échec:", e);
+    return vide;
+  }
+}
+
+/** Résume le dernier audit SEO terminé pour la section rapport. */
+async function resumerSeo(siteId: string): Promise<ResumePilier> {
+  const vide: ResumePilier = {
+    disponible: false,
+    scoreGlobal: null,
+    statut: "indisponible",
+    dateAudit: null,
+    nbRecosCritiques: 0,
+    nbRecosHautes: 0,
+    topRecos: [],
+  };
+  try {
+    const [audit] = await db
+      .select({
+        scoreGlobal: seoAudits.scoreGlobal,
+        recommandations: seoAudits.recommandations,
+        termineLe: seoAudits.termineLe,
+        creeLe: seoAudits.creeLe,
+      })
+      .from(seoAudits)
+      .where(and(eq(seoAudits.siteId, siteId), eq(seoAudits.statut, "termine")))
+      .orderBy(desc(seoAudits.creeLe))
+      .limit(1);
+    if (!audit) return vide;
+    const recos = (audit.recommandations as RecommandationSeo[]) ?? [];
+    return {
+      disponible: true,
+      scoreGlobal: audit.scoreGlobal ?? null,
+      statut: statutDepuisScore(audit.scoreGlobal ?? null),
+      dateAudit: audit.termineLe ?? audit.creeLe,
+      nbRecosCritiques: recos.filter((r) => r.priorite === "critique").length,
+      nbRecosHautes: recos.filter((r) => r.priorite === "haute").length,
+      topRecos: recos
+        .filter((r) => r.priorite === "critique" || r.priorite === "haute")
+        .slice(0, 3)
+        .map((r) => ({ titre: r.titre, priorite: r.priorite })),
+    };
+  } catch (e) {
+    console.error("[agreger] résumé SEO échec:", e);
+    return vide;
+  }
+}
+
+/** Résume le dernier audit Sécurité + incidents ouverts. */
+async function resumerSecurite(siteId: string): Promise<ResumeSecurite> {
+  const vide: ResumeSecurite = {
+    disponible: false,
+    scoreGlobal: null,
+    statut: "indisponible",
+    dateAudit: null,
+    nbRecosCritiques: 0,
+    nbRecosHautes: 0,
+    topRecos: [],
+    nbIncidentsOuverts: 0,
+    nbIncidentsCritiques: 0,
+    nbIncidentsHauts: 0,
+    sslExpirationJours: null,
+  };
+  try {
+    const [audit] = await db
+      .select({
+        scoreGlobal: securityAudits.scoreGlobal,
+        recommandations: securityAudits.recommandations,
+        certificatSslExpireeLe: securityAudits.certificatSslExpireeLe,
+        termineLe: securityAudits.termineLe,
+        creeLe: securityAudits.creeLe,
+      })
+      .from(securityAudits)
+      .where(
+        and(
+          eq(securityAudits.siteId, siteId),
+          eq(securityAudits.statut, "termine"),
+        ),
+      )
+      .orderBy(desc(securityAudits.creeLe))
+      .limit(1);
+
+    const incidents = await db
+      .select({ severite: securityIncidents.severite })
+      .from(securityIncidents)
+      .where(
+        and(
+          eq(securityIncidents.siteId, siteId),
+          eq(securityIncidents.statut, "ouvert"),
+        ),
+      );
+
+    const nbIncidentsCritiques = incidents.filter(
+      (i) => i.severite === "critique",
+    ).length;
+    const nbIncidentsHauts = incidents.filter(
+      (i) => i.severite === "haute",
+    ).length;
+
+    if (!audit) {
+      return {
+        ...vide,
+        nbIncidentsOuverts: incidents.length,
+        nbIncidentsCritiques,
+        nbIncidentsHauts,
+      };
+    }
+
+    const recos = (audit.recommandations as RecommandationSecurity[]) ?? [];
+    const sslJours = audit.certificatSslExpireeLe
+      ? Math.round(
+          (new Date(audit.certificatSslExpireeLe).getTime() - Date.now()) /
+            (24 * 60 * 60 * 1000),
+        )
+      : null;
+
+    // Dégrade le statut si incidents ouverts, même si le score est bon
+    let statut = statutDepuisScore(audit.scoreGlobal ?? null);
+    if (nbIncidentsCritiques > 0) statut = "critique";
+    else if (nbIncidentsHauts > 0 && statut === "ok") statut = "attention";
+
+    return {
+      disponible: true,
+      scoreGlobal: audit.scoreGlobal ?? null,
+      statut,
+      dateAudit: audit.termineLe ?? audit.creeLe,
+      nbRecosCritiques: recos.filter((r) => r.priorite === "critique").length,
+      nbRecosHautes: recos.filter((r) => r.priorite === "haute").length,
+      topRecos: recos
+        .filter((r) => r.priorite === "critique" || r.priorite === "haute")
+        .slice(0, 3)
+        .map((r) => ({ titre: r.titre, priorite: r.priorite })),
+      nbIncidentsOuverts: incidents.length,
+      nbIncidentsCritiques,
+      nbIncidentsHauts,
+      sslExpirationJours: sslJours,
+    };
+  } catch (e) {
+    console.error("[agreger] résumé Sécurité échec:", e);
+    return vide;
+  }
 }
 
 /** Normalise une question pour clustering simple (lowercase, trim, tronque). */

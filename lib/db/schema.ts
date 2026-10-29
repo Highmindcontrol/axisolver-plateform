@@ -905,3 +905,31 @@ export const siteRapportDestinataires = pgTable(
     index("idx_site_rapport_destinataires_site").on(t.siteId),
   ],
 );
+
+/* ─── Archivage des rapports quotidiens envoyés (migration 0019) ── */
+
+export const rapportsQuotidiens = pgTable(
+  "rapports_quotidiens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    periodeDebut: timestamp("periode_debut", { withTimezone: true }).notNull(),
+    periodeFin: timestamp("periode_fin", { withTimezone: true }).notNull(),
+    stats: jsonb("stats").notNull().default({}),
+    opportunite: jsonb("opportunite"),
+    html: text("html").notNull(),
+    destinatairePrincipal: text("destinataire_principal"),
+    nbDestinatairesSupp: integer("nb_destinataires_supp").notNull().default(0),
+    statutEnvoi: text("statut_envoi").notNull().default("envoye"),
+    mode: text("mode").notNull().default("auto"),
+  },
+  (t) => [
+    index("idx_rapports_quotidiens_site").on(t.siteId),
+    index("idx_rapports_quotidiens_cree_le").on(t.creeLe),
+  ],
+);

@@ -31,14 +31,14 @@ export function BoutonRenvoyerRapport({ slug }: { slug: string }) {
         ) : (
           <>
             <Send className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-            Envoyer maintenant
+            Envoyer un test maintenant
           </>
         )}
       </button>
       {etat.ok && (
         <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-700">
           <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.2} />
-          Envoyé à {etat.destinataire}
+          Envoyé à {etat.destinataire} — archivé dans l&apos;historique
         </p>
       )}
       {etat.erreur && (

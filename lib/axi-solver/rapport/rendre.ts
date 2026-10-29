@@ -1,6 +1,10 @@
 import "server-only";
 
-import type { StatsQuotidiennes } from "./agreger";
+import type {
+  ResumePilier,
+  ResumeSecurite,
+  StatsQuotidiennes,
+} from "./agreger";
 import type { OpportuniteUpsell } from "./upsell";
 import { barChartHoraireSvg } from "./chart-svg";
 
@@ -165,7 +169,33 @@ export function rendreRapportHtml(params: {
     </tr>`
       : "";
 
-  // ────── Section Alertes sécurité ──────
+  // ────── Section Pilier Ads ──────
+  const sectionAds = renderSectionPilier({
+    titre: "Publicité",
+    emoji: "📣",
+    resume: stats.resumeAds,
+    urlDashboard: `${urlDashboard}/ads`,
+    libelleOkCourt: "Trackers correctement installés, visibilité SERP conforme.",
+    libelleCtaAbsent: "Lancer un premier audit publicité",
+  });
+
+  // ────── Section Pilier SEO ──────
+  const sectionSeo = renderSectionPilier({
+    titre: "SEO",
+    emoji: "🔍",
+    resume: stats.resumeSeo,
+    urlDashboard: `${urlDashboard}/seo`,
+    libelleOkCourt: "Fondations SEO en place, pas de point bloquant détecté.",
+    libelleCtaAbsent: "Lancer un premier audit SEO",
+  });
+
+  // ────── Section Pilier Sécurité (détaillée) ──────
+  const sectionSecuriteDetaillee = renderSectionSecurite({
+    resume: stats.resumeSecurite,
+    urlDashboard: `${urlDashboard}/securite`,
+  });
+
+  // ────── Section Alertes sécurité (bandeau résumé top page) ──────
   const sectionAlertesSecurite =
     stats.alertesSecurite.length > 0
       ? `
@@ -292,6 +322,12 @@ export function rendreRapportHtml(params: {
 
           ${sectionTopQuestions}
 
+          ${sectionAds}
+
+          ${sectionSeo}
+
+          ${sectionSecuriteDetaillee}
+
           ${sectionUpsell}
 
           <tr>
@@ -338,4 +374,204 @@ function escapeHtml(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/** Palette couleurs selon le statut d'un pilier. */
+function paletteStatut(
+  statut: "ok" | "attention" | "critique" | "indisponible",
+) {
+  switch (statut) {
+    case "ok":
+      return { bg: "#f0fdf4", brd: "#bbf7d0", txt: "#166534", pill: "#dcfce7", pillTxt: "#166534", label: "Tout va bien" };
+    case "attention":
+      return { bg: "#fffbeb", brd: "#fde68a", txt: "#92400e", pill: "#fef3c7", pillTxt: "#92400e", label: "À surveiller" };
+    case "critique":
+      return { bg: "#fef2f2", brd: "#fecaca", txt: "#991b1b", pill: "#fee2e2", pillTxt: "#991b1b", label: "Action requise" };
+    case "indisponible":
+    default:
+      return { bg: "#f8fafc", brd: "#e2e8f0", txt: "#475569", pill: "#f1f5f9", pillTxt: "#475569", label: "Non audité" };
+  }
+}
+
+/** Formate une date UTC vers "il y a X jours" lisible. */
+function tempsEcoule(d: Date | null): string {
+  if (!d) return "jamais";
+  const diffJours = Math.max(
+    0,
+    Math.floor((Date.now() - new Date(d).getTime()) / (24 * 60 * 60 * 1000)),
+  );
+  if (diffJours === 0) return "aujourd'hui";
+  if (diffJours === 1) return "hier";
+  if (diffJours < 30) return `il y a ${diffJours} jours`;
+  const mois = Math.floor(diffJours / 30);
+  return mois === 1 ? "il y a 1 mois" : `il y a ${mois} mois`;
+}
+
+/** Rendu générique d'une section pilier (Ads ou SEO). */
+function renderSectionPilier(params: {
+  titre: string;
+  emoji: string;
+  resume: ResumePilier;
+  urlDashboard: string;
+  libelleOkCourt: string;
+  libelleCtaAbsent: string;
+}): string {
+  const { titre, emoji, resume, urlDashboard, libelleOkCourt, libelleCtaAbsent } = params;
+  const p = paletteStatut(resume.statut);
+
+  const corps = resume.disponible
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:10px">
+        <tr>
+          <td style="font-size:12px;color:${p.txt};line-height:1.6">
+            <strong>Score :</strong> ${resume.scoreGlobal ?? "—"}/100 · <strong>Dernier audit :</strong> ${tempsEcoule(resume.dateAudit)}
+            ${
+              resume.nbRecosCritiques + resume.nbRecosHautes > 0
+                ? `<br/><strong>À traiter :</strong> ${resume.nbRecosCritiques} critique${resume.nbRecosCritiques > 1 ? "s" : ""} · ${resume.nbRecosHautes} haute${resume.nbRecosHautes > 1 ? "s" : ""} priorité`
+                : `<br/>${escapeHtml(libelleOkCourt)}`
+            }
+          </td>
+        </tr>
+        ${
+          resume.topRecos.length > 0
+            ? `<tr>
+                 <td style="padding-top:10px">
+                   <ul style="margin:0;padding:0 0 0 18px;font-size:12px;line-height:1.7;color:${p.txt}">
+                     ${resume.topRecos.map((r) => `<li>${escapeHtml(r.titre)}</li>`).join("")}
+                   </ul>
+                 </td>
+               </tr>`
+            : ""
+        }
+        <tr>
+          <td style="padding-top:12px">
+            <a href="${escapeHtml(urlDashboard)}" style="display:inline-block;background:${p.txt};color:#fff;text-decoration:none;font-weight:600;font-size:12px;padding:8px 16px;border-radius:999px">Voir le détail →</a>
+          </td>
+        </tr>
+      </table>`
+    : `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:10px">
+        <tr>
+          <td style="font-size:12px;color:${p.txt};line-height:1.6">
+            Aucun audit effectué pour l'instant sur ce pilier.
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top:12px">
+            <a href="${escapeHtml(urlDashboard)}" style="display:inline-block;background:${p.txt};color:#fff;text-decoration:none;font-weight:600;font-size:12px;padding:8px 16px;border-radius:999px">${escapeHtml(libelleCtaAbsent)} →</a>
+          </td>
+        </tr>
+      </table>`;
+
+  return `
+    <tr>
+      <td style="padding:0 32px 24px">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:${p.bg};border:1px solid ${p.brd};border-radius:12px">
+          <tr>
+            <td style="padding:16px 18px">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td>
+                    <span style="font-size:16px;vertical-align:middle">${emoji}</span>
+                    <span style="font-size:13px;font-weight:700;color:${p.txt};margin-left:6px;vertical-align:middle">${escapeHtml(titre)}</span>
+                  </td>
+                  <td style="text-align:right">
+                    <span style="display:inline-block;background:${p.pill};color:${p.pillTxt};font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:999px">${p.label}</span>
+                  </td>
+                </tr>
+              </table>
+              ${corps}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
+/** Rendu de la section Sécurité (variante avec incidents + SSL). */
+function renderSectionSecurite(params: {
+  resume: ResumeSecurite;
+  urlDashboard: string;
+}): string {
+  const { resume, urlDashboard } = params;
+  const p = paletteStatut(resume.statut);
+
+  const sslLigne =
+    resume.sslExpirationJours !== null
+      ? resume.sslExpirationJours < 15
+        ? `<br/><strong>⚠ Certificat SSL :</strong> expire dans ${resume.sslExpirationJours} jour${resume.sslExpirationJours > 1 ? "s" : ""}`
+        : `<br/><strong>Certificat SSL :</strong> valide (${resume.sslExpirationJours} j restants)`
+      : "";
+
+  const incidentsLigne =
+    resume.nbIncidentsOuverts > 0
+      ? `<br/><strong>Incidents ouverts :</strong> ${resume.nbIncidentsOuverts} (dont ${resume.nbIncidentsCritiques} critique${resume.nbIncidentsCritiques > 1 ? "s" : ""}, ${resume.nbIncidentsHauts} haute${resume.nbIncidentsHauts > 1 ? "s" : ""})`
+      : `<br/>Aucun incident ouvert.`;
+
+  const corps = resume.disponible
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:10px">
+        <tr>
+          <td style="font-size:12px;color:${p.txt};line-height:1.6">
+            <strong>Score :</strong> ${resume.scoreGlobal ?? "—"}/100 · <strong>Dernier audit :</strong> ${tempsEcoule(resume.dateAudit)}
+            ${incidentsLigne}
+            ${sslLigne}
+          </td>
+        </tr>
+        ${
+          resume.topRecos.length > 0
+            ? `<tr>
+                 <td style="padding-top:10px">
+                   <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:${p.txt}">Actions prioritaires :</p>
+                   <ul style="margin:0;padding:0 0 0 18px;font-size:12px;line-height:1.7;color:${p.txt}">
+                     ${resume.topRecos.map((r) => `<li>${escapeHtml(r.titre)}</li>`).join("")}
+                   </ul>
+                 </td>
+               </tr>`
+            : ""
+        }
+        <tr>
+          <td style="padding-top:12px">
+            <a href="${escapeHtml(urlDashboard)}" style="display:inline-block;background:${p.txt};color:#fff;text-decoration:none;font-weight:600;font-size:12px;padding:8px 16px;border-radius:999px">Voir le détail →</a>
+          </td>
+        </tr>
+      </table>`
+    : `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:10px">
+        <tr>
+          <td style="font-size:12px;color:${p.txt};line-height:1.6">
+            Audit sécurité pas encore effectué.
+            ${incidentsLigne}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-top:12px">
+            <a href="${escapeHtml(urlDashboard)}" style="display:inline-block;background:${p.txt};color:#fff;text-decoration:none;font-weight:600;font-size:12px;padding:8px 16px;border-radius:999px">Lancer un audit sécurité →</a>
+          </td>
+        </tr>
+      </table>`;
+
+  return `
+    <tr>
+      <td style="padding:0 32px 24px">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:${p.bg};border:1px solid ${p.brd};border-radius:12px">
+          <tr>
+            <td style="padding:16px 18px">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td>
+                    <span style="font-size:16px;vertical-align:middle">🛡️</span>
+                    <span style="font-size:13px;font-weight:700;color:${p.txt};margin-left:6px;vertical-align:middle">Sécurité</span>
+                  </td>
+                  <td style="text-align:right">
+                    <span style="display:inline-block;background:${p.pill};color:${p.pillTxt};font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 9px;border-radius:999px">${p.label}</span>
+                  </td>
+                </tr>
+              </table>
+              ${corps}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
 }

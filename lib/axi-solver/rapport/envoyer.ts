@@ -4,6 +4,7 @@ import { and, eq, isNotNull } from "drizzle-orm";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import {
+  rapportsQuotidiens,
   siteConfigs,
   siteRapportDestinataires,
   sites,
@@ -25,14 +26,19 @@ import { rendreRapportHtml } from "./rendre";
 const BREVO_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
 
 export type ResultatEnvoi =
-  | { ok: true; destinataire: string; nbStats: number }
+  | { ok: true; destinataire: string; nbStats: number; rapportId?: string }
   | { ok: false; raison: string; destinataire?: string };
 
 export async function envoyerRapportQuotidien(params: {
   siteId: string;
   debut?: Date;
   fin?: Date;
+  /** Force l'envoi même sans activité (bouton "Envoyer un test"). */
+  forcer?: boolean;
+  /** "auto" (cron) ou "manuel" (bouton dashboard). */
+  mode?: "auto" | "manuel";
 }): Promise<ResultatEnvoi> {
+  const mode = params.mode ?? "auto";
   const [site] = await db
     .select()
     .from(sites)
@@ -68,8 +74,9 @@ export async function envoyerRapportQuotidien(params: {
     fin: params.fin,
   });
 
-  // Pas de rapport si zéro activité (évite le spam)
-  if (stats.nbConversations === 0) {
+  // Pas de rapport si zéro activité (évite le spam) — sauf en mode
+  // forcé (bouton "Envoyer un test" depuis le dashboard).
+  if (stats.nbConversations === 0 && !params.forcer) {
     return {
       ok: false,
       raison: `Aucune conversation sur la période pour ${site.slug} — rapport non envoyé`,
@@ -135,6 +142,7 @@ export async function envoyerRapportQuotidien(params: {
   // Envoi aux destinataires supplémentaires : récupère chaque ligne
   // + nom de celui qui les a ajoutés pour la mention. Tolère l'absence
   // de la table (migration 0018 pas appliquée).
+  let nbDestSupp = 0;
   try {
     const supabase = createSupabaseAdminClient();
     const destSupp = await db
@@ -145,6 +153,7 @@ export async function envoyerRapportQuotidien(params: {
       })
       .from(siteRapportDestinataires)
       .where(eq(siteRapportDestinataires.siteId, site.id));
+    nbDestSupp = destSupp.length;
 
     for (const d of destSupp) {
       let nomAjouteur = "l'administrateur du compte";
@@ -210,7 +219,45 @@ export async function envoyerRapportQuotidien(params: {
     }
   }
 
-  return { ok: true, destinataire, nbStats: stats.nbConversations };
+  // Archivage du rapport pour consultation ultérieure. Tolère l'absence
+  // de la table (migration 0019 pas appliquée).
+  let rapportId: string | undefined;
+  try {
+    const [row] = await db
+      .insert(rapportsQuotidiens)
+      .values({
+        siteId: site.id,
+        periodeDebut: stats.debut,
+        periodeFin: stats.fin,
+        stats: stats as unknown as Record<string, unknown>,
+        opportunite: opportunite as unknown as Record<string, unknown>,
+        html,
+        destinatairePrincipal: destinataire,
+        nbDestinatairesSupp: nbDestSupp,
+        statutEnvoi: "envoye",
+        mode,
+      })
+      .returning({ id: rapportsQuotidiens.id });
+    rapportId = row?.id;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (
+      !(
+        msg.includes("relation") &&
+        msg.includes("rapports_quotidiens") &&
+        msg.includes("does not exist")
+      )
+    ) {
+      console.error("[rapport] archivage échec:", msg);
+    }
+  }
+
+  return {
+    ok: true,
+    destinataire,
+    nbStats: stats.nbConversations,
+    rapportId,
+  };
 }
 
 /** Envoi d'un email via Brevo. Factorisé pour main + destinataires supp. */

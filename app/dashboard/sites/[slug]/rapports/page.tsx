@@ -1,11 +1,23 @@
 import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { and, eq } from "drizzle-orm";
-import { ChevronLeft, Mail, Clock, UserPlus } from "lucide-react";
+import { and, desc, eq } from "drizzle-orm";
+import {
+  ChevronLeft,
+  Mail,
+  Clock,
+  UserPlus,
+  FileText,
+  ArrowRight,
+} from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
-import { sites, siteConfigs, siteRapportDestinataires } from "@/lib/db/schema";
+import {
+  sites,
+  siteConfigs,
+  siteRapportDestinataires,
+  rapportsQuotidiens,
+} from "@/lib/db/schema";
 import { agregerStatsQuotidiennes } from "@/lib/axi-solver/rapport/agreger";
 import { detecterOpportuniteUpsell } from "@/lib/axi-solver/rapport/upsell";
 import { BoutonRenvoyerRapport } from "./bouton-renvoyer";
@@ -96,6 +108,32 @@ export default async function PageRapportsSite({
       .orderBy(siteRapportDestinataires.creeLe);
   } catch (e) {
     console.error("[rapports] lookup destinataires échec:", e);
+  }
+
+  // Historique des rapports persistés. Tolère l'absence de la table
+  // (migration 0019 pas encore appliquée en prod).
+  let historique: Array<{
+    id: string;
+    creeLe: Date;
+    periodeDebut: Date;
+    mode: string;
+    nbDestinatairesSupp: number;
+  }> = [];
+  try {
+    historique = await db
+      .select({
+        id: rapportsQuotidiens.id,
+        creeLe: rapportsQuotidiens.creeLe,
+        periodeDebut: rapportsQuotidiens.periodeDebut,
+        mode: rapportsQuotidiens.mode,
+        nbDestinatairesSupp: rapportsQuotidiens.nbDestinatairesSupp,
+      })
+      .from(rapportsQuotidiens)
+      .where(eq(rapportsQuotidiens.siteId, site.id))
+      .orderBy(desc(rapportsQuotidiens.creeLe))
+      .limit(30);
+  } catch (e) {
+    console.error("[rapports] historique échec:", e);
   }
 
   // Preview du rapport de la veille (si des données existent).
@@ -314,17 +352,76 @@ export default async function PageRapportsSite({
         )}
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
-        <header className="mb-3 flex items-center gap-3">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <header className="mb-5 flex items-center gap-3">
           <Clock className="h-5 w-5 text-slate-600" strokeWidth={2} aria-hidden />
           <h2 className="text-sm font-semibold text-slate-900">
-            Historique des envois
+            Historique des rapports envoyés
           </h2>
         </header>
-        <p className="text-xs text-slate-600">
-          L&apos;historique détaillé des rapports envoyés (date, destinataire,
-          statut Brevo) arrivera dans une mise à jour prochaine.
-        </p>
+
+        {historique.length === 0 ? (
+          <p className="text-sm text-slate-600">
+            Aucun rapport archivé pour l&apos;instant. Les rapports envoyés
+            apparaîtront ici une fois disponibles (clique sur
+            <strong> Envoyer maintenant </strong>pour générer le premier).
+          </p>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {historique.map((h) => (
+              <li key={h.id}>
+                <Link
+                  href={`/dashboard/sites/${slug}/rapports/${h.id}`}
+                  className="flex items-center justify-between gap-3 py-3 transition hover:bg-slate-50"
+                >
+                  <div className="flex items-start gap-3">
+                    <FileText
+                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500"
+                      strokeWidth={2.2}
+                      aria-hidden
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        Rapport du{" "}
+                        {h.periodeDebut.toLocaleDateString("fr-FR", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                        })}
+                      </p>
+                      <p className="mt-0.5 text-xs text-slate-500">
+                        Envoyé le{" "}
+                        {h.creeLe.toLocaleString("fr-FR", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                        {h.nbDestinatairesSupp > 0 &&
+                          ` · +${h.nbDestinatairesSupp} destinataire${h.nbDestinatairesSupp > 1 ? "s" : ""}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                        h.mode === "manuel"
+                          ? "bg-indigo-100 text-indigo-800"
+                          : "bg-slate-100 text-slate-700"
+                      }`}
+                    >
+                      {h.mode === "manuel" ? "Manuel" : "Auto"}
+                    </span>
+                    <ArrowRight
+                      className="h-4 w-4 text-slate-400"
+                      strokeWidth={2}
+                    />
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );
