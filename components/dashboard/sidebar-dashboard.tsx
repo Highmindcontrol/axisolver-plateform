@@ -134,15 +134,9 @@ export function SidebarDashboard({
 
         <SectionSidebar titre="Mon compte">
           <SidebarItem
-            href="/parametrage-et-tarifs"
-            icon={LayoutGrid}
-            label="Formules & packs"
-            active={pathname === "/parametrage-et-tarifs"}
-          />
-          <SidebarItem
             href="/dashboard/abonnement"
             icon={CreditCard}
-            label="Abonnement"
+            label="Formules & packs"
             active={pathname?.includes("/dashboard/abonnement")}
           />
           <SidebarItem
