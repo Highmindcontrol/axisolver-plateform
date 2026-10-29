@@ -133,6 +133,7 @@ export const siteConfigs = pgTable("site_configs", {
       position: "bas-droite",
       afficherPropulsePar: true,
       picto: "globe",
+      archetypeLayout: "classique",
     }),
   mentionsLegalesUrl: text("mentions_legales_url"),
   politiqueConfUrl: text("politique_conf_url"),
@@ -151,6 +152,10 @@ export type BrandingConfig = {
    *  le site dans la barre du haut du dashboard client. Optionnel
    *  pour compatibilité avec les sites créés avant 2026-10-29. */
   picto?: string;
+  /** Archétype de mise en page du widget (ailettes contextuelles au
+   *  métier). Voir lib/axi-solver/archetypes-layout.ts. Optionnel
+   *  pour compatibilité, fallback « classique ». */
+  archetypeLayout?: string;
 };
 
 /* ─── Options d'accueil ─────────────────────────────────────────── */

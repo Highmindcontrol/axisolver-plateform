@@ -5,6 +5,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { sites, siteConfigs, siteOptionsAccueil } from "@/lib/db/schema";
 import { getSecteur } from "@/lib/axi-solver/catalogue-secteurs";
+import { archetypeParDefautPourSecteur } from "@/lib/axi-solver/archetypes-layout";
 
 /**
  * Server action de création d'un nouveau site AxiSolver.
@@ -115,6 +116,7 @@ export async function creerSiteAction(
         position: "bas-droite",
         afficherPropulsePar: true,
         picto,
+        archetypeLayout: archetypeParDefautPourSecteur(secteur.slug),
       },
     });
 

@@ -6,6 +6,7 @@ import {
   BookOpen,
   ChevronRight,
   Code,
+  LayoutGrid,
   ListChecks,
   Monitor,
   Settings,
@@ -20,6 +21,7 @@ import {
   siteOptionsAccueil,
   siteConnaissanceSources,
 } from "@/lib/db/schema";
+import { getArchetype } from "@/lib/axi-solver/archetypes-layout";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +70,8 @@ export default async function PageParametrages({
     .where(eq(siteConnaissanceSources.siteId, site.id));
 
   const propVerifiee = site.proprieteVerifieeLe !== null;
+  const archetype =
+    getArchetype(config?.branding?.archetypeLayout) ?? getArchetype("classique");
 
   const cartes: Array<{
     titre: string;
@@ -110,6 +114,12 @@ export default async function PageParametrages({
       corps: `${sources.length} source·s ingérée·s (URL, sitemap, PDF).`,
       href: `/dashboard/sites/${slug}/base-connaissances`,
       icone: BookOpen,
+    },
+    {
+      titre: "Mise en page du widget",
+      corps: `Archétype actuel : ${archetype?.nom ?? "Classique"}. Adaptez les ailettes au métier de votre site.`,
+      href: `/dashboard/sites/${slug}/parametrages/mise-en-page`,
+      icone: LayoutGrid,
     },
   ];
 
