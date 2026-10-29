@@ -108,7 +108,7 @@ export default async function PageDashboard() {
       <ToggleConversation prenom={prenomCap} sites={sitesChantier} />
 
       <div className="flex-1 bg-slate-50 px-6 py-10 md:px-14 lg:px-16">
-        <div className="mx-auto max-w-6xl space-y-10">
+        <div className="space-y-10">
           <SectionBienvenue
             prenomCap={prenomCap}
             nbSites={mesSites.length}

@@ -187,7 +187,7 @@ export default async function PageSiteOverview({
   ];
 
   return (
-    <div className="mx-auto max-w-[1180px] px-6 py-14">
+    <div className="px-6 py-10 md:px-14 lg:px-16">
       <header className="mb-10">
         <p className="inline-flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.22em] text-indigo-700">
           <Link href="/dashboard" className="hover:underline">

@@ -13,7 +13,7 @@ export default async function PageNouveauSite() {
   if (!user) redirect("/connexion");
 
   return (
-    <div className="mx-auto max-w-[720px] px-6 py-14">
+    <div className="px-6 py-10 md:px-14 lg:px-16">
       <header className="mb-10">
         <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-indigo-700">
           Nouveau site

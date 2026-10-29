@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { DialogApparence } from "@/components/dashboard/dialog-apparence";
 import { IconeSite } from "@/lib/ui/sites-apparence";
 
 type SiteSwitcher = {
@@ -36,6 +37,9 @@ export function HeaderSites({
   const slugActif = extraireSlugSite(pathname);
   const nbSites = sites.length;
   const peutAjouterSite = nbSites < 3;
+  const siteActif = slugActif
+    ? sites.find((s) => s.slug === slugActif)
+    : undefined;
 
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-3 border-b border-slate-200 bg-white px-6 py-4 md:px-14 lg:px-16">
@@ -68,6 +72,14 @@ export function HeaderSites({
             />
           ))}
         </nav>
+
+        {siteActif && (
+          <DialogApparence
+            slug={siteActif.slug}
+            couleurActuelle={siteActif.couleur}
+            pictoActuel={siteActif.picto}
+          />
+        )}
 
         <Link
           href={peutAjouterSite ? "/dashboard/sites/nouveau" : "#"}

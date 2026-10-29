@@ -37,7 +37,7 @@ export default async function PageConfigurationSite({
   if (!config) notFound();
 
   return (
-    <div className="mx-auto max-w-[920px] px-6 py-14">
+    <div className="px-6 py-10 md:px-14 lg:px-16">
       <header className="mb-10">
         <Link
           href={`/dashboard/sites/${slug}`}

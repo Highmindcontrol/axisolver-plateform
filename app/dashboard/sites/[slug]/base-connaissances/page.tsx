@@ -51,7 +51,7 @@ export default async function PageBaseConnaissances({
     .orderBy(siteConnaissanceSources.creeLe);
 
   return (
-    <div className="mx-auto max-w-[1180px] px-6 py-14">
+    <div className="px-6 py-10 md:px-14 lg:px-16">
       <header className="mb-10">
         <Link
           href={`/dashboard/sites/${slug}`}

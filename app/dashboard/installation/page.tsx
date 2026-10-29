@@ -26,7 +26,7 @@ export default async function PageInstallation() {
     process.env.NEXT_PUBLIC_APP_URL ?? "https://axisolver.app";
 
   return (
-    <div className="mx-auto max-w-[1180px] px-6 py-14">
+    <div className="px-6 py-10 md:px-14 lg:px-16">
       <header className="mb-10 max-w-3xl">
         <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-indigo-700">
           Installation
