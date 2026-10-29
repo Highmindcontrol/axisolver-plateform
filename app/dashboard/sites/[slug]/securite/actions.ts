@@ -13,6 +13,7 @@ import {
   executerIntervention,
 } from "@/lib/packs/security-shield";
 import { CATALOGUE } from "@/lib/engines/security/recommandations";
+import { enArrierePlan } from "@/lib/background";
 
 export type EtatAuditSecurity = {
   erreur: string | null;
@@ -52,9 +53,20 @@ export async function lancerAuditSecurityAction(
     })
     .returning({ id: securityAudits.id });
 
+  // Audit lancé en arrière-plan — réponse immédiate pour éviter les
+  // 500 par timeout Vercel. L'UI poll via AutoRefresh jusqu'à ce que
+  // le statut passe de 'en_cours' à 'termine' ou 'echec'.
+  enArrierePlan(executerAuditSecurityEnArrierePlan(row.id, url));
+  revalidatePath(`/dashboard/sites/${slug}/securite`);
+  return { erreur: null, ok: true, auditId: row.id };
+}
+
+async function executerAuditSecurityEnArrierePlan(
+  auditId: string,
+  url: string,
+): Promise<void> {
   try {
     const resultat = await auditerSite({ url });
-
     await db
       .update(securityAudits)
       .set({
@@ -72,17 +84,13 @@ export async function lancerAuditSecurityAction(
         dureeMs: resultat.dureeMs,
         termineLe: new Date(),
       })
-      .where(eq(securityAudits.id, row.id));
-
-    revalidatePath(`/dashboard/sites/${slug}/securite`);
-    return { erreur: null, ok: true, auditId: row.id };
+      .where(eq(securityAudits.id, auditId));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await db
       .update(securityAudits)
       .set({ statut: "echec", erreur: msg, termineLe: new Date() })
-      .where(eq(securityAudits.id, row.id));
-    return { erreur: msg };
+      .where(eq(securityAudits.id, auditId));
   }
 }
 

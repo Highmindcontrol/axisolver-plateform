@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { sites, seoAudits } from "@/lib/db/schema";
 import { auditerSite } from "@/lib/engines/seo/auditer-site";
+import { enArrierePlan } from "@/lib/background";
 
 export type EtatAuditSeo = {
   erreur: string | null;
@@ -55,9 +56,20 @@ export async function lancerAuditSeoAction(
     })
     .returning({ id: seoAudits.id });
 
+  // Audit lancé en arrière-plan — réponse immédiate pour éviter les
+  // 500 par timeout Vercel.
+  enArrierePlan(executerAuditSeoEnArrierePlan(row.id, url, motsCles));
+  revalidatePath(`/dashboard/sites/${slug}/seo`);
+  return { erreur: null, ok: true, auditId: row.id };
+}
+
+async function executerAuditSeoEnArrierePlan(
+  auditId: string,
+  url: string,
+  motsCles: string[],
+): Promise<void> {
   try {
     const resultat = await auditerSite({ url, motsCles });
-
     await db
       .update(seoAudits)
       .set({
@@ -73,10 +85,7 @@ export async function lancerAuditSeoAction(
         dureeMs: resultat.dureeMs,
         termineLe: new Date(),
       })
-      .where(eq(seoAudits.id, row.id));
-
-    revalidatePath(`/dashboard/sites/${slug}/seo`);
-    return { erreur: null, ok: true, auditId: row.id };
+      .where(eq(seoAudits.id, auditId));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await db
@@ -86,7 +95,6 @@ export async function lancerAuditSeoAction(
         erreur: msg,
         termineLe: new Date(),
       })
-      .where(eq(seoAudits.id, row.id));
-    return { erreur: msg };
+      .where(eq(seoAudits.id, auditId));
   }
 }

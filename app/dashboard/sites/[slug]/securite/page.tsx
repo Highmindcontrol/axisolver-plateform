@@ -38,6 +38,7 @@ import {
   verifierPluginPourSite,
   verifierRemediationDisponible,
 } from "@/lib/packs/security-shield";
+import { AutoRefresh } from "@/components/dashboard/auto-refresh";
 import { FormulaireAuditSecurity } from "./formulaire-audit";
 import { BoutonResoudreIncident } from "./bouton-resoudre";
 import { RecosInteractives } from "./recos-interactives";
@@ -126,6 +127,7 @@ export default async function PageSecuriteSite({
 
   return (
     <div className="px-6 py-10 md:px-14 lg:px-16">
+      <AutoRefresh actif={dernier?.statut === "en_cours"} />
       <header className="mb-10">
         <div className="mb-5 flex items-start justify-between gap-6">
           <Link

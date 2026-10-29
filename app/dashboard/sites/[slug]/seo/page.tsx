@@ -13,6 +13,7 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { sites, seoAudits } from "@/lib/db/schema";
+import { AutoRefresh } from "@/components/dashboard/auto-refresh";
 import { FormulaireAuditSeo } from "./formulaire-audit";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +52,7 @@ export default async function PageSeoSite({
 
   return (
     <div className="px-6 py-10 md:px-14 lg:px-16">
+      <AutoRefresh actif={dernier?.statut === "en_cours"} />
       <header className="mb-10">
         <Link
           href={`/dashboard/sites/${slug}`}

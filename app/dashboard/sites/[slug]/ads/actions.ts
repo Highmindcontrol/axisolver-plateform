@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { sites, adsAudits } from "@/lib/db/schema";
 import { auditerSite } from "@/lib/engines/ads/auditer-site";
+import { enArrierePlan } from "@/lib/background";
 
 export type EtatAuditAds = {
   erreur: string | null;
@@ -54,9 +55,18 @@ export async function lancerAuditAdsAction(
     })
     .returning({ id: adsAudits.id });
 
+  enArrierePlan(executerAuditAdsEnArrierePlan(row.id, url, motsCles));
+  revalidatePath(`/dashboard/sites/${slug}/ads`);
+  return { erreur: null, ok: true, auditId: row.id };
+}
+
+async function executerAuditAdsEnArrierePlan(
+  auditId: string,
+  url: string,
+  motsCles: string[],
+): Promise<void> {
   try {
     const resultat = await auditerSite({ url, motsCles });
-
     await db
       .update(adsAudits)
       .set({
@@ -73,16 +83,12 @@ export async function lancerAuditAdsAction(
         dureeMs: resultat.dureeMs,
         termineLe: new Date(),
       })
-      .where(eq(adsAudits.id, row.id));
-
-    revalidatePath(`/dashboard/sites/${slug}/ads`);
-    return { erreur: null, ok: true, auditId: row.id };
+      .where(eq(adsAudits.id, auditId));
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await db
       .update(adsAudits)
       .set({ statut: "echec", erreur: msg, termineLe: new Date() })
-      .where(eq(adsAudits.id, row.id));
-    return { erreur: msg };
+      .where(eq(adsAudits.id, auditId));
   }
 }
