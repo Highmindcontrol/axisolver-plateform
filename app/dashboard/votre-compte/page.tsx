@@ -94,11 +94,7 @@ export default async function PageVotreCompte() {
           telephoneInitial={telephoneInitial}
         />
         <SectionSociete societeInitial={societeInitial} />
-        <SectionAdministrateurs
-          prenom={prenomInitial}
-          nom={nomInitial}
-          email={email}
-        />
+        <SectionAdministrateurs user={user} />
         <SectionNotifications />
         <SectionFacturation />
         <SectionRGPD />
