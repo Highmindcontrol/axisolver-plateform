@@ -7,7 +7,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { enregistrerGaugistaAction, type EtatGaugista } from "./actions";
 
@@ -37,6 +37,17 @@ export function BlocGaugista({
   );
   const [slugLocal, setSlugLocal] = useState(gaugistaSlug ?? "");
   const [actifLocal, setActifLocal] = useState(gaugistaActif);
+
+  // Resynchronise le state local avec les props quand elles changent
+  // (après revalidatePath côté serveur), sinon le checkbox garde son
+  // ancienne valeur affichée et donne l'impression que l'enregistrement
+  // n'a pas pris.
+  useEffect(() => {
+    setActifLocal(gaugistaActif);
+  }, [gaugistaActif]);
+  useEffect(() => {
+    setSlugLocal(gaugistaSlug ?? "");
+  }, [gaugistaSlug]);
 
   return (
     <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
