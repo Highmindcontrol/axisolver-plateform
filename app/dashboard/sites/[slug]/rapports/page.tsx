@@ -364,63 +364,75 @@ export default async function PageRapportsSite({
           <p className="text-sm text-slate-600">
             Aucun rapport archivé pour l&apos;instant. Les rapports envoyés
             apparaîtront ici une fois disponibles (clique sur
-            <strong> Envoyer maintenant </strong>pour générer le premier).
+            <strong> Envoyer un test maintenant </strong>pour générer le premier).
           </p>
         ) : (
-          <ul className="divide-y divide-slate-100">
-            {historique.map((h) => (
-              <li key={h.id}>
-                <Link
-                  href={`/dashboard/sites/${slug}/rapports/${h.id}`}
-                  className="flex items-center justify-between gap-3 py-3 transition hover:bg-slate-50"
+          <div className="overflow-hidden rounded-xl border border-slate-200">
+            <div className="hidden grid-cols-[1fr_auto_auto_auto] items-center gap-4 border-b border-slate-200 bg-slate-100 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600 md:grid">
+              <span>Rapport</span>
+              <span>Envoyé le</span>
+              <span>Mode</span>
+              <span className="w-4" aria-hidden />
+            </div>
+            <ul>
+              {historique.map((h) => (
+                <li
+                  key={h.id}
+                  className="odd:bg-white even:bg-slate-50 hover:bg-indigo-50/40"
                 >
-                  <div className="flex items-start gap-3">
-                    <FileText
-                      className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500"
-                      strokeWidth={2.2}
-                      aria-hidden
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">
-                        Rapport du{" "}
-                        {h.periodeDebut.toLocaleDateString("fr-FR", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
-                        })}
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        Envoyé le{" "}
-                        {h.creeLe.toLocaleString("fr-FR", {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                        {h.nbDestinatairesSupp > 0 &&
-                          ` · +${h.nbDestinatairesSupp} destinataire${h.nbDestinatairesSupp > 1 ? "s" : ""}`}
-                      </p>
+                  <Link
+                    href={`/dashboard/sites/${slug}/rapports/${h.id}`}
+                    className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1fr_auto_auto_auto] md:items-center md:gap-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <FileText
+                        className="mt-0.5 h-4 w-4 flex-shrink-0 text-slate-500"
+                        strokeWidth={2.2}
+                        aria-hidden
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          Rapport du{" "}
+                          {h.periodeDebut.toLocaleDateString("fr-FR", {
+                            weekday: "long",
+                            day: "numeric",
+                            month: "long",
+                          })}
+                        </p>
+                        {h.nbDestinatairesSupp > 0 && (
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            +{h.nbDestinatairesSupp} destinataire
+                            {h.nbDestinatairesSupp > 1 ? "s" : ""} supp.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
+                    <p className="hidden text-xs text-slate-600 md:block">
+                      {h.creeLe.toLocaleString("fr-FR", {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+                      className={`inline-flex justify-self-end rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider md:justify-self-start ${
                         h.mode === "manuel"
                           ? "bg-indigo-100 text-indigo-800"
-                          : "bg-slate-100 text-slate-700"
+                          : "bg-slate-200 text-slate-700"
                       }`}
                     >
                       {h.mode === "manuel" ? "Manuel" : "Auto"}
                     </span>
                     <ArrowRight
-                      className="h-4 w-4 text-slate-400"
+                      className="hidden h-4 w-4 text-slate-400 md:block"
                       strokeWidth={2}
                     />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </section>
     </div>
