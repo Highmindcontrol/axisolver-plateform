@@ -1,4 +1,4 @@
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import {
@@ -81,6 +81,11 @@ export async function getWorkspaceActif(
  *
  * `nomDefaut` sert à nommer le workspace si on doit le créer
  * (typiquement l'email de l'user).
+ *
+ * Gère proactivement le cas où la shadow row public.users n'existe
+ * pas encore pour l'user (créations antérieures au trigger de sync
+ * auth.users → public.users) : insert ON CONFLICT DO NOTHING sur
+ * users avant la création du workspace.
  */
 export async function ensureWorkspaceActif(
   userId: string,
@@ -88,6 +93,16 @@ export async function ensureWorkspaceActif(
 ): Promise<WorkspaceActif | null> {
   const existant = await getWorkspaceActif(userId);
   if (existant) return existant;
+
+  // Garantit la shadow row public.users (évite échec FK sur
+  // cree_par_user_id si le user vient d'auth sans trigger de sync).
+  try {
+    await db.execute(
+      sql`INSERT INTO users (id) VALUES (${userId}) ON CONFLICT DO NOTHING`,
+    );
+  } catch (e) {
+    console.error("[ensureWorkspaceActif] shadow users insert failed:", e);
+  }
 
   try {
     const [cree] = await db
@@ -102,7 +117,10 @@ export async function ensureWorkspaceActif(
         creeParUserId: workspaces.creeParUserId,
       });
 
-    if (!cree) return null;
+    if (!cree) {
+      console.error("[ensureWorkspaceActif] insert workspace returned no row");
+      return null;
+    }
 
     await db
       .insert(workspaceMembers)
@@ -114,7 +132,11 @@ export async function ensureWorkspaceActif(
       .onConflictDoNothing();
 
     return cree;
-  } catch {
+  } catch (e) {
+    console.error(
+      "[ensureWorkspaceActif] création workspace échouée :",
+      e instanceof Error ? e.message : e,
+    );
     return null;
   }
 }
