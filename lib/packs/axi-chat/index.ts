@@ -51,10 +51,16 @@ export {
 export { paletteDepuisPreset, useTheme } from "./theme/use-theme";
 
 /* ─── Composants atomiques (utiles pour variantes custom) ───── */
+export { ApercuPiecesJointes } from "./composants/apercu-pieces-jointes";
 export { BulleMessage } from "./composants/bulle-message";
 export { EnteteChat } from "./composants/entete-chat";
 export { SuggestionsRapides } from "./composants/suggestions-rapides";
 export { ZoneSaisie } from "./composants/zone-saisie";
+
+/* ─── Hooks (dictée, TTS, pièces jointes) ─────────────────── */
+export { useDictee } from "./hooks/use-dictee";
+export { usePiecesJointes } from "./hooks/use-pieces-jointes";
+export { useVoixSynthese } from "./hooks/use-voix-synthese";
 
 /* ─── Composant racine (compose les atomiques) ──────────────── */
 export { AxiChatRoot } from "./composants/axi-chat-root";

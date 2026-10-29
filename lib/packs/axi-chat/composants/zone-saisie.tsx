@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, Paperclip, Send } from "lucide-react";
+import { Mic, MicOff, Paperclip, Send } from "lucide-react";
 
 import type { FonctionnalitesAxiChat } from "../types";
 
@@ -9,6 +9,7 @@ export function ZoneSaisie({
   onChange,
   onEnvoyer,
   onDictee,
+  dicteeActive,
   onPiecesJointes,
   placeholder,
   fonctionnalites,
@@ -18,6 +19,7 @@ export function ZoneSaisie({
   onChange: (v: string) => void;
   onEnvoyer: () => void;
   onDictee?: () => void;
+  dicteeActive?: boolean;
   onPiecesJointes?: () => void;
   placeholder?: string;
   fonctionnalites?: FonctionnalitesAxiChat;
@@ -75,16 +77,27 @@ export function ZoneSaisie({
         <button
           type="button"
           onClick={onDictee}
-          aria-label="Dicter un message"
+          aria-label={dicteeActive ? "Arrêter la dictée" : "Dicter un message"}
+          aria-pressed={dicteeActive}
           className="flex h-10 w-10 flex-shrink-0 items-center justify-center border transition-colors"
           style={{
             borderRadius: "var(--axi-chat-rayon)",
-            borderColor: "var(--axi-chat-bordure)",
-            background: "var(--axi-chat-surface-interactive)",
-            color: "var(--axi-chat-texte-secondaire)",
+            borderColor: dicteeActive
+              ? "var(--axi-chat-accent)"
+              : "var(--axi-chat-bordure)",
+            background: dicteeActive
+              ? "var(--axi-chat-accent)"
+              : "var(--axi-chat-surface-interactive)",
+            color: dicteeActive
+              ? "var(--axi-chat-texte-sur-accent)"
+              : "var(--axi-chat-texte-secondaire)",
           }}
         >
-          <Mic className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+          {dicteeActive ? (
+            <MicOff className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+          ) : (
+            <Mic className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+          )}
         </button>
       )}
 

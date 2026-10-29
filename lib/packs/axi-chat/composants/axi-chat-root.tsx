@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { useDictee } from "../hooks/use-dictee";
+import { usePiecesJointes } from "../hooks/use-pieces-jointes";
+import { useVoixSynthese } from "../hooks/use-voix-synthese";
 import { useTheme } from "../theme/use-theme";
-import type { ConfigAxiChat, MessageAxi, SuggestionRapide } from "../types";
+import type {
+  ConfigAxiChat,
+  MessageAxi,
+  PieceJointe,
+  SuggestionRapide,
+} from "../types";
 
+import { ApercuPiecesJointes } from "./apercu-pieces-jointes";
 import { BulleMessage } from "./bulle-message";
 import { EnteteChat } from "./entete-chat";
 import { SuggestionsRapides } from "./suggestions-rapides";
@@ -32,6 +41,31 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   const [brouillon, setBrouillon] = useState("");
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
+  // ─── Dictée (STT) ─────────────────────────────────────────
+  const dictee = useDictee({
+    langue: localeDepuisLangue(config.contexte?.langue),
+    urlDictee: config.endpoints.urlDictee,
+    entetes: config.endpoints.entetes,
+  });
+  useEffect(() => {
+    if (dictee.transcription) setBrouillon((prev) =>
+      prev ? `${prev} ${dictee.transcription}`.trim() : dictee.transcription,
+    );
+  }, [dictee.transcription]);
+
+  // ─── Voix synthèse (TTS) ──────────────────────────────────
+  const voix = useVoixSynthese({
+    urlVoix: config.endpoints.urlVoix,
+    entetes: config.endpoints.entetes,
+    langue: localeDepuisLangue(config.contexte?.langue),
+  });
+
+  // ─── Pièces jointes ───────────────────────────────────────
+  const piecesJointes = usePiecesJointes({
+    urlUpload: config.endpoints.urlUpload ?? "",
+    entetes: config.endpoints.entetes,
+  });
+
   const suggestionsCourantes =
     messages.length > 0 &&
     messages[messages.length - 1].role === "axi" &&
@@ -41,22 +75,31 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
 
   function envoyer(texte: string) {
     const contenu = texte.trim();
-    if (!contenu || envoiEnCours) return;
+    const pieces = piecesJointes.pieces;
+    if ((!contenu && pieces.length === 0) || envoiEnCours) return;
+    if (dictee.etat !== "repos") dictee.arreter();
+
     const msgVisiteur: MessageAxi = {
       id: `v-${Date.now()}`,
       role: "visiteur",
       contenu,
+      piecesJointes: pieces.length > 0 ? pieces : undefined,
       horodatage: new Date(),
     };
     setMessages((prev) => [...prev, msgVisiteur]);
     config.surMessage?.(msgVisiteur);
     setBrouillon("");
+    piecesJointes.vider();
+    dictee.reinitialiser();
 
     setEnvoiEnCours(true);
     appelerBackend(config, [...messages, msgVisiteur])
       .then((reponse) => {
         setMessages((prev) => [...prev, reponse]);
         config.surMessage?.(reponse);
+        if (config.fonctionnalites?.voixSynthese) {
+          voix.lire(reponse.contenu).catch(() => undefined);
+        }
       })
       .catch((e) => {
         const erreur: MessageAxi = {
@@ -70,6 +113,14 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
         setMessages((prev) => [...prev, erreur]);
       })
       .finally(() => setEnvoiEnCours(false));
+  }
+
+  function toggleDictee() {
+    if (dictee.etat === "repos") {
+      dictee.demarrer().catch(() => undefined);
+    } else {
+      dictee.arreter();
+    }
   }
 
   return (
@@ -97,6 +148,23 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
           />
         )}
 
+      {config.fonctionnalites?.piecesJointes && (
+        <ApercuPiecesJointes
+          pieces={piecesJointes.pieces}
+          enCours={piecesJointes.enCours}
+          onRetirer={piecesJointes.retirer}
+        />
+      )}
+
+      {dictee.erreur && (
+        <p
+          className="pt-2 text-xs"
+          style={{ color: "var(--axi-chat-texte-tertiaire)" }}
+        >
+          {dictee.erreur}
+        </p>
+      )}
+
       <ZoneSaisie
         valeur={brouillon}
         onChange={setBrouillon}
@@ -104,9 +172,40 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
         placeholder={config.placeholderSaisie}
         fonctionnalites={config.fonctionnalites}
         envoiDesactive={envoiEnCours}
+        onDictee={config.fonctionnalites?.dictee ? toggleDictee : undefined}
+        dicteeActive={dictee.etat !== "repos"}
+        onPiecesJointes={
+          config.fonctionnalites?.piecesJointes && config.endpoints.urlUpload
+            ? piecesJointes.ouvrir
+            : undefined
+        }
       />
+
+      {config.fonctionnalites?.piecesJointes && config.endpoints.urlUpload && (
+        <input
+          ref={piecesJointes.input.ref}
+          type="file"
+          multiple
+          hidden
+          accept={piecesJointes.input.accept}
+          onChange={piecesJointes.input.onChange}
+        />
+      )}
     </div>
   );
+}
+
+function localeDepuisLangue(langue: ConfigAxiChat["contexte"] extends infer _
+  ? NonNullable<ConfigAxiChat["contexte"]>["langue"] | undefined
+  : never): string {
+  const map: Record<string, string> = {
+    fr: "fr-FR",
+    en: "en-US",
+    es: "es-ES",
+    de: "de-DE",
+    it: "it-IT",
+  };
+  return (langue && map[langue]) ?? "fr-FR";
 }
 
 function messageAccueil(config: ConfigAxiChat): MessageAxi {
@@ -140,6 +239,12 @@ async function appelerBackend(
       messages: historique.map((m) => ({
         role: m.role,
         contenu: m.contenu,
+        piecesJointes: m.piecesJointes?.map((p) => ({
+          id: p.id,
+          type: p.type,
+          url: p.url,
+          nom: p.nom,
+        })),
       })),
       contexte: config.contexte,
       siteId: config.contexte?.siteId,
