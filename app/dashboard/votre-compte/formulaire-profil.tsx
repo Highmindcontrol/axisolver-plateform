@@ -89,11 +89,6 @@ export function FormulaireProfil({
         />
       </div>
 
-      <p className="text-xs text-slate-500">
-        Le prénom est utilisé dans les salutations du dashboard
-        (« Bonjour {prenom || "prénom"} »).
-      </p>
-
       {etat.erreur && (
         <div
           role="alert"
@@ -122,7 +117,7 @@ export function FormulaireProfil({
         </div>
       )}
 
-      <div className="flex items-center justify-end border-t border-slate-100 pt-4">
+      <div className="flex items-center justify-end">
         <button
           type="submit"
           disabled={!modifie || pending}
