@@ -5,8 +5,8 @@ import {
   CreditCard,
   Home,
   LayoutGrid,
-  Settings,
   Sparkles,
+  UserCircle,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -138,10 +138,10 @@ export function SidebarDashboard({
             active={pathname?.includes("/dashboard/abonnement")}
           />
           <SidebarItem
-            href="/dashboard/parametres"
-            icon={Settings}
-            label="Réglages"
-            active={pathname?.includes("/dashboard/parametres")}
+            href="/dashboard/votre-compte"
+            icon={UserCircle}
+            label="Votre compte"
+            active={pathname?.includes("/dashboard/votre-compte")}
           />
         </SectionSidebar>
       </nav>
