@@ -1,3 +1,4 @@
+import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { and, eq, sql } from "drizzle-orm";
@@ -43,7 +44,7 @@ export default async function PageDashboard() {
     })
     .from(sites)
     .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
-    .where(eq(sites.ownerUserId, user.id))
+    .where(await filtreSitesAccessibles(user.id))
     .orderBy(sites.creeLe);
 
   // Nombre de conversations ce mois par site (lecture tolérante).

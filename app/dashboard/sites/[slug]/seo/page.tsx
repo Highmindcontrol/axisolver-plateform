@@ -1,3 +1,4 @@
+import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
@@ -32,7 +33,7 @@ export default async function PageSeoSite({
   const [site] = await db
     .select()
     .from(sites)
-    .where(and(eq(sites.slug, slug), eq(sites.ownerUserId, user.id)))
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
     .limit(1);
   if (!site) notFound();
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -56,7 +57,7 @@ export async function sauverConfigurationAction(
   const [site] = await db
     .select()
     .from(sites)
-    .where(and(eq(sites.slug, slug), eq(sites.ownerUserId, user.id)))
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
     .limit(1);
   if (!site) return { erreur: "Site introuvable." };
 

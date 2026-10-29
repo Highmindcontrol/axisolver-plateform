@@ -1,3 +1,4 @@
+import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
@@ -20,7 +21,7 @@ export default async function PageInstallation() {
   const mesSites = await db
     .select()
     .from(sites)
-    .where(eq(sites.ownerUserId, user.id));
+    .where(await filtreSitesAccessibles(user.id));
 
   const baseUrl =
     process.env.NEXT_PUBLIC_APP_URL ?? "https://axisolver.app";

@@ -1,3 +1,4 @@
+import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { notFound, redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
 
@@ -36,7 +37,7 @@ export default async function LayoutSite({
   const [siteActif] = await db
     .select({ id: sites.id })
     .from(sites)
-    .where(and(eq(sites.slug, slug), eq(sites.ownerUserId, user.id)))
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
     .limit(1);
   if (!siteActif) notFound();
 
@@ -51,7 +52,7 @@ export default async function LayoutSite({
     })
     .from(sites)
     .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
-    .where(eq(sites.ownerUserId, user.id))
+    .where(await filtreSitesAccessibles(user.id))
     .orderBy(sites.creeLe);
 
   // Comptage conversations : optionnel (tolère l'absence de la table

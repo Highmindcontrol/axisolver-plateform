@@ -1,3 +1,4 @@
+import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { and, eq } from "drizzle-orm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
@@ -27,7 +28,7 @@ export async function GET(
   const [site] = await db
     .select()
     .from(sites)
-    .where(and(eq(sites.slug, slug), eq(sites.ownerUserId, user.id)))
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
     .limit(1);
   if (!site || site.tokenVerificationFichier !== token) {
     return new Response("Non autorisé", { status: 404 });

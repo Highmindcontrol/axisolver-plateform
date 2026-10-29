@@ -1,3 +1,4 @@
+import { filtreSitesAccessibles } from "@/lib/services/acces-site";
 import { redirect } from "next/navigation";
 import { eq, desc } from "drizzle-orm";
 
@@ -46,7 +47,7 @@ export default async function LayoutDashboard({
     })
     .from(sites)
     .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
-    .where(eq(sites.ownerUserId, user.id))
+    .where(await filtreSitesAccessibles(user.id))
     .orderBy(sites.creeLe);
 
   const mesSites = mesSitesRaw.map((s) => ({
