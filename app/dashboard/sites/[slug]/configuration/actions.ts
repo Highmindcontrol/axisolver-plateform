@@ -156,3 +156,71 @@ export async function sauverConfigurationAction(
 
   return { erreur: null, ok: true };
 }
+
+export type EtatGaugista = {
+  erreur: string | null;
+  ok?: boolean;
+};
+
+/**
+ * Enregistre la configuration Gaugista du site (slug entreprise +
+ * flag d'activation). Le POST sur gaugista.com se fait côté serveur
+ * uniquement, via GAUGISTA_API_KEY (jamais exposée au navigateur).
+ */
+export async function enregistrerGaugistaAction(
+  _prev: EtatGaugista,
+  formData: FormData,
+): Promise<EtatGaugista> {
+  const slug = String(formData.get("slug") ?? "").trim();
+  if (!slug) return { erreur: "slug manquant" };
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { erreur: "Vous devez être connecté." };
+
+  const [site] = await db
+    .select()
+    .from(sites)
+    .where(and(eq(sites.slug, slug), await filtreSitesAccessibles(user.id)))
+    .limit(1);
+  if (!site) return { erreur: "Site introuvable." };
+
+  const gaugistaSlugBrut = String(formData.get("gaugistaSlug") ?? "").trim();
+  const gaugistaActif = formData.get("gaugistaActif") === "on";
+
+  // Nettoyage du slug : minuscules + tirets autorisés uniquement.
+  const gaugistaSlug = gaugistaSlugBrut.toLowerCase().replace(/\s+/g, "-");
+  if (gaugistaSlug && !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(gaugistaSlug)) {
+    return {
+      erreur:
+        "Slug Gaugista invalide (lettres minuscules, chiffres, tirets ; ex: axisolver-demo).",
+    };
+  }
+  if (gaugistaActif && !gaugistaSlug) {
+    return {
+      erreur:
+        "Pour activer la notation, renseigne d'abord le slug de l'entreprise Gaugista.",
+    };
+  }
+
+  try {
+    await db
+      .update(siteConfigs)
+      .set({
+        gaugistaSlug: gaugistaSlug || null,
+        gaugistaActif,
+        majLe: new Date(),
+      })
+      .where(eq(siteConfigs.siteId, site.id));
+    revalidatePath(`/dashboard/sites/${slug}/configuration`);
+    revalidatePath(`/embed/${slug}`);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[configuration-gaugista]", msg);
+    return { erreur: `Erreur à l'enregistrement : ${msg}` };
+  }
+
+  return { erreur: null, ok: true };
+}

@@ -6,6 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { db } from "@/lib/db";
 import { sites, siteConfigs } from "@/lib/db/schema";
+import { BlocGaugista } from "./bloc-gaugista";
 import { FormulaireConfiguration } from "./formulaire";
 
 export const dynamic = "force-dynamic";
@@ -72,6 +73,12 @@ export default async function PageConfigurationSite({
         couleurSecondaire={config.branding.couleurSecondaire}
         afficherPropulsePar={config.branding.afficherPropulsePar}
         domainesAutorises={site.domainesAutorises}
+      />
+
+      <BlocGaugista
+        slug={slug}
+        gaugistaSlug={config.gaugistaSlug}
+        gaugistaActif={config.gaugistaActif}
       />
     </div>
   );
