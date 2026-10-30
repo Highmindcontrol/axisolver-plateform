@@ -229,31 +229,54 @@ async function fallbackOpenAI(
 function nettoyerPourVocal(texte: string): string {
   return (
     texte
+      // Emojis et pictos
       // eslint-disable-next-line no-misleading-character-class
       .replace(
         /[\u{1F300}-\u{1F9FF}\u{2600}-\u{27BF}\u{1F000}-\u{1F0FF}\u{1F100}-\u{1F2FF}]/gu,
         "",
       )
+      // Titres markdown en début de ligne : ##, ###, #### → rien
+      .replace(/^#{1,6}\s+/gm, "")
+      // Séparateurs horizontaux markdown
+      .replace(/^[-=_]{3,}\s*$/gm, "")
+      // Gras / italique markdown
       .replace(/\*\*(.+?)\*\*/g, "$1")
       .replace(/\*(.+?)\*/g, "$1")
-      // Filet de sécurité : astérisques résiduels (markdown mal formé,
-      // ** orphelin, séquences ***, puces, etc.) → ne doivent JAMAIS
-      // atteindre Azure TTS qui les prononcerait « astérisque ».
+      // Underscore italique
+      .replace(/\b_([^_\n]+)_\b/g, "$1")
+      // Astérisques résiduels (puces, séquences ***, orphelins)
       .replace(/\*/g, "")
+      // Backticks code
+      .replace(/```[\s\S]*?```/g, " ")
+      .replace(/`([^`]+)`/g, "$1")
+      // Liens markdown [texte](url) → texte
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
       // Abréviations pénibles à l'oral — Azure prononce « 24/7 »
       // comme « 24 juillet ». On déplie en toutes lettres.
       .replace(/\b24\s*\/\s*7\b/g, "24 heures sur 24 et 7 jours sur 7")
       .replace(/\b7\s*\/\s*7\b/g, "7 jours sur 7")
-      .replace(/^[-—•]\s+/gm, "")
+      // Puces de liste en début de ligne
+      .replace(/^\s*[-—•*]\s+/gm, "")
+      // Numéros de liste « 1. » / « 2) »
+      .replace(/^\s*\d+[.)]\s+/gm, "")
+      // Guillemets français
       .replace(/«\s?/g, "")
       .replace(/\s?»/g, "")
-      .replace(/`([^`]+)`/g, "$1")
-      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      // URLs techniques /dashboard/.../... → « la section correspondante »
+      // Évite que TTS lise « slash dashboard slash sites slash … ».
+      .replace(
+        /\/(?:dashboard|api|admin)\/[\w\-/\[\]]+/gi,
+        " la section correspondante ",
+      )
+      // Slashes isolés entre mots « SEO/Ads » → « SEO et Ads »
+      .replace(/(\w)\s*\/\s*(\w)/g, "$1 et $2")
       // Supprime la virgule avant un mot capitalisé probablement prénom
       // (évite la pause synthétique artificielle avant 'François', 'Lucien', etc.)
-      // Pattern : espace + virgule + espace + Majuscule → espace + Majuscule
       .replace(/\s*,\s+([A-ZÉÈÀÇÎÔÛÄÖÜŒÆ][a-zéèàçîôûäöüœæ]+)/g, " $1")
+      // Normalise espaces multiples et retours ligne
+      .replace(/\n+/g, ". ")
       .replace(/\s+/g, " ")
+      .replace(/\s*\.\s*\./g, ".")
       .trim()
   );
 }
