@@ -141,6 +141,9 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
       .then((reponse) => {
         setMessages((prev) => [...prev, reponse]);
         config.surMessage?.(reponse);
+        if (reponse.ordres && config.surOrdre) {
+          for (const o of reponse.ordres) config.surOrdre(o);
+        }
         if (config.fonctionnalites?.voixSynthese) {
           voix.lire(reponse.contenu).catch(() => undefined);
         }
@@ -323,12 +326,24 @@ async function appelerBackend(
   const data = (await reponse.json()) as {
     contenu: string;
     suggestions?: SuggestionRapide[];
+    ordres?: Array<{
+      id: string;
+      libelle: string;
+      statut: "propose" | "en_cours" | "termine" | "echoue" | "refuse";
+      horodatage?: string;
+    }>;
   };
   return {
     id: `a-${Date.now()}`,
     role: "axi",
     contenu: data.contenu,
     suggestions: data.suggestions,
+    ordres: data.ordres?.map((o) => ({
+      id: o.id,
+      libelle: o.libelle,
+      statut: o.statut,
+      horodatage: o.horodatage ? new Date(o.horodatage) : undefined,
+    })),
     horodatage: new Date(),
   };
 }

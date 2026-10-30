@@ -2,6 +2,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
+import {
+  COPILOTE_TOOLS,
+  executerTool,
+  type OrdreTool,
+} from "@/lib/axi-solver/copilote-tools";
 import { construirePromptCopilote } from "@/lib/axi-solver/system-prompt-copilote";
 import { enArrierePlan } from "@/lib/background";
 import { db } from "@/lib/db";
@@ -174,40 +179,94 @@ export async function POST(req: Request) {
           .join("\n\n")}`
       : "";
 
-  const messagesClaude = [
-    ...historiqueBase.map((m) => ({
-      role: (m.role === "assistant" ? "assistant" : "user") as
-        | "user"
-        | "assistant",
-      content: m.contenu,
-    })),
-    { role: "user" as const, content: dernierVisiteur.contenu },
+  // Historique sous forme de messages Anthropic (text content). Le
+  // dernier message user est ajouté explicitement en fin.
+  const messagesClaude: Anthropic.Messages.MessageParam[] = [
+    ...historiqueBase.map(
+      (m) =>
+        ({
+          role: m.role === "assistant" ? "assistant" : "user",
+          content: m.contenu,
+        }) as Anthropic.Messages.MessageParam,
+    ),
+    { role: "user", content: dernierVisiteur.contenu },
   ];
 
   const anthropic = new Anthropic({ apiKey: cle });
+  const systemFinal =
+    (fil.memoireLongue
+      ? `${systemPrompt}\n\n## Mémoire longue (synthèse des anciennes conversations)\n\n${fil.memoireLongue}`
+      : systemPrompt) + preambuleRag;
+
+  // Boucle agentic : Claude peut appeler des tools (lire_metriques_site,
+  // etc.) ; on les exécute, on relance Claude avec les tool_results.
+  // Garde-fou : max 5 itérations pour éviter boucle infinie.
+  const ordresPris: OrdreTool[] = [];
+  let totalTokensIn = 0;
+  let totalTokensOut = 0;
+  let contenuFinal = "Désolé, pas de réponse.";
 
   try {
-    const reponse = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 1024,
-      system:
-        (fil.memoireLongue
-          ? `${systemPrompt}\n\n## Mémoire longue (synthèse des anciennes conversations)\n\n${fil.memoireLongue}`
-          : systemPrompt) + preambuleRag,
-      messages: messagesClaude,
-    });
+    for (let iter = 0; iter < 5; iter++) {
+      const reponse = await anthropic.messages.create({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 2048,
+        system: systemFinal,
+        tools: COPILOTE_TOOLS,
+        messages: messagesClaude,
+      });
+      totalTokensIn += reponse.usage.input_tokens;
+      totalTokensOut += reponse.usage.output_tokens;
 
-    const bloc = reponse.content.find((b) => b.type === "text");
-    const contenu =
-      bloc && bloc.type === "text" ? bloc.text : "Désolé, pas de réponse.";
+      const toolUses = reponse.content.filter(
+        (b) => b.type === "tool_use",
+      ) as Anthropic.Messages.ToolUseBlock[];
+      const texteBlocs = reponse.content.filter(
+        (b) => b.type === "text",
+      ) as Anthropic.Messages.TextBlock[];
 
-    // Persistance de la réponse d'AXI
+      // Pousse la réponse assistant dans l'historique Claude
+      messagesClaude.push({ role: "assistant", content: reponse.content });
+
+      // Si pas de tool_use, c'est la réponse finale
+      if (toolUses.length === 0 || reponse.stop_reason === "end_turn") {
+        contenuFinal =
+          texteBlocs.map((b) => b.text).join("\n").trim() || contenuFinal;
+        break;
+      }
+
+      // Exécute chaque tool et prépare les tool_results
+      const toolResults: Anthropic.Messages.ToolResultBlockParam[] = [];
+      for (const t of toolUses) {
+        const { resultat, ordre } = await executerTool(
+          t.name,
+          (t.input as Record<string, unknown>) ?? {},
+          { userId: user.id },
+        );
+        ordresPris.push(ordre);
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: t.id,
+          content: resultat,
+          is_error: ordre.statut === "echoue",
+        });
+      }
+      messagesClaude.push({ role: "user", content: toolResults });
+
+      // Si Claude a aussi parlé en texte dans cette itération, on
+      // garde ça comme réponse de secours au cas où la boucle plafonne.
+      if (texteBlocs.length > 0) {
+        contenuFinal = texteBlocs.map((b) => b.text).join("\n").trim();
+      }
+    }
+
+    // Persistance de la réponse finale d'AXI
     await appendMessages(fil.id, [
       {
         role: "assistant",
-        contenu,
-        tokensInput: reponse.usage.input_tokens,
-        tokensOutput: reponse.usage.output_tokens,
+        contenu: contenuFinal,
+        tokensInput: totalTokensIn,
+        tokensOutput: totalTokensOut,
       },
     ]);
 
@@ -222,7 +281,16 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({ contenu });
+    return NextResponse.json({
+      contenu: contenuFinal,
+      ordres: ordresPris.map((o) => ({
+        id: o.id,
+        libelle: o.libelle,
+        statut: o.statut === "termine" ? "termine" : o.statut === "echoue" ? "echoue" : "en_cours",
+        horodatage: o.horodatage.toISOString(),
+        resume: o.resume,
+      })),
+    });
   } catch (e) {
     console.error("[dashboard/chat] erreur Claude", e);
     return NextResponse.json(

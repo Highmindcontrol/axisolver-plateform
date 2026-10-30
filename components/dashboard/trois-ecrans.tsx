@@ -1,9 +1,15 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { AxiChatCopilote, type ConfigAxiChat } from "@/lib/packs/axi-chat";
+import {
+  AxiChatCopilote,
+  type ConfigAxiChat,
+  type OrdreAxi,
+} from "@/lib/packs/axi-chat";
+
+import { AiletteOrdres } from "./ailette-ordres";
 
 type SiteChantier = {
   slug: string;
@@ -16,14 +22,8 @@ type SiteChantier = {
  *
  * Doctrine UI : à l'ouverture, l'écran est volontairement vide.
  * Seul le message d'accueil d'AXI et la zone de saisie sont visibles.
- * Les deux colonnes latérales (ailettes) sont présentes pour
- * accueillir du contenu dynamique AU FUR ET À MESURE (ex: documents
- * consultés par AXI, ordres pris pendant la conversation) — on ne
- * polLue pas l'écran avec des titres ou des listes statiques.
- *
- * Contextualisation par site : si l'URL contient /dashboard/sites/[slug],
- * la conversation est focalisée sur CE site (son contexte, son
- * historique). Sinon, chat global écosystème.
+ * L'ailette droite se remplit AU FUR ET À MESURE que AXI prend des
+ * actions (appels de tools côté serveur).
  */
 export function TroisEcrans({
   prenom,
@@ -33,6 +33,7 @@ export function TroisEcrans({
   sites: ReadonlyArray<SiteChantier>;
 }) {
   const pathname = usePathname();
+  const [ordres, setOrdres] = useState<OrdreAxi[]>([]);
 
   // Détection du site courant via l'URL
   const siteCourant = useMemo(() => {
@@ -44,6 +45,14 @@ export function TroisEcrans({
     const site = sites.find((s) => s.slug === slug);
     return site ?? { slug, nomEntreprise: slug };
   }, [pathname, sites]);
+
+  const surOrdre = useCallback((ordre: OrdreAxi) => {
+    setOrdres((prev) => {
+      // Dédup par id (évite doublons si AXI renvoie le même ordre)
+      if (prev.some((o) => o.id === ordre.id)) return prev;
+      return [...prev, ordre];
+    });
+  }, []);
 
   const config: ConfigAxiChat = useMemo(() => {
     const nomSiteCourant = siteCourant?.nomEntreprise;
@@ -78,17 +87,15 @@ export function TroisEcrans({
         suggestionsRapides: false,
       },
       accueilPersonnalise: accueil,
+      surOrdre,
     };
-  }, [prenom, siteCourant]);
+  }, [prenom, siteCourant, surOrdre]);
 
-  // Ailettes volontairement vides à l'ouverture — elles se rempliront
-  // au fil de la conversation (actions AXI, documents, ordres). Les
-  // deux traits verticaux restent affichés en permanence.
   return (
     <AxiChatCopilote
       config={config}
       aileteGauche={null}
-      aileteDroite={null}
+      aileteDroite={<AiletteOrdres ordres={ordres} />}
     />
   );
 }
