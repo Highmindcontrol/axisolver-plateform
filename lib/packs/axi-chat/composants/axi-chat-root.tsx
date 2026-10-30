@@ -18,7 +18,6 @@ import type {
 
 import { ApercuPiecesJointes } from "./apercu-pieces-jointes";
 import { BulleMessage } from "./bulle-message";
-import { CarouselProduits } from "./carousel-produits";
 import { EnteteChat } from "./entete-chat";
 import { ModalNotationGaugista } from "./modal-notation-gaugista";
 import { SuggestionsRapides } from "./suggestions-rapides";
@@ -319,17 +318,6 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
               <BulleMessage key={m.id} message={m} />
             ))}
           </div>
-
-      {/* Carousel produits e-commerce — affiché entre les messages
-          et la zone de saisie quand config.produits est renseigné. */}
-      {config.produits && config.produits.length > 0 && (
-        <CarouselProduits
-          produits={config.produits}
-          config={config.configProduits}
-          onClicProduit={config.surClicProduit}
-          onClicAcheter={config.surClicAcheter}
-        />
-      )}
 
       {config.fonctionnalites?.suggestionsRapides &&
         suggestionsCourantes.length > 0 && (

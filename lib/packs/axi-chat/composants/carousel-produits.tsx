@@ -6,7 +6,22 @@ import { useEffect, useRef, useState } from "react";
 import type { ConfigProduitsAxi, ProduitAxi } from "../types";
 
 /**
- * Carousel de produits e-commerce intégré au chat AXI (pack @axi-chat).
+ * Carousel de produits e-commerce du pack @axi-chat.
+ *
+ * **Doctrine Praximea** : ce composant vit dans **l'ailette gauche**
+ * du triptyque `AxiChatCopilote`, PAS dans la zone de chat centrale.
+ * L'ailette gauche est l'endroit canonique pour les informations
+ * riches (images, formulaires, inputs structurés, carousel). La
+ * zone centrale reste réservée aux messages + boutons rapides, et
+ * l'ailette droite aux ordres pris par AXI.
+ *
+ * Usage canonique :
+ *   <AxiChatCopilote
+ *     config={config}
+ *     aileteGauche={
+ *       <CarouselProduits produits={produits} config={configProduits} />
+ *     }
+ *   />
  *
  * Zones fournies pour chaque card :
  *   - image principale (avec badge en overlay si présent)
@@ -18,7 +33,8 @@ import type { ConfigProduitsAxi, ProduitAxi } from "../types";
  *     lienBoutique dans un nouvel onglet
  *
  * Navigation : flèches Prev/Next + dots. Autoplay optionnel.
- * Responsive : 1 card mobile, 2 tablette, 3 desktop (configurable).
+ * L'ailette gauche étant étroite (~29% du viewport), le défaut
+ * responsive affiche 1 card visible à la fois.
  *
  * Zéro dépendance externe hors lucide-react + React (doctrine pack).
  */

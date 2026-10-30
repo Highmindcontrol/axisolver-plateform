@@ -408,13 +408,33 @@ export type ConfigAxiChat = {
   avecEntete?: boolean;
   /**
    * Produits à afficher dans le carousel e-commerce (optionnel).
-   * Si fourni, un carousel apparaît sous la liste des messages, au-
-   * dessus de la zone de saisie. Pensé pour sites Shopify / WooCommerce
-   * / boutiques custom où AXI parle avec un visiteur et suggère des
-   * produits à acheter.
+   *
+   * Doctrine Praximea : les informations riches (carousel produits,
+   * formulaires, images, inputs structurés) vivent dans l'AILETTE
+   * GAUCHE, pas dans la zone de chat. Le pack expose un composant
+   * `CarouselProduits` autonome à placer dans `aileteGauche` de la
+   * variante `AxiChatCopilote` :
+   *
+   *   <AxiChatCopilote
+   *     config={config}
+   *     aileteGauche={
+   *       <CarouselProduits
+   *         produits={config.produits}
+   *         config={config.configProduits}
+   *         onClicProduit={config.surClicProduit}
+   *         onClicAcheter={config.surClicAcheter}
+   *       />
+   *     }
+   *     aileteDroite={...}
+   *   />
+   *
+   * Ce champ sert à **transporter** les produits dans la config pour
+   * que le site hôte les récupère et les passe à l'ailette, pas à les
+   * injecter automatiquement dans la zone de chat.
    */
   produits?: ProduitAxi[];
-  /** Options d'affichage du carousel produits. */
+  /** Options d'affichage du carousel produits (consommé par
+   *  CarouselProduits dans l'ailette gauche). */
   configProduits?: ConfigProduitsAxi;
   /** Callback déclenché au clic sur une card produit (image/nom). */
   surClicProduit?: (produit: ProduitAxi) => void;
