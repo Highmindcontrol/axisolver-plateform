@@ -98,10 +98,11 @@ export function AxiChatBandeauSticky({
   }
 
   // Durée volontairement longue (défaut 2,8 s) — on ne vend pas la
-  // pensée profonde en 4 secondes. On écrit l'intégralité de la
-  // propriété `transition` en inline pour éviter que Tailwind
-  // n'écrase subrepticement avec sa durée par défaut (150 ms).
-  const transitionCss = `opacity ${dureeMs}ms cubic-bezier(0.22, 1, 0.36, 1), transform ${dureeMs}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+  // pensée profonde en 4 secondes. Transition appliquée sur la
+  // propriété `grid-template-rows` d'un wrapper grid : passage de
+  // `0fr` (replié, hauteur 0) à `1fr` (déplié, hauteur auto). C'est la
+  // technique moderne pour animer vers `height: auto`.
+  const transitionCss = `grid-template-rows ${dureeMs}ms cubic-bezier(0.22, 1, 0.36, 1)`;
 
   return (
     <>
@@ -155,33 +156,24 @@ export function AxiChatBandeauSticky({
         </span>
       </button>
 
-      {/* Dépliage inline — pousse le contenu suivant vers le bas */}
-      {ouvert && (
-        <div
-          className="relative overflow-hidden px-6 py-5"
-          style={{ background: palette.fond }}
-        >
-          {/* Rideau sombre qui s'estompe pendant dureeMs */}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-10"
-            style={{
-              transition: `opacity ${dureeMs}ms cubic-bezier(0.22, 1, 0.36, 1)`,
-              opacity: visible ? 0 : 1,
-              background: `linear-gradient(to bottom, ${palette.fond}fa, ${palette.fond}b8 45%, ${palette.fond}fa)`,
-            }}
-          />
-
-          {/* Triptyque — fade + scale + glissement vertical en entrée */}
-          <div
-            style={{
-              transition: transitionCss,
-              opacity: visible ? 1 : 0,
-              transform: visible
-                ? "translateY(0) scale(1)"
-                : "translateY(16px) scale(0.975)",
-            }}
-          >
+      {/* Dépliage inline façon rideau de cinéma — le conteneur grandit
+          physiquement de hauteur 0 à sa hauteur finale sur dureeMs. Le
+          contenu reste visible dès le départ ; c'est le pliage/
+          dépliage du bloc lui-même qui est animé.
+          Technique : wrapper `grid` avec `grid-template-rows` qui passe
+          de `0fr` à `1fr`, l'enfant pose `min-h-0` + `overflow-hidden`
+          pour que le découpage soit propre pendant la transition. */}
+      <div
+        aria-hidden={!visible}
+        style={{
+          display: "grid",
+          gridTemplateRows: visible ? "1fr" : "0fr",
+          transition: transitionCss,
+          background: palette.fond,
+        }}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="px-6 py-5">
             <AxiChatCopilote
               config={config}
               avecAilettes={avecAilettes}
@@ -191,7 +183,7 @@ export function AxiChatBandeauSticky({
             />
           </div>
         </div>
-      )}
+      </div>
     </>
   );
 }
