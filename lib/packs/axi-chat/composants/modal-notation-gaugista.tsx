@@ -213,13 +213,13 @@ export function ModalNotationGaugista({
       <header className="relative flex items-start justify-between gap-3 pb-4">
         <div>
           <h3
-            className="text-sm font-semibold"
+            className="text-xl font-bold leading-tight tracking-tight"
             style={{ color: "var(--axi-chat-texte)" }}
           >
             {titre}
           </h3>
           <p
-            className="mt-1 text-xs"
+            className="mt-2 text-sm"
             style={{ color: "var(--axi-chat-texte-secondaire)" }}
           >
             {sousTitre}
