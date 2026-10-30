@@ -23,11 +23,15 @@ type OptionsDictee = {
   entetes?: Record<string, string>;
 };
 
+type ResultatSpeech = ArrayLike<{ transcript: string }> & { isFinal: boolean };
 type InstanceSpeechRecognition = {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
-  onresult: (ev: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+  onresult: (ev: {
+    resultIndex: number;
+    results: ArrayLike<ResultatSpeech>;
+  }) => void;
   onerror: (ev: Event) => void;
   onend: () => void;
   start: () => void;
@@ -51,6 +55,11 @@ export function useDictee(options: OptionsDictee = {}): {
   const refRecognition = useRef<InstanceSpeechRecognition | null>(null);
   const refRecorder = useRef<MediaRecorder | null>(null);
   const refChunks = useRef<Blob[]>([]);
+  // true tant que l'utilisateur n'a pas cliqué stop ; permet de
+  // redémarrer SpeechRecognition quand Chrome le coupe sur silence.
+  const refArretManuel = useRef(false);
+  // Accumulateur des blocs isFinal depuis le démarrage courant.
+  const refTextFinal = useRef("");
 
   const disponible = typeof window !== "undefined" && (
     "SpeechRecognition" in window ||
@@ -61,6 +70,8 @@ export function useDictee(options: OptionsDictee = {}): {
   const demarrer = useCallback(async () => {
     setErreur(null);
     setTranscription("");
+    refTextFinal.current = "";
+    refArretManuel.current = false;
 
     if (typeof window === "undefined") return;
 
@@ -74,18 +85,52 @@ export function useDictee(options: OptionsDictee = {}): {
       try {
         const reco = new CtorNatif();
         reco.lang = options.langue ?? "fr-FR";
-        reco.continuous = false;
+        // continuous=true : la session reste ouverte jusqu'au stop
+        // manuel, même pendant les silences. Chrome coupe quand même
+        // au bout de ~1 min — on relance dans onend si pas arrêté.
+        reco.continuous = true;
         reco.interimResults = true;
         reco.onresult = (ev) => {
-          const dernier = ev.results[ev.results.length - 1];
-          const texte = dernier[0].transcript;
-          setTranscription(texte);
+          // ev.results s'étend à chaque event ; on parcourt depuis
+          // resultIndex pour n'ajouter que les NOUVEAUX blocs finaux
+          // à l'accumulateur, et on affiche interim en plus pour le
+          // temps réel.
+          let interim = "";
+          for (let i = ev.resultIndex; i < ev.results.length; i++) {
+            const r = ev.results[i];
+            const texte = r[0].transcript;
+            if (r.isFinal) {
+              refTextFinal.current = (refTextFinal.current + " " + texte).trim();
+            } else {
+              interim += texte;
+            }
+          }
+          setTranscription((refTextFinal.current + " " + interim).trim());
         };
         reco.onerror = (ev) => {
-          setErreur(`Dictée indisponible (${(ev as unknown as { error?: string }).error ?? "erreur"})`);
+          const code = (ev as unknown as { error?: string }).error;
+          // "no-speech" / "aborted" : silence prolongé ou stop normal.
+          // On ne polue pas l'UI avec un message d'erreur.
+          if (code && code !== "no-speech" && code !== "aborted") {
+            setErreur(`Dictée indisponible (${code})`);
+          }
+        };
+        reco.onend = () => {
+          // Si l'utilisateur n'a PAS cliqué stop, Chrome a coupé seul :
+          // on relance immédiatement pour simuler un enregistrement
+          // continu « jusqu'au clic ».
+          if (!refArretManuel.current && refRecognition.current === reco) {
+            try {
+              reco.start();
+              return;
+            } catch {
+              // start() peut échouer si la session est encore en
+              // cours de fermeture — on tombe en repos dans ce cas.
+            }
+          }
+          refRecognition.current = null;
           setEtat("repos");
         };
-        reco.onend = () => setEtat("repos");
         reco.start();
         refRecognition.current = reco;
         setEtat("enregistre");
@@ -140,9 +185,15 @@ export function useDictee(options: OptionsDictee = {}): {
   }, [options.langue, options.urlDictee, options.entetes]);
 
   const arreter = useCallback(() => {
+    refArretManuel.current = true;
     if (refRecognition.current) {
-      refRecognition.current.stop();
-      refRecognition.current = null;
+      try {
+        refRecognition.current.stop();
+      } catch {
+        // stop() peut lever si pas encore démarré ; ignoré.
+      }
+      // On NE nullifie PAS refRecognition.current ici : onend s'en
+      // charge et c'est lui qui bascule l'état en "repos".
     }
     if (refRecorder.current && refRecorder.current.state !== "inactive") {
       refRecorder.current.stop();

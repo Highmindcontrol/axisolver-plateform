@@ -43,6 +43,9 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [envoyerApresDictee, setEnvoyerApresDictee] = useState(false);
   const brouillonRef = useRef("");
+  // Brouillon figé au moment du démarrage de la dictée. On concatène
+  // la transcription en live PAR-DESSUS cette base, sans accumuler.
+  const refBaseAvantDictee = useRef("");
   useEffect(() => {
     brouillonRef.current = brouillon;
   }, [brouillon]);
@@ -86,11 +89,19 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
     urlDictee: config.endpoints.urlDictee,
     entetes: config.endpoints.entetes,
   });
+  // Synchro brouillon pendant la dictée : on remplace à chaque update,
+  // en préservant ce qui était écrit avant le démarrage. Évite les
+  // concaténations en boucle qui dupliquaient le texte.
   useEffect(() => {
-    if (dictee.transcription) setBrouillon((prev) =>
-      prev ? `${prev} ${dictee.transcription}`.trim() : dictee.transcription,
-    );
-  }, [dictee.transcription]);
+    if (dictee.etat === "repos") return;
+    const base = refBaseAvantDictee.current;
+    const t = dictee.transcription;
+    if (!t) {
+      setBrouillon(base);
+      return;
+    }
+    setBrouillon(base ? `${base} ${t}`.trim() : t);
+  }, [dictee.transcription, dictee.etat]);
 
   // ─── Voix synthèse (TTS) ──────────────────────────────────
   const voix = useVoixSynthese({
@@ -169,6 +180,9 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
 
   function toggleDictee() {
     if (dictee.etat === "repos") {
+      // Mémorise le brouillon écrit AVANT la dictée — la transcription
+      // viendra s'y ajouter en live sans l'écraser.
+      refBaseAvantDictee.current = brouillonRef.current.trim();
       setEnvoyerApresDictee(false);
       dictee.demarrer().catch(() => undefined);
     } else {
