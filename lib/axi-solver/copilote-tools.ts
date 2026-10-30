@@ -88,14 +88,14 @@ export const COPILOTE_TOOLS: Anthropic.Messages.Tool[] = [
   {
     name: "afficher_section",
     description:
-      "Affiche un cartouche visuel sur l'ailette gauche de la conversation (ex: 'Annonces Google', 'Référencement', 'Sécurité'). À utiliser systématiquement quand tu structures une réponse en plusieurs points thématiques. INTERDICTION : ne JAMAIS écrire de titre markdown dans ton speech — appelle ce tool à la place. Pendant que tu parles d'un sujet, le cartouche apparaît côté gauche pour aider l'admin à visualiser.",
+      "Affiche un cartouche visuel sur l'ailette gauche pour pointer vers un domaine métier concret du dashboard (ex: 'Annonces Google', 'Référencement', 'Sécurité', 'Rapports quotidiens'). Usage TRÈS RESTREINT : à appeler uniquement quand tu énumères des CAPACITÉS CONCRÈTES ou des SUJETS ACTIONNABLES du site admin. INTERDICTION FORMELLE d'appeler ce tool pour étiqueter ta propre pensée, ton style conversationnel, ou une idée abstraite (JAMAIS 'Fluidité', 'Ton', 'Rythme', 'Point 1', 'Objectif', 'À retenir', 'Important', 'Note', 'Clarté', 'Simplicité', 'Honnêteté'). Dans le doute, N'APPELLE PAS LE TOOL — réponds en texte libre.",
     input_schema: {
       type: "object" as const,
       properties: {
         titre: {
           type: "string",
           description:
-            "Titre court (2-4 mots max) qui résume la section. Ex: 'Annonces Google', 'Score SEO', 'Base de connaissances'.",
+            "Titre court (2-4 mots max) d'un domaine métier concret du dashboard. Ex: 'Annonces Google', 'Score SEO', 'Base de connaissances', 'Tickets ouverts'. Jamais un concept abstrait ou méta.",
         },
       },
       required: ["titre"],
