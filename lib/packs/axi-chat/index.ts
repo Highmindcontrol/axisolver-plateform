@@ -23,6 +23,7 @@
 export type {
   ChannelAxiChat,
   ConfigAxiChat,
+  ConfigProduitsAxi,
   ContexteAxiChat,
   EndpointsAxiChat,
   FonctionnalitesAxiChat,
@@ -38,6 +39,7 @@ export type {
   PieceJointe,
   PositionBandeau,
   PositionWidgetFlottant,
+  ProduitAxi,
   RoleMessage,
   SecteurPage,
   SuggestionRapide,
@@ -59,6 +61,7 @@ export { paletteDepuisPreset, useTheme } from "./theme/use-theme";
 /* ─── Composants atomiques (utiles pour variantes custom) ───── */
 export { ApercuPiecesJointes } from "./composants/apercu-pieces-jointes";
 export { BulleMessage } from "./composants/bulle-message";
+export { CarouselProduits } from "./composants/carousel-produits";
 export { EnteteChat } from "./composants/entete-chat";
 export { ModalNotationGaugista } from "./composants/modal-notation-gaugista";
 export { SuggestionsRapides } from "./composants/suggestions-rapides";

@@ -303,6 +303,66 @@ export const JAUGES_AXISOLVER_DEFAUT: JaugeConfig[] = [
   },
 ];
 
+/* ────── Produits e-commerce ─────────────────────────────────── */
+
+/**
+ * Produit affiché dans le carousel e-commerce du chat. Format pivot
+ * universel pour Shopify / WooCommerce / Prestashop / BigCommerce /
+ * boutique custom. Les intégrations doivent mapper leur modèle produit
+ * vers ce type (adaptateur côté backend de chaque boutique).
+ *
+ * Doctrine : zéro dépendance au provider. Un produit = un objet JSON
+ * sérialisable envoyé au pack via `config.produits` ou chargé depuis
+ * `config.endpoints.urlProduits`.
+ */
+export type ProduitAxi = {
+  /** Identifiant unique (SKU Shopify, product_id WooCommerce, etc.). */
+  id: string;
+  /** Nom affiché du produit. */
+  nom: string;
+  /** URL image principale (requise). Dimensions recommandées : 800×800. */
+  imageUrl: string;
+  /** URLs images supplémentaires (galerie). Max 5 affichées. */
+  images?: string[];
+  /** Description courte (1-2 phrases, max 160 chars affichés). */
+  description?: string;
+  /** Prix actuel (string pour éviter arrondis floats — ex: "29,90"). */
+  prix: string;
+  /** Prix barré (avant remise). Si fourni, affiché rayé + accent sur
+   *  le prix actuel. */
+  prixBarre?: string;
+  /** Code devise ISO 4217 (EUR, USD, GBP, CHF, CAD…). Défaut EUR. */
+  devise?: string;
+  /** URL externe vers la fiche produit sur la boutique (Shopify, etc.). */
+  lienBoutique: string;
+  /** Libellé du bouton CTA. Défaut "Voir le produit". */
+  texteBouton?: string;
+  /** Niveau de stock pour pastille d'alerte. */
+  stock?: "en_stock" | "faible" | "rupture";
+  /** Badge visuel en coin de la card (ex: "NOUVEAU", "-30%", "BESTSELLER"). */
+  badge?: string;
+  /** Catégorie (filtrage futur). */
+  categorie?: string;
+  /** Tags libres. */
+  tags?: string[];
+  /** Métadonnées libres pour extension (couleur de badge, variants, etc.). */
+  meta?: Record<string, unknown>;
+};
+
+/** Configuration de la zone produits (carousel). */
+export type ConfigProduitsAxi = {
+  /** Titre affiché au-dessus du carousel (optionnel). */
+  titre?: string;
+  /** Nombre de produits visibles simultanément (défaut responsive 1/2/3). */
+  cardsVisibles?: 1 | 2 | 3;
+  /** Afficher les flèches Prev/Next (défaut true). */
+  avecFleches?: boolean;
+  /** Afficher les dots de navigation (défaut true si > 1 produit). */
+  avecDots?: boolean;
+  /** Autoplay du carousel (délai en ms, ex: 5000). Désactivé par défaut. */
+  autoplayMs?: number;
+};
+
 /* ────── Configuration racine ─────────────────────────────────── */
 
 export type ConfigAxiChat = {
@@ -346,4 +406,18 @@ export type ConfigAxiChat = {
    * sous la barre « Conversation avec AXI »).
    */
   avecEntete?: boolean;
+  /**
+   * Produits à afficher dans le carousel e-commerce (optionnel).
+   * Si fourni, un carousel apparaît sous la liste des messages, au-
+   * dessus de la zone de saisie. Pensé pour sites Shopify / WooCommerce
+   * / boutiques custom où AXI parle avec un visiteur et suggère des
+   * produits à acheter.
+   */
+  produits?: ProduitAxi[];
+  /** Options d'affichage du carousel produits. */
+  configProduits?: ConfigProduitsAxi;
+  /** Callback déclenché au clic sur une card produit (image/nom). */
+  surClicProduit?: (produit: ProduitAxi) => void;
+  /** Callback déclenché au clic sur le CTA (bouton d'achat) d'une card. */
+  surClicAcheter?: (produit: ProduitAxi) => void;
 };
