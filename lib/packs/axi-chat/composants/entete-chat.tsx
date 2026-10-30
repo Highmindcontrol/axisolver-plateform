@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckSquare, Sparkles } from "lucide-react";
+import { CheckSquare, PlusCircle, Sparkles } from "lucide-react";
 
 import type { ContexteAxiChat } from "../types";
 
@@ -8,10 +8,12 @@ export function EnteteChat({
   contexte,
   onTerminer,
   libelleTerminer,
+  onNouvelleConversation,
 }: {
   contexte: ContexteAxiChat | undefined;
   onTerminer?: () => void;
   libelleTerminer?: string;
+  onNouvelleConversation?: () => void;
 }) {
   const nom = contexte?.nomAssistant ?? "AXI";
   const sousTitre = contexte?.sousTitre ?? "Votre copilote AxiSolver";
@@ -53,22 +55,41 @@ export function EnteteChat({
         </div>
       </div>
 
-      {onTerminer && (
-        <button
-          type="button"
-          onClick={onTerminer}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium transition-colors"
-          style={{
-            borderRadius: "9999px",
-            border: `1px solid var(--axi-chat-bordure)`,
-            background: "var(--axi-chat-surface)",
-            color: "var(--axi-chat-texte-secondaire)",
-          }}
-        >
-          <CheckSquare className="h-3 w-3" strokeWidth={2.4} aria-hidden />
-          {libelleTerminer ?? "Terminer"}
-        </button>
-      )}
+      <div className="flex items-center gap-1.5">
+        {onNouvelleConversation && (
+          <button
+            type="button"
+            onClick={onNouvelleConversation}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium transition-colors"
+            style={{
+              borderRadius: "9999px",
+              border: `1px solid var(--axi-chat-bordure)`,
+              background: "var(--axi-chat-surface)",
+              color: "var(--axi-chat-texte-secondaire)",
+            }}
+            aria-label="Démarrer une nouvelle conversation"
+          >
+            <PlusCircle className="h-3 w-3" strokeWidth={2.4} aria-hidden />
+            Nouvelle
+          </button>
+        )}
+        {onTerminer && (
+          <button
+            type="button"
+            onClick={onTerminer}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium transition-colors"
+            style={{
+              borderRadius: "9999px",
+              border: `1px solid var(--axi-chat-bordure)`,
+              background: "var(--axi-chat-surface)",
+              color: "var(--axi-chat-texte-secondaire)",
+            }}
+          >
+            <CheckSquare className="h-3 w-3" strokeWidth={2.4} aria-hidden />
+            {libelleTerminer ?? "Terminer"}
+          </button>
+        )}
+      </div>
     </header>
   );
 }

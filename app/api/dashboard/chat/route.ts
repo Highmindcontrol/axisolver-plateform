@@ -19,8 +19,11 @@ import {
   appendMessages,
   chargerOuCreerFil,
   chercherMessagesPertinents,
+  compterMessages,
+  lireFilParId,
   lireMessagesContexte,
 } from "@/lib/services/copilote-memoire";
+import { genererTitreSiPertinent } from "@/lib/services/copilote-titre";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -182,8 +185,22 @@ async function traiterChat(req: Request) {
     similarite: number;
   }> = [];
 
+  // Header X-Axi-Fil-Id : permet au client de forcer un fil spécifique
+  // (bascule depuis le journal). Sinon on prend le dernier fil actif
+  // pour (user, site) via chargerOuCreerFil.
+  const filIdForce = req.headers.get("x-axi-fil-id")?.trim() || null;
+
   try {
-    fil = await chargerOuCreerFil(user.id, slugSiteCourant);
+    if (filIdForce) {
+      const trouve = await lireFilParId(filIdForce, user.id);
+      if (trouve) {
+        fil = trouve;
+      } else {
+        fil = await chargerOuCreerFil(user.id, slugSiteCourant);
+      }
+    } else {
+      fil = await chargerOuCreerFil(user.id, slugSiteCourant);
+    }
     historiqueBase = await lireMessagesContexte(fil.id);
   } catch (e) {
     console.error("[dashboard/chat] mémoire indisponible — fallback sans mémoire", e);
@@ -341,6 +358,23 @@ async function traiterChat(req: Request) {
         }
       } catch (e) {
         console.warn("[dashboard/chat] test condensation échoué", e);
+      }
+
+      // Génération auto du titre si le fil atteint le seuil de messages
+      // et porte encore un titre par défaut. En arrière-plan — ne bloque
+      // pas la réponse à l'admin.
+      try {
+        const n = await compterMessages(fil.id);
+        if (n >= 6) {
+          const filId = fil.id;
+          enArrierePlan(
+            genererTitreSiPertinent(filId, user.id).catch((e) =>
+              console.warn("[copilote-titre] génération échouée", e),
+            ),
+          );
+        }
+      } catch (e) {
+        console.warn("[dashboard/chat] test génération titre échoué", e);
       }
     }
 

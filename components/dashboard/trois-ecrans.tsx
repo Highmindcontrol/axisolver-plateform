@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   AxiChatCopilote,
@@ -24,6 +24,11 @@ type SiteChantier = {
  * Seul le message d'accueil d'AXI et la zone de saisie sont visibles.
  * L'ailette droite se remplit AU FUR ET À MESURE que AXI prend des
  * actions (appels de tools côté serveur).
+ *
+ * Multi-conversations : on garde en localStorage le filId actif par
+ * site (clé `axichat::fil-courant::<slug ou GLOBAL>`). Un
+ * CustomEvent `axichat-fil-change` est écouté pour détecter les
+ * bascules déclenchées depuis le journal des conversations.
  */
 export function TroisEcrans({
   prenom,
@@ -34,6 +39,7 @@ export function TroisEcrans({
 }) {
   const pathname = usePathname();
   const [ordres, setOrdres] = useState<OrdreAxi[]>([]);
+  const [filIdActif, setFilIdActif] = useState<string | null>(null);
 
   // Détection du site courant via l'URL
   const siteCourant = useMemo(() => {
@@ -46,19 +52,80 @@ export function TroisEcrans({
     return site ?? { slug, nomEntreprise: slug };
   }, [pathname, sites]);
 
+  const cleStorage = `axichat::fil-courant::${siteCourant?.slug ?? "GLOBAL"}`;
+
+  // Hydrate depuis localStorage à chaque changement de site
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const stocke = window.localStorage.getItem(cleStorage);
+    setFilIdActif(stocke);
+    // On réinitialise aussi l'ailette d'ordres au changement de site
+    setOrdres([]);
+  }, [cleStorage]);
+
+  // Écoute les bascules de fil depuis le journal
+  useEffect(() => {
+    function surChange(ev: Event) {
+      const e = ev as CustomEvent<string>;
+      const nouveauId = typeof e.detail === "string" ? e.detail : null;
+      if (nouveauId) setFilIdActif(nouveauId);
+      setOrdres([]);
+    }
+    window.addEventListener("axichat-fil-change", surChange);
+    return () => window.removeEventListener("axichat-fil-change", surChange);
+  }, []);
+
   const surOrdre = useCallback((ordre: OrdreAxi) => {
     setOrdres((prev) => {
-      // Dédup par id (évite doublons si AXI renvoie le même ordre)
       if (prev.some((o) => o.id === ordre.id)) return prev;
       return [...prev, ordre];
     });
   }, []);
+
+  const surNouvelleConversation = useCallback(async () => {
+    try {
+      const resp = await fetch("/api/dashboard/chat/fil/nouveau", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteSlug: siteCourant?.slug ?? null }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = (await resp.json()) as { filId?: string };
+      if (!data.filId) return;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(cleStorage, data.filId);
+        window.dispatchEvent(
+          new CustomEvent("axichat-fil-change", { detail: data.filId }),
+        );
+      }
+      setFilIdActif(data.filId);
+      setOrdres([]);
+    } catch (e) {
+      console.warn("[trois-ecrans] création nouveau fil échouée", e);
+    }
+  }, [siteCourant?.slug, cleStorage]);
 
   const config: ConfigAxiChat = useMemo(() => {
     const nomSiteCourant = siteCourant?.nomEntreprise;
     const accueil = nomSiteCourant
       ? `Bonjour. On regarde ${nomSiteCourant} ensemble ? Dites-moi ce que vous voulez voir ou faire.`
       : `Bonjour. Dites-moi ce que vous voulez voir ou faire.`;
+
+    // Header X-Axi-Fil-Id : si on a un fil actif, on l'envoie côté
+    // serveur pour qu'il recharge CE fil précis (bascule depuis
+    // journal) au lieu du dernier fil actif du site.
+    const entetes: Record<string, string> = {};
+    if (filIdActif) {
+      entetes["X-Axi-Fil-Id"] = filIdActif;
+    }
+
+    // urlHistorique : utilise /fil/[id] si un fil précis est sélectionné,
+    // sinon /fil?siteSlug=... pour prendre le dernier actif du site.
+    const urlHistorique = filIdActif
+      ? `/api/dashboard/chat/fil/${filIdActif}`
+      : siteCourant
+        ? `/api/dashboard/chat/fil?siteSlug=${encodeURIComponent(siteCourant.slug)}`
+        : "/api/dashboard/chat/fil";
 
     return {
       channel: "back-office-copilote",
@@ -74,11 +141,10 @@ export function TroisEcrans({
       },
       endpoints: {
         urlChat: "/api/dashboard/chat",
-        urlHistorique: siteCourant
-          ? `/api/dashboard/chat/fil?siteSlug=${encodeURIComponent(siteCourant.slug)}`
-          : "/api/dashboard/chat/fil",
+        urlHistorique,
         urlDictee: "/api/transcrire",
         urlVoix: "/api/synthese-vocale",
+        entetes: Object.keys(entetes).length > 0 ? entetes : undefined,
       },
       fonctionnalites: {
         dictee: true,
@@ -88,8 +154,12 @@ export function TroisEcrans({
       },
       accueilPersonnalise: accueil,
       surOrdre,
+      surNouvelleConversation,
+      // cleReload change à chaque bascule → force le re-fetch de
+      // l'historique et le reset du brouillon dans le pack.
+      cleReload: `${siteCourant?.slug ?? "GLOBAL"}::${filIdActif ?? "DEFAUT"}`,
     };
-  }, [prenom, siteCourant, surOrdre]);
+  }, [prenom, siteCourant, surOrdre, surNouvelleConversation, filIdActif]);
 
   return (
     <AxiChatCopilote

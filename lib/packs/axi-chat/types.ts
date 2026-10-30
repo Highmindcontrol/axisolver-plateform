@@ -270,4 +270,17 @@ export type ConfigAxiChat = {
   surFermeture?: () => void;
   /** Callback après envoi réussi de la notation Gaugista. */
   surNotation?: (notes: Record<string, number>, commentaire?: string) => void;
+  /**
+   * Callback déclenché quand l'utilisateur clique sur le bouton
+   * « Nouvelle conversation » dans l'entête. Le parent est responsable
+   * de créer un nouveau fil côté serveur et de rafraîchir l'historique
+   * (via changement de clé de reload typiquement).
+   */
+  surNouvelleConversation?: () => void;
+  /**
+   * Clé de rafraîchissement : si fournie et qu'elle change, le
+   * composant purge son état local (messages, brouillon) et refetche
+   * l'historique. Utilisé pour basculer d'un fil à l'autre.
+   */
+  cleReload?: string;
 };

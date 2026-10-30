@@ -55,6 +55,10 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   // le fil réel récupéré depuis le serveur. Garantit que l'admin
   // retrouve sa conversation exactement là où il l'avait laissée,
   // même après fermeture complète du navigateur.
+  //
+  // Rechargement forcé via config.cleReload : si cette clé change
+  // (bascule de fil, nouvelle conversation), on purge l'état local
+  // et on refetche. Permet au parent de contrôler l'actualisation.
   useEffect(() => {
     const url = config.endpoints.urlHistorique;
     if (!url) return;
@@ -71,6 +75,9 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
               horodatage: m.horodatage ? new Date(m.horodatage) : undefined,
             })),
           );
+        } else {
+          // Fil vide (nouvelle conversation) : on repart sur l'accueil.
+          setMessages([messageAccueil(config)]);
         }
       })
       .catch(() => {
@@ -81,7 +88,7 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
       annule = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [config.endpoints.urlHistorique]);
+  }, [config.endpoints.urlHistorique, config.cleReload]);
 
   // ─── Dictée (STT) ─────────────────────────────────────────
   const dictee = useDictee({
@@ -236,6 +243,7 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
                 ? () => setNotationOuverte(true)
                 : undefined
             }
+            onNouvelleConversation={config.surNouvelleConversation}
           />
 
           <div className="flex-1 space-y-3 overflow-y-auto py-2">

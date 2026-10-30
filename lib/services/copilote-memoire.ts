@@ -274,3 +274,152 @@ export async function lireHistoriqueComplet(
     creeLe: r.creeLe,
   }));
 }
+
+/**
+ * Charge un fil par son ID avec vérification d'ownership.
+ * Retourne null si le fil n'existe pas ou appartient à un autre user.
+ */
+export async function lireFilParId(
+  filId: string,
+  userId: string,
+): Promise<FilCopilote | null> {
+  const [row] = await db
+    .select()
+    .from(copiloteConversations)
+    .where(
+      and(
+        eq(copiloteConversations.id, filId),
+        eq(copiloteConversations.userId, userId),
+      ),
+    )
+    .limit(1);
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.userId,
+    siteSlug: row.siteSlug,
+    titre: row.titre,
+    memoireLongue: row.memoireLongue,
+    creeLe: row.creeLe,
+    derniereActiviteLe: row.derniereActiviteLe,
+  };
+}
+
+/**
+ * Crée explicitement un nouveau fil pour (userId, siteSlug). Ne
+ * réutilise JAMAIS un fil existant (contrairement à chargerOuCreerFil).
+ * Utilisé par le bouton « Nouvelle conversation ».
+ */
+export async function creerNouveauFil(
+  userId: string,
+  siteSlug: string | null,
+  titre?: string,
+): Promise<FilCopilote> {
+  const [row] = await db
+    .insert(copiloteConversations)
+    .values({
+      userId,
+      siteSlug,
+      titre: titre ?? "Nouvelle conversation",
+    })
+    .returning();
+  return {
+    id: row.id,
+    userId: row.userId,
+    siteSlug: row.siteSlug,
+    titre: row.titre,
+    memoireLongue: row.memoireLongue,
+    creeLe: row.creeLe,
+    derniereActiviteLe: row.derniereActiviteLe,
+  };
+}
+
+/**
+ * Liste tous les fils d'un user (optionnellement filtrés par site)
+ * avec un enrichissement : nb de messages + premier message user
+ * (pour affichage dans le journal des conversations).
+ */
+export async function lireFilsParSite(
+  userId: string,
+  siteSlug: string | null,
+): Promise<
+  Array<{
+    id: string;
+    titre: string;
+    siteSlug: string | null;
+    creeLe: Date;
+    derniereActiviteLe: Date;
+    nbMessages: number;
+    premierMessage: string | null;
+  }>
+> {
+  const whereClauses = [eq(copiloteConversations.userId, userId)];
+  if (siteSlug === null) {
+    whereClauses.push(isNull(copiloteConversations.siteSlug));
+  } else {
+    whereClauses.push(eq(copiloteConversations.siteSlug, siteSlug));
+  }
+
+  const fils = await db
+    .select()
+    .from(copiloteConversations)
+    .where(and(...whereClauses))
+    .orderBy(desc(copiloteConversations.derniereActiviteLe));
+
+  // Enrichissement par fil : count + premier message user. Un passage
+  // SQL par fil (acceptable car ≤ ~50 fils par site/user typique).
+  const enrichis = await Promise.all(
+    fils.map(async (f) => {
+      const [cnt] = await db
+        .select({ n: count() })
+        .from(copiloteMessages)
+        .where(eq(copiloteMessages.conversationId, f.id));
+      const [premier] = await db
+        .select({ contenu: copiloteMessages.contenu })
+        .from(copiloteMessages)
+        .where(
+          and(
+            eq(copiloteMessages.conversationId, f.id),
+            eq(copiloteMessages.role, "user"),
+          ),
+        )
+        .orderBy(asc(copiloteMessages.creeLe))
+        .limit(1);
+      return {
+        id: f.id,
+        titre: f.titre,
+        siteSlug: f.siteSlug,
+        creeLe: f.creeLe,
+        derniereActiviteLe: f.derniereActiviteLe,
+        nbMessages: Number(cnt?.n ?? 0),
+        premierMessage: premier?.contenu ?? null,
+      };
+    }),
+  );
+
+  return enrichis;
+}
+
+/**
+ * Met à jour le titre d'un fil. Vérifie ownership.
+ * Retourne true si mise à jour effectuée.
+ */
+export async function majTitreFil(
+  filId: string,
+  userId: string,
+  titre: string,
+): Promise<boolean> {
+  const titreNettoye = titre.trim().slice(0, 200);
+  if (!titreNettoye) return false;
+  const res = await db
+    .update(copiloteConversations)
+    .set({ titre: titreNettoye })
+    .where(
+      and(
+        eq(copiloteConversations.id, filId),
+        eq(copiloteConversations.userId, userId),
+      ),
+    )
+    .returning({ id: copiloteConversations.id });
+  return res.length > 0;
+}

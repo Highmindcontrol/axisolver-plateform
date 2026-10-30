@@ -34,6 +34,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     filId: fil.id,
+    titre: fil.titre,
     siteSlug: fil.siteSlug,
     creeLe: fil.creeLe.toISOString(),
     derniereActiviteLe: fil.derniereActiviteLe.toISOString(),
