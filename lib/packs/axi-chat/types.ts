@@ -155,6 +155,20 @@ export type OrdreAxi = {
   horodatage?: Date;
 };
 
+/**
+ * Repère visuel émis par AXI pendant qu'elle parle, à afficher sur
+ * l'ailette gauche. Deux formes :
+ *   - section : cartouche titre (ex: « Annonces Google »)
+ *   - lien : bouton cliquable vers une page admin
+ */
+export type RepereAxi = {
+  id: string;
+  kind: "section" | "lien";
+  label: string;
+  cible?: string;
+  horodatage?: Date;
+};
+
 export type MessageAxi = {
   id: string;
   role: RoleMessage;
@@ -267,6 +281,8 @@ export type ConfigAxiChat = {
   /** Callbacks optionnels. */
   surMessage?: (message: MessageAxi) => void;
   surOrdre?: (ordre: OrdreAxi) => void;
+  /** Appelé à chaque repère visuel émis par AXI (section ou lien). */
+  surRepere?: (repere: RepereAxi) => void;
   surFermeture?: () => void;
   /** Callback après envoi réussi de la notation Gaugista. */
   surNotation?: (notes: Record<string, number>, commentaire?: string) => void;

@@ -85,6 +85,42 @@ export const COPILOTE_TOOLS: Anthropic.Messages.Tool[] = [
       required: [],
     },
   },
+  {
+    name: "afficher_section",
+    description:
+      "Affiche un cartouche visuel sur l'ailette gauche de la conversation (ex: 'Annonces Google', 'Référencement', 'Sécurité'). À utiliser systématiquement quand tu structures une réponse en plusieurs points thématiques. INTERDICTION : ne JAMAIS écrire de titre markdown dans ton speech — appelle ce tool à la place. Pendant que tu parles d'un sujet, le cartouche apparaît côté gauche pour aider l'admin à visualiser.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        titre: {
+          type: "string",
+          description:
+            "Titre court (2-4 mots max) qui résume la section. Ex: 'Annonces Google', 'Score SEO', 'Base de connaissances'.",
+        },
+      },
+      required: ["titre"],
+    },
+  },
+  {
+    name: "afficher_lien",
+    description:
+      "Affiche un bouton cliquable sur l'ailette gauche pour que l'admin ouvre directement une page admin (SEO, Ads, Sécurité, Configuration, etc.). À utiliser quand tu veux orienter l'admin vers une page. INTERDICTION : ne JAMAIS écrire d'URL dans ton speech — appelle ce tool. Le TTS ne lira pas d'URL imprononçable.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        label: {
+          type: "string",
+          description: "Libellé du bouton. Ex: 'Audit SEO', 'Rapports', 'Configuration'.",
+        },
+        cible: {
+          type: "string",
+          description:
+            "URL admin de destination. Doit commencer par '/dashboard/'. Ex: '/dashboard/sites/coryphea/seo'.",
+        },
+      },
+      required: ["label", "cible"],
+    },
+  },
 ];
 
 /* ─── Exécution serveur ──────────────────────────────────────── */
@@ -96,6 +132,15 @@ export type OrdreTool = {
   statut: "en_cours" | "termine" | "echoue";
   horodatage: Date;
   resume: string | null;
+  /**
+   * Nature du tool :
+   *   - "action" : vrai tool qui lit/écrit, va dans l'ailette d'ordres (droite)
+   *   - "section" : repère visuel « cartouche » dans l'ailette gauche
+   *   - "lien" : bouton cliquable dans l'ailette gauche
+   */
+  kind?: "action" | "section" | "lien";
+  /** URL cible si kind === "lien". */
+  cible?: string;
 };
 
 export async function executerTool(
@@ -104,7 +149,56 @@ export async function executerTool(
   contexte: { userId: string },
 ): Promise<{ resultat: string; ordre: OrdreTool }> {
   const horodatage = new Date();
-  const id = `${nomTool}-${horodatage.getTime()}`;
+  const id = `${nomTool}-${horodatage.getTime()}-${Math.random().toString(36).slice(2, 7)}`;
+
+  // Tools déclaratifs (repères visuels) — zéro I/O, retour immédiat
+  if (nomTool === "afficher_section") {
+    const titre = String(input.titre ?? "").trim().slice(0, 60);
+    return {
+      resultat: `Section « ${titre} » affichée sur l'ailette gauche.`,
+      ordre: {
+        id,
+        nomTool,
+        libelle: titre,
+        statut: "termine",
+        horodatage,
+        resume: null,
+        kind: "section",
+      },
+    };
+  }
+  if (nomTool === "afficher_lien") {
+    const label = String(input.label ?? "").trim().slice(0, 60);
+    const cible = String(input.cible ?? "").trim();
+    if (!label || !cible.startsWith("/dashboard/")) {
+      return {
+        resultat:
+          "Appel afficher_lien invalide : label manquant ou cible hors /dashboard/.",
+        ordre: {
+          id,
+          nomTool,
+          libelle: label || "lien invalide",
+          statut: "echoue",
+          horodatage,
+          resume: "cible doit commencer par /dashboard/",
+          kind: "lien",
+        },
+      };
+    }
+    return {
+      resultat: `Bouton « ${label} » (${cible}) affiché sur l'ailette gauche.`,
+      ordre: {
+        id,
+        nomTool,
+        libelle: label,
+        statut: "termine",
+        horodatage,
+        resume: null,
+        kind: "lien",
+        cible,
+      },
+    };
+  }
 
   try {
     const resultat = await executerToolInterne(nomTool, input, contexte);
@@ -117,6 +211,7 @@ export async function executerTool(
         statut: "termine",
         horodatage,
         resume: resultat.resume,
+        kind: "action",
       },
     };
   } catch (e) {
@@ -130,6 +225,7 @@ export async function executerTool(
         statut: "echoue",
         horodatage,
         resume: msg.slice(0, 160),
+        kind: "action",
       },
     };
   }

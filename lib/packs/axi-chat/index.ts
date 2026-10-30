@@ -31,6 +31,7 @@ export type {
   ModeTheme,
   NotationGaugistaConfig,
   OrdreAxi,
+  RepereAxi,
   PaletteTheme,
   PieceJointe,
   PositionBandeau,

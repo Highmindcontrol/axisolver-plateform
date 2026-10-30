@@ -13,6 +13,7 @@ import type {
   ConfigAxiChat,
   MessageAxi,
   OrdreAxi,
+  RepereAxi,
 } from "../types";
 
 import { ApercuPiecesJointes } from "./apercu-pieces-jointes";
@@ -196,6 +197,18 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
             ),
           );
           config.surOrdre?.(o);
+        },
+        onRepere: (repere) => {
+          const r: RepereAxi = {
+            id: repere.id,
+            kind: repere.kind,
+            label: repere.label,
+            cible: repere.cible,
+            horodatage: repere.horodatage
+              ? new Date(repere.horodatage)
+              : undefined,
+          };
+          config.surRepere?.(r);
         },
         onDone: (contenu) => {
           // Si le serveur a renvoyé un `contenu` final différent (cas
@@ -398,6 +411,13 @@ async function consommerStream(params: {
     statut: "propose" | "en_cours" | "termine" | "echoue" | "refuse";
     horodatage?: string;
   }) => void;
+  onRepere: (repere: {
+    id: string;
+    kind: "section" | "lien";
+    label: string;
+    cible?: string;
+    horodatage?: string;
+  }) => void;
   onDone: (contenu: string) => void;
 }): Promise<void> {
   const resp = await fetch(params.url, {
@@ -441,6 +461,13 @@ async function consommerStream(params: {
           statut: "propose" | "en_cours" | "termine" | "echoue" | "refuse";
           horodatage?: string;
         };
+        repere?: {
+          id: string;
+          kind: "section" | "lien";
+          label: string;
+          cible?: string;
+          horodatage?: string;
+        };
       };
       try {
         evt = JSON.parse(brut);
@@ -452,6 +479,8 @@ async function consommerStream(params: {
         extractor.feed(evt.text);
       } else if (evt.type === "ordre" && evt.ordre) {
         params.onOrdre(evt.ordre);
+      } else if (evt.type === "repere" && evt.repere) {
+        params.onRepere(evt.repere);
       } else if (evt.type === "done") {
         dernierContenu = evt.contenu ?? "";
       } else if (evt.type === "error") {

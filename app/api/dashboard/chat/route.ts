@@ -38,6 +38,7 @@ type MessagePack = {
 type EventStream =
   | { type: "speech_delta"; text: string }
   | { type: "ordre"; ordre: OrdreClient }
+  | { type: "repere"; repere: RepereClient }
   | { type: "done"; contenu: string; ordres: OrdreClient[] }
   | { type: "error"; message: string };
 
@@ -47,6 +48,14 @@ type OrdreClient = {
   statut: "termine" | "echoue" | "en_cours";
   horodatage: string;
   resume?: string;
+};
+
+type RepereClient = {
+  id: string;
+  kind: "section" | "lien";
+  label: string;
+  cible?: string;
+  horodatage: string;
 };
 
 /**
@@ -357,11 +366,27 @@ async function traiterChatStream(
         (t.input as Record<string, unknown>) ?? {},
         { userId: user.id },
       );
-      ordresPris.push(ordre);
-      emit({
-        type: "ordre",
-        ordre: ordreVersClient(ordre),
-      });
+      // Les tools déclaratifs (section / lien) alimentent l'ailette
+      // gauche via un event séparé. Les vrais tools (action) vont
+      // dans l'ailette d'ordres (droite).
+      if (ordre.kind === "section" || ordre.kind === "lien") {
+        emit({
+          type: "repere",
+          repere: {
+            id: ordre.id,
+            kind: ordre.kind,
+            label: ordre.libelle,
+            cible: ordre.cible,
+            horodatage: ordre.horodatage.toISOString(),
+          },
+        });
+      } else {
+        ordresPris.push(ordre);
+        emit({
+          type: "ordre",
+          ordre: ordreVersClient(ordre),
+        });
+      }
       toolResults.push({
         type: "tool_result",
         tool_use_id: t.id,

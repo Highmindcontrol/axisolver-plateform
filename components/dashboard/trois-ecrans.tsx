@@ -7,9 +7,11 @@ import {
   AxiChatCopilote,
   type ConfigAxiChat,
   type OrdreAxi,
+  type RepereAxi,
 } from "@/lib/packs/axi-chat";
 
 import { AiletteOrdres } from "./ailette-ordres";
+import { AiletteReperes } from "./ailette-reperes";
 
 type SiteChantier = {
   slug: string;
@@ -39,6 +41,7 @@ export function TroisEcrans({
 }) {
   const pathname = usePathname();
   const [ordres, setOrdres] = useState<OrdreAxi[]>([]);
+  const [reperes, setReperes] = useState<RepereAxi[]>([]);
   const [filIdActif, setFilIdActif] = useState<string | null>(null);
 
   // Détection du site courant via l'URL
@@ -61,6 +64,7 @@ export function TroisEcrans({
     setFilIdActif(stocke);
     // On réinitialise aussi l'ailette d'ordres au changement de site
     setOrdres([]);
+    setReperes([]);
   }, [cleStorage]);
 
   // Écoute les bascules de fil depuis le journal
@@ -70,6 +74,7 @@ export function TroisEcrans({
       const nouveauId = typeof e.detail === "string" ? e.detail : null;
       if (nouveauId) setFilIdActif(nouveauId);
       setOrdres([]);
+    setReperes([]);
     }
     window.addEventListener("axichat-fil-change", surChange);
     return () => window.removeEventListener("axichat-fil-change", surChange);
@@ -79,6 +84,13 @@ export function TroisEcrans({
     setOrdres((prev) => {
       if (prev.some((o) => o.id === ordre.id)) return prev;
       return [...prev, ordre];
+    });
+  }, []);
+
+  const surRepere = useCallback((repere: RepereAxi) => {
+    setReperes((prev) => {
+      if (prev.some((r) => r.id === repere.id)) return prev;
+      return [...prev, repere];
     });
   }, []);
 
@@ -131,6 +143,7 @@ export function TroisEcrans({
       },
       accueilPersonnalise: accueil,
       surOrdre,
+      surRepere,
       // Pas d'entête interne au chat : le bouton « Nouvelle conversation »
       // vit dans la barre toggle au-dessus, et le titre AXI serait
       // redondant avec « Conversation avec AXI ».
@@ -139,12 +152,12 @@ export function TroisEcrans({
       // l'historique et le reset du brouillon dans le pack.
       cleReload: `${siteCourant?.slug ?? "GLOBAL"}::${filIdActif ?? "DEFAUT"}`,
     };
-  }, [prenom, siteCourant, surOrdre, filIdActif]);
+  }, [prenom, siteCourant, surOrdre, surRepere, filIdActif]);
 
   return (
     <AxiChatCopilote
       config={config}
-      aileteGauche={null}
+      aileteGauche={<AiletteReperes reperes={reperes} />}
       aileteDroite={<AiletteOrdres ordres={ordres} />}
     />
   );
