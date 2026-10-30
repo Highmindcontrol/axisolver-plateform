@@ -4,13 +4,15 @@ import { useEffect, useRef, useState } from "react";
 
 import { useDictee } from "../hooks/use-dictee";
 import { usePiecesJointes } from "../hooks/use-pieces-jointes";
-import { useVoixSynthese } from "../hooks/use-voix-synthese";
+import {
+  createSentenceExtractor,
+  useStreamingTts,
+} from "../hooks/use-streaming-tts";
 import { useTheme } from "../theme/use-theme";
 import type {
   ConfigAxiChat,
   MessageAxi,
-  PieceJointe,
-  SuggestionRapide,
+  OrdreAxi,
 } from "../types";
 
 import { ApercuPiecesJointes } from "./apercu-pieces-jointes";
@@ -23,12 +25,11 @@ import { ZoneSaisie } from "./zone-saisie";
 /**
  * Composant racine du pack @axi-chat.
  *
- * Pose les CSS variables de thème sur son conteneur et compose
- * entête + liste de messages + suggestions + zone de saisie.
- *
- * Est utilisé tel quel par les variantes (back-office-copilote,
- * widget-flottant, plein-ecran…) qui lui donnent juste un wrapper
- * de layout spécifique.
+ * Streaming NDJSON (pattern AxiHub turn-stream) : le backend émet
+ * ligne par ligne les événements `speech_delta`, `ordre`, `done`,
+ * `error`. On met à jour la bulle AXI en live + on alimente le
+ * streaming TTS phrase par phrase. Résultat : la voix démarre
+ * typiquement en ~1-2s au lieu d'attendre la fin complète.
  */
 export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   const { variablesCss } = useTheme(config.theme);
@@ -43,22 +44,12 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
   const [envoyerApresDictee, setEnvoyerApresDictee] = useState(false);
   const brouillonRef = useRef("");
-  // Brouillon figé au moment du démarrage de la dictée. On concatène
-  // la transcription en live PAR-DESSUS cette base, sans accumuler.
   const refBaseAvantDictee = useRef("");
   useEffect(() => {
     brouillonRef.current = brouillon;
   }, [brouillon]);
 
   // ─── Chargement de l'historique persisté au mount ────────
-  // Si urlHistorique est fournie, on remplace les messages locaux par
-  // le fil réel récupéré depuis le serveur. Garantit que l'admin
-  // retrouve sa conversation exactement là où il l'avait laissée,
-  // même après fermeture complète du navigateur.
-  //
-  // Rechargement forcé via config.cleReload : si cette clé change
-  // (bascule de fil, nouvelle conversation), on purge l'état local
-  // et on refetche. Permet au parent de contrôler l'actualisation.
   useEffect(() => {
     const url = config.endpoints.urlHistorique;
     if (!url) return;
@@ -76,14 +67,10 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
             })),
           );
         } else {
-          // Fil vide (nouvelle conversation) : on repart sur l'accueil.
           setMessages([messageAccueil(config)]);
         }
       })
-      .catch(() => {
-        // Silence : si le chargement échoue, on garde les messages
-        // par défaut (accueil). L'admin pourra toujours écrire.
-      });
+      .catch(() => undefined);
     return () => {
       annule = true;
     };
@@ -96,9 +83,6 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
     urlDictee: config.endpoints.urlDictee,
     entetes: config.endpoints.entetes,
   });
-  // Synchro brouillon pendant la dictée : on remplace à chaque update,
-  // en préservant ce qui était écrit avant le démarrage. Évite les
-  // concaténations en boucle qui dupliquaient le texte.
   useEffect(() => {
     if (dictee.etat === "repos") return;
     const base = refBaseAvantDictee.current;
@@ -110,11 +94,10 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
     setBrouillon(base ? `${base} ${t}`.trim() : t);
   }, [dictee.transcription, dictee.etat]);
 
-  // ─── Voix synthèse (TTS) ──────────────────────────────────
-  const voix = useVoixSynthese({
+  // ─── Voix synthèse (TTS streaming phrase par phrase) ─────
+  const voixStream = useStreamingTts({
     urlVoix: config.endpoints.urlVoix,
     entetes: config.endpoints.entetes,
-    langue: localeDepuisLangue(config.contexte?.langue),
   });
 
   // ─── Pièces jointes ───────────────────────────────────────
@@ -140,11 +123,14 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
       ? messages[messages.length - 1].suggestions ?? []
       : [];
 
-  function envoyer(texte: string) {
+  async function envoyer(texte: string) {
     const contenu = texte.trim();
     const pieces = piecesJointes.pieces;
     if ((!contenu && pieces.length === 0) || envoiEnCours) return;
     if (dictee.etat !== "repos") dictee.arreter();
+
+    // Coupe toute lecture TTS en cours — la nouvelle réponse va parler.
+    voixStream.stopAll();
 
     const msgVisiteur: MessageAxi = {
       id: `v-${Date.now()}`,
@@ -153,55 +139,108 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
       piecesJointes: pieces.length > 0 ? pieces : undefined,
       horodatage: new Date(),
     };
-    setMessages((prev) => [...prev, msgVisiteur]);
+    const idAxi = `a-${Date.now()}`;
+    const msgAxiVide: MessageAxi = {
+      id: idAxi,
+      role: "axi",
+      contenu: "",
+      horodatage: new Date(),
+      ordres: [],
+    };
+
+    setMessages((prev) => [...prev, msgVisiteur, msgAxiVide]);
     config.surMessage?.(msgVisiteur);
     setBrouillon("");
     piecesJointes.vider();
     dictee.reinitialiser();
 
     setEnvoiEnCours(true);
-    appelerBackend(config, [...messages, msgVisiteur])
-      .then((reponse) => {
-        setMessages((prev) => [...prev, reponse]);
-        config.surMessage?.(reponse);
-        if (reponse.ordres && config.surOrdre) {
-          for (const o of reponse.ordres) config.surOrdre(o);
-        }
-        if (config.fonctionnalites?.voixSynthese) {
-          voix.lire(reponse.contenu).catch(() => undefined);
-        }
-      })
-      .catch((e) => {
-        const erreur: MessageAxi = {
-          id: `s-${Date.now()}`,
-          role: "systeme",
-          contenu:
-            e instanceof Error && e.message
-              ? e.message
-              : "AXI est momentanément indisponible. Réessayez.",
-        };
-        setMessages((prev) => [...prev, erreur]);
-      })
-      .finally(() => setEnvoiEnCours(false));
+    try {
+      await consommerStream({
+        url: config.endpoints.urlChat,
+        entetes: config.endpoints.entetes,
+        payload: {
+          messages: [...messages, msgVisiteur].map((m) => ({
+            role: m.role,
+            contenu: m.contenu,
+          })),
+          contexte: config.contexte,
+          siteId: config.contexte?.siteId,
+          channel: config.channel,
+        },
+        voixActive: !!config.fonctionnalites?.voixSynthese,
+        onDelta: (text) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === idAxi ? { ...m, contenu: m.contenu + text } : m,
+            ),
+          );
+        },
+        onPhrase: (phrase) => {
+          if (config.fonctionnalites?.voixSynthese) {
+            voixStream.enqueue(phrase);
+          }
+        },
+        onOrdre: (ordre) => {
+          const o: OrdreAxi = {
+            id: ordre.id,
+            libelle: ordre.libelle,
+            statut: ordre.statut,
+            horodatage: ordre.horodatage ? new Date(ordre.horodatage) : undefined,
+          };
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === idAxi
+                ? { ...m, ordres: [...(m.ordres ?? []), o] }
+                : m,
+            ),
+          );
+          config.surOrdre?.(o);
+        },
+        onDone: (contenu) => {
+          // Si le serveur a renvoyé un `contenu` final différent (cas
+          // rare — fallback non-streaming), on remplace. Sinon on garde
+          // ce qu'on a accumulé via les deltas.
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === idAxi && contenu && !m.contenu.trim()
+                ? { ...m, contenu }
+                : m,
+            ),
+          );
+          config.surMessage?.({
+            id: idAxi,
+            role: "axi",
+            contenu,
+          });
+        },
+      });
+    } catch (e) {
+      const message =
+        e instanceof Error && e.message
+          ? e.message
+          : "AXI est momentanément indisponible. Réessayez.";
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === idAxi ? { ...m, role: "systeme", contenu: message } : m,
+        ),
+      );
+    } finally {
+      setEnvoiEnCours(false);
+    }
   }
 
   function toggleDictee() {
     if (dictee.etat === "repos") {
-      // Mémorise le brouillon écrit AVANT la dictée — la transcription
-      // viendra s'y ajouter en live sans l'écraser.
       refBaseAvantDictee.current = brouillonRef.current.trim();
       setEnvoyerApresDictee(false);
       dictee.demarrer().catch(() => undefined);
     } else {
-      // Clic sur micro rouge = stop + envoi auto du brouillon résultant.
       setEnvoyerApresDictee(true);
       dictee.arreter();
     }
   }
 
-  // Après arrêt volontaire de la dictée, dès que l'état repasse "repos"
-  // et que la transcription a eu le temps de se poser dans le brouillon,
-  // on envoie automatiquement.
   useEffect(() => {
     if (!envoyerApresDictee) return;
     if (dictee.etat !== "repos") return;
@@ -339,56 +378,88 @@ function messageAccueil(config: ConfigAxiChat): MessageAxi {
   };
 }
 
-async function appelerBackend(
-  config: ConfigAxiChat,
-  historique: MessageAxi[],
-): Promise<MessageAxi> {
-  const reponse = await fetch(config.endpoints.urlChat, {
+/**
+ * Consomme le flux NDJSON émis par `/api/dashboard/chat` et déclenche
+ * les callbacks correspondants au fur et à mesure. Lecture ligne par
+ * ligne via TextDecoder.
+ */
+async function consommerStream(params: {
+  url: string;
+  entetes?: Record<string, string>;
+  payload: unknown;
+  voixActive: boolean;
+  onDelta: (text: string) => void;
+  onPhrase: (phrase: string) => void;
+  onOrdre: (ordre: {
+    id: string;
+    libelle: string;
+    statut: "propose" | "en_cours" | "termine" | "echoue" | "refuse";
+    horodatage?: string;
+  }) => void;
+  onDone: (contenu: string) => void;
+}): Promise<void> {
+  const resp = await fetch(params.url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(config.endpoints.entetes ?? {}),
+      ...(params.entetes ?? {}),
     },
-    body: JSON.stringify({
-      messages: historique.map((m) => ({
-        role: m.role,
-        contenu: m.contenu,
-        piecesJointes: m.piecesJointes?.map((p) => ({
-          id: p.id,
-          type: p.type,
-          url: p.url,
-          nom: p.nom,
-        })),
-      })),
-      contexte: config.contexte,
-      siteId: config.contexte?.siteId,
-      channel: config.channel,
-    }),
+    body: JSON.stringify(params.payload),
   });
-  if (!reponse.ok) {
-    throw new Error(`AXI indisponible (HTTP ${reponse.status}).`);
+  if (!resp.ok || !resp.body) {
+    throw new Error(`AXI indisponible (HTTP ${resp.status}).`);
   }
-  const data = (await reponse.json()) as {
-    contenu: string;
-    suggestions?: SuggestionRapide[];
-    ordres?: Array<{
-      id: string;
-      libelle: string;
-      statut: "propose" | "en_cours" | "termine" | "echoue" | "refuse";
-      horodatage?: string;
-    }>;
-  };
-  return {
-    id: `a-${Date.now()}`,
-    role: "axi",
-    contenu: data.contenu,
-    suggestions: data.suggestions,
-    ordres: data.ordres?.map((o) => ({
-      id: o.id,
-      libelle: o.libelle,
-      statut: o.statut,
-      horodatage: o.horodatage ? new Date(o.horodatage) : undefined,
-    })),
-    horodatage: new Date(),
-  };
+
+  const extractor = createSentenceExtractor((phrase) => {
+    if (params.voixActive) params.onPhrase(phrase);
+  });
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let dernierContenu = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lignes = buffer.split("\n");
+    buffer = lignes.pop() ?? "";
+    for (const ligne of lignes) {
+      const brut = ligne.trim();
+      if (!brut) continue;
+      let evt: {
+        type: string;
+        text?: string;
+        contenu?: string;
+        message?: string;
+        ordre?: {
+          id: string;
+          libelle: string;
+          statut: "propose" | "en_cours" | "termine" | "echoue" | "refuse";
+          horodatage?: string;
+        };
+      };
+      try {
+        evt = JSON.parse(brut);
+      } catch {
+        continue;
+      }
+      if (evt.type === "speech_delta" && typeof evt.text === "string") {
+        params.onDelta(evt.text);
+        extractor.feed(evt.text);
+      } else if (evt.type === "ordre" && evt.ordre) {
+        params.onOrdre(evt.ordre);
+      } else if (evt.type === "done") {
+        dernierContenu = evt.contenu ?? "";
+      } else if (evt.type === "error") {
+        extractor.flush();
+        throw new Error(evt.message ?? "Erreur serveur.");
+      }
+    }
+  }
+
+  // Traite le dernier reliquat (dernière demi-phrase sans ponctuation)
+  extractor.flush();
+  params.onDone(dernierContenu);
 }

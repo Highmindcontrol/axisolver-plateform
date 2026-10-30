@@ -67,6 +67,10 @@ export { useFormulaireGaugista } from "./hooks/use-formulaire-gaugista";
 export { useNotationGaugista } from "./hooks/use-notation-gaugista";
 export { usePiecesJointes } from "./hooks/use-pieces-jointes";
 export { useVoixSynthese } from "./hooks/use-voix-synthese";
+export {
+  createSentenceExtractor,
+  useStreamingTts,
+} from "./hooks/use-streaming-tts";
 
 /* ─── Composant racine (compose les atomiques) ──────────────── */
 export { AxiChatRoot } from "./composants/axi-chat-root";
