@@ -46,9 +46,19 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   const [envoyerApresDictee, setEnvoyerApresDictee] = useState(false);
   const brouillonRef = useRef("");
   const refBaseAvantDictee = useRef("");
+  const refListeMessages = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     brouillonRef.current = brouillon;
   }, [brouillon]);
+
+  // Scroll auto en bas à chaque nouveau message (ou delta streaming)
+  // pour que le dernier message ne reste pas caché derrière la zone
+  // de saisie.
+  useEffect(() => {
+    const el = refListeMessages.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   // ─── Chargement de l'historique persisté au mount ────────
   useEffect(() => {
@@ -300,7 +310,10 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
             />
           )}
 
-          <div className="flex-1 space-y-3 overflow-y-auto py-2">
+          <div
+            ref={refListeMessages}
+            className="flex-1 space-y-3 overflow-y-auto py-2"
+          >
             {messages.map((m) => (
               <BulleMessage key={m.id} message={m} />
             ))}

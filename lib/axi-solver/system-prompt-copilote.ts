@@ -35,8 +35,29 @@ export function construirePromptCopilote(
     : "";
 
   const focalisation = siteCourant
-    ? `Tu es ACTUELLEMENT en train d'aider l'admin sur son site « ${siteCourant.nomEntreprise} » (slug: ${siteCourant.slug}, domaine: ${siteCourant.domainePrincipal}). Toute la conversation est focalisée sur CE site. URLs admin RÉELLES de ce site (ne jamais en inventer d'autres) : /dashboard/sites/${siteCourant.slug} (accueil), /dashboard/sites/${siteCourant.slug}/configuration (nom assistant, ton, voix, langues, branding, Gaugista), /dashboard/sites/${siteCourant.slug}/base-connaissances (URLs + PDFs), /dashboard/sites/${siteCourant.slug}/options-accueil, /dashboard/sites/${siteCourant.slug}/rapports (rapports quotidiens par email), /dashboard/sites/${siteCourant.slug}/securite (Security Shield), /dashboard/sites/${siteCourant.slug}/seo, /dashboard/sites/${siteCourant.slug}/ads, /dashboard/sites/${siteCourant.slug}/tickets, /dashboard/sites/${siteCourant.slug}/propriete, /dashboard/sites/${siteCourant.slug}/parametrages/mise-en-page.`
-    : `L'admin n'est pas focalisé sur un site en particulier (il est sur le dashboard racine). Tu peux l'aider sur sa configuration globale (/dashboard/votre-compte, /dashboard/abonnement), ou lui proposer de choisir un site à travailler. S'il te parle d'un site, demande-lui lequel.`;
+    ? `Tu es ACTUELLEMENT en train d'aider l'admin sur son site « ${siteCourant.nomEntreprise} » (slug: ${siteCourant.slug}, domaine: ${siteCourant.domainePrincipal}). Toute la conversation est focalisée sur CE site. URLs admin RÉELLES (ne jamais en inventer d'autres) :
+
+Pages du site :
+- /dashboard/sites/${siteCourant.slug} (accueil du site)
+- /dashboard/sites/${siteCourant.slug}/configuration (nom assistant, ton, voix, langues, branding, Gaugista)
+- /dashboard/sites/${siteCourant.slug}/base-connaissances (URLs + PDFs)
+- /dashboard/sites/${siteCourant.slug}/options-accueil
+- /dashboard/sites/${siteCourant.slug}/rapports (rapports quotidiens par email)
+- /dashboard/sites/${siteCourant.slug}/securite (Security Shield)
+- /dashboard/sites/${siteCourant.slug}/seo
+- /dashboard/sites/${siteCourant.slug}/ads
+- /dashboard/sites/${siteCourant.slug}/tickets
+- /dashboard/sites/${siteCourant.slug}/propriete
+- /dashboard/sites/${siteCourant.slug}/parametrages/mise-en-page
+
+Pages globales du dashboard (accessibles depuis n'importe où) :
+- /dashboard (accueil)
+- /dashboard/guide (Guide d'AXI : explique comment utiliser AxiSolver, bonnes pratiques, FAQ)
+- /dashboard/abonnement (plan Stripe, quota, facturation)
+- /dashboard/votre-compte (profil, notifications, RGPD, infos société)
+- /dashboard/installation (snippet JS + plugin WordPress)
+- /dashboard/sites/nouveau (créer un nouveau site)`
+    : `L'admin n'est pas focalisé sur un site en particulier (il est sur le dashboard racine). URLs globales RÉELLES : /dashboard (accueil), /dashboard/guide (Guide d'AXI), /dashboard/abonnement, /dashboard/votre-compte, /dashboard/installation, /dashboard/sites/nouveau. S'il te parle d'un site, demande-lui lequel.`;
 
   return `Tu es AXI, le copilote back-office de l'admin AxiSolver. Nous sommes le ${dateJour}.
 

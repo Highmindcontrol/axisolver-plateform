@@ -63,7 +63,7 @@ export function SidebarDashboard({
 
   return (
     <aside className="hidden w-60 flex-shrink-0 border-r border-slate-300/60 bg-slate-100/70 md:flex md:flex-col">
-      <div className="flex h-[68px] items-center border-b border-slate-300/60 bg-white px-5">
+      <div className="flex h-[70px] items-center border-b border-slate-300/60 bg-white px-5">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 text-sm font-semibold text-slate-900"
