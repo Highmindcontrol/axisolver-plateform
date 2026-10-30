@@ -97,7 +97,11 @@ export function AxiChatBandeauSticky({
     }
   }
 
-  const dureeStyle = { transitionDuration: `${dureeMs}ms` };
+  // Durée volontairement longue (défaut 2,8 s) — on ne vend pas la
+  // pensée profonde en 4 secondes. On écrit l'intégralité de la
+  // propriété `transition` en inline pour éviter que Tailwind
+  // n'écrase subrepticement avec sa durée par défaut (150 ms).
+  const transitionCss = `opacity ${dureeMs}ms cubic-bezier(0.22, 1, 0.36, 1), transform ${dureeMs}ms cubic-bezier(0.22, 1, 0.36, 1)`;
 
   return (
     <>
@@ -160,25 +164,22 @@ export function AxiChatBandeauSticky({
           {/* Rideau sombre qui s'estompe pendant dureeMs */}
           <div
             aria-hidden
-            className={`pointer-events-none absolute inset-0 z-10 transition-opacity ease-out ${
-              visible ? "opacity-0" : "opacity-100"
-            }`}
+            className="pointer-events-none absolute inset-0 z-10"
             style={{
-              ...dureeStyle,
+              transition: `opacity ${dureeMs}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+              opacity: visible ? 0 : 1,
               background: `linear-gradient(to bottom, ${palette.fond}fa, ${palette.fond}b8 45%, ${palette.fond}fa)`,
             }}
           />
 
           {/* Triptyque — fade + scale + glissement vertical en entrée */}
           <div
-            className={`transition-all ease-out ${
-              visible
-                ? "opacity-100 translate-y-0 scale-100"
-                : "opacity-0 translate-y-4 scale-[0.975]"
-            }`}
             style={{
-              ...dureeStyle,
-              transitionProperty: "opacity, transform",
+              transition: transitionCss,
+              opacity: visible ? 1 : 0,
+              transform: visible
+                ? "translateY(0) scale(1)"
+                : "translateY(16px) scale(0.975)",
             }}
           >
             <AxiChatCopilote
