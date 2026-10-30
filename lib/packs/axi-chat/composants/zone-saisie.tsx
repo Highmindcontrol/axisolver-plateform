@@ -1,6 +1,6 @@
 "use client";
 
-import { Mic, MicOff, Paperclip, Send } from "lucide-react";
+import { Mic, Paperclip, Send } from "lucide-react";
 
 import type { FonctionnalitesAxiChat } from "../types";
 
@@ -27,6 +27,9 @@ export function ZoneSaisie({
 }) {
   const avecDictee = fonctionnalites?.dictee && onDictee;
   const avecPieces = fonctionnalites?.piecesJointes && onPiecesJointes;
+  const placeholderFinal = dicteeActive
+    ? "J'écoute…"
+    : placeholder ?? "Écrivez à AXI, ou cliquez sur le micro pour parler.";
 
   return (
     <form
@@ -36,12 +39,34 @@ export function ZoneSaisie({
         onEnvoyer();
       }}
     >
+      {avecDictee && (
+        <button
+          type="button"
+          onClick={onDictee}
+          aria-label={dicteeActive ? "Arrêter la dictée et envoyer" : "Dicter un message"}
+          aria-pressed={dicteeActive}
+          className={`flex h-11 w-11 flex-shrink-0 items-center justify-center border transition-colors ${
+            dicteeActive ? "animate-pulse" : ""
+          }`}
+          style={{
+            borderRadius: "var(--axi-chat-rayon)",
+            borderColor: dicteeActive ? "#ef4444" : "var(--axi-chat-bordure)",
+            background: dicteeActive
+              ? "#ef4444"
+              : "var(--axi-chat-surface-interactive)",
+            color: dicteeActive ? "#ffffff" : "var(--axi-chat-texte-secondaire)",
+          }}
+        >
+          <Mic className="h-4 w-4" strokeWidth={2.2} aria-hidden />
+        </button>
+      )}
+
       {avecPieces && (
         <button
           type="button"
           onClick={onPiecesJointes}
           aria-label="Ajouter une pièce jointe"
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center border transition-colors"
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center border transition-colors"
           style={{
             borderRadius: "var(--axi-chat-rayon)",
             borderColor: "var(--axi-chat-bordure)",
@@ -62,9 +87,9 @@ export function ZoneSaisie({
             onEnvoyer();
           }
         }}
-        rows={1}
-        placeholder={placeholder ?? "Écrivez à AXI…"}
-        className="flex-1 resize-none px-4 py-2.5 text-sm outline-none transition-colors"
+        rows={3}
+        placeholder={placeholderFinal}
+        className="flex-1 resize-none px-4 py-2.5 text-sm leading-relaxed outline-none transition-colors"
         style={{
           borderRadius: "var(--axi-chat-rayon)",
           border: `1px solid var(--axi-chat-bordure)`,
@@ -73,39 +98,11 @@ export function ZoneSaisie({
         }}
       />
 
-      {avecDictee && (
-        <button
-          type="button"
-          onClick={onDictee}
-          aria-label={dicteeActive ? "Arrêter la dictée" : "Dicter un message"}
-          aria-pressed={dicteeActive}
-          className="flex h-10 w-10 flex-shrink-0 items-center justify-center border transition-colors"
-          style={{
-            borderRadius: "var(--axi-chat-rayon)",
-            borderColor: dicteeActive
-              ? "var(--axi-chat-accent)"
-              : "var(--axi-chat-bordure)",
-            background: dicteeActive
-              ? "var(--axi-chat-accent)"
-              : "var(--axi-chat-surface-interactive)",
-            color: dicteeActive
-              ? "var(--axi-chat-texte-sur-accent)"
-              : "var(--axi-chat-texte-secondaire)",
-          }}
-        >
-          {dicteeActive ? (
-            <MicOff className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-          ) : (
-            <Mic className="h-4 w-4" strokeWidth={2.2} aria-hidden />
-          )}
-        </button>
-      )}
-
       <button
         type="submit"
         disabled={envoiDesactive || !valeur.trim()}
         aria-label="Envoyer"
-        className="flex h-10 w-10 flex-shrink-0 items-center justify-center text-white shadow-md transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-11 w-11 flex-shrink-0 items-center justify-center text-white shadow-md transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         style={{
           borderRadius: "var(--axi-chat-rayon)",
           background: `linear-gradient(135deg, var(--axi-chat-accent), var(--axi-chat-accent-secondaire))`,

@@ -52,6 +52,21 @@ type MessagePack = {
  * ignorés — c'est la DB qui fait foi.
  */
 export async function POST(req: Request) {
+  try {
+    return await traiterChat(req);
+  } catch (e) {
+    console.error("[dashboard/chat] erreur fatale", e);
+    return NextResponse.json(
+      {
+        contenu:
+          "AXI est momentanément indisponible. Réessaie dans un instant — je garde la mémoire de notre échange.",
+      },
+      { status: 200 },
+    );
+  }
+}
+
+async function traiterChat(req: Request) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },

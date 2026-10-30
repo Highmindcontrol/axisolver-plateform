@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useDictee } from "../hooks/use-dictee";
 import { usePiecesJointes } from "../hooks/use-pieces-jointes";
@@ -41,6 +41,11 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   });
   const [brouillon, setBrouillon] = useState("");
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
+  const [envoyerApresDictee, setEnvoyerApresDictee] = useState(false);
+  const brouillonRef = useRef("");
+  useEffect(() => {
+    brouillonRef.current = brouillon;
+  }, [brouillon]);
 
   // ─── Chargement de l'historique persisté au mount ────────
   // Si urlHistorique est fournie, on remplace les messages locaux par
@@ -164,11 +169,29 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
 
   function toggleDictee() {
     if (dictee.etat === "repos") {
+      setEnvoyerApresDictee(false);
       dictee.demarrer().catch(() => undefined);
     } else {
+      // Clic sur micro rouge = stop + envoi auto du brouillon résultant.
+      setEnvoyerApresDictee(true);
       dictee.arreter();
     }
   }
+
+  // Après arrêt volontaire de la dictée, dès que l'état repasse "repos"
+  // et que la transcription a eu le temps de se poser dans le brouillon,
+  // on envoie automatiquement.
+  useEffect(() => {
+    if (!envoyerApresDictee) return;
+    if (dictee.etat !== "repos") return;
+    const t = setTimeout(() => {
+      const texte = brouillonRef.current.trim();
+      if (texte) envoyer(texte);
+      setEnvoyerApresDictee(false);
+    }, 150);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dictee.etat, envoyerApresDictee]);
 
   const peutDeclencherParBouton =
     peutNoter && declencheurs.includes("bouton");
