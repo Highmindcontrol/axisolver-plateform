@@ -21,14 +21,32 @@ export function AxiChatCopilote({
   config,
   aileteGauche,
   aileteDroite,
+  avecAilettes = true,
   hauteur = "68vh",
 }: {
   config: ConfigAxiChat;
   aileteGauche?: React.ReactNode;
   aileteDroite?: React.ReactNode;
+  /**
+   * Si true, affiche TOUJOURS les 3 colonnes et les 2 séparateurs
+   * verticaux (même si les ailettes sont vides). Les ailettes se
+   * rempliront progressivement selon le contexte de la conversation
+   * (actions prises par AXI, documents consultés, etc.).
+   */
+  avecAilettes?: boolean;
   hauteur?: string;
 }) {
   const { variablesCss, palette } = useTheme(config.theme);
+
+  const separateur = (
+    <div
+      aria-hidden
+      className="hidden w-px self-stretch md:block"
+      style={{
+        background: `linear-gradient(to bottom, transparent, ${palette.bordure}66, transparent)`,
+      }}
+    />
+  );
 
   return (
     <section
@@ -39,18 +57,12 @@ export function AxiChatCopilote({
         minHeight: "600px",
       }}
     >
-      {aileteGauche && (
+      {avecAilettes && (
         <>
           <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-10 md:block">
-            {aileteGauche}
+            {aileteGauche ?? null}
           </aside>
-          <div
-            aria-hidden
-            className="hidden w-px self-stretch md:block"
-            style={{
-              background: `linear-gradient(to bottom, transparent, ${palette.bordure}66, transparent)`,
-            }}
-          />
+          {separateur}
         </>
       )}
 
@@ -58,17 +70,11 @@ export function AxiChatCopilote({
         <AxiChatRoot config={config} />
       </main>
 
-      {aileteDroite && (
+      {avecAilettes && (
         <>
-          <div
-            aria-hidden
-            className="hidden w-px self-stretch md:block"
-            style={{
-              background: `linear-gradient(to bottom, transparent, ${palette.bordure}66, transparent)`,
-            }}
-          />
+          {separateur}
           <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-10 md:block">
-            {aileteDroite}
+            {aileteDroite ?? null}
           </aside>
         </>
       )}

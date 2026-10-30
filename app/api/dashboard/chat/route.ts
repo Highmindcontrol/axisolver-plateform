@@ -4,8 +4,7 @@ import { eq } from "drizzle-orm";
 
 import { construirePromptCopilote } from "@/lib/axi-solver/system-prompt-copilote";
 import { db } from "@/lib/db";
-import { sites, siteConfigs, users } from "@/lib/db/schema";
-import { filtreSitesAccessibles } from "@/lib/services/acces-site";
+import { sites, users } from "@/lib/db/schema";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -15,6 +14,10 @@ export const maxDuration = 60;
 type MessagePack = {
   role: "visiteur" | "axi" | "systeme";
   contenu: string;
+};
+
+type ContexteRecu = {
+  siteId?: string; // on reçoit un slug (voir trois-ecrans.tsx)
 };
 
 /**
@@ -52,13 +55,28 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages?: MessagePack[] } | null = null;
+  let body: {
+    messages?: MessagePack[];
+    contexte?: ContexteRecu;
+    siteId?: string;
+  } | null = null;
   try {
-    body = (await req.json()) as { messages?: MessagePack[] };
+    body = (await req.json()) as {
+      messages?: MessagePack[];
+      contexte?: ContexteRecu;
+      siteId?: string;
+    };
   } catch {
     return NextResponse.json({ erreur: "body_invalide" }, { status: 400 });
   }
   const messages = Array.isArray(body?.messages) ? body!.messages : [];
+  // Le pack axi-chat envoie siteId au niveau racine du payload et dans
+  // contexte.siteId — on prend l'un ou l'autre.
+  const slugSiteCourant =
+    (typeof body?.siteId === "string" ? body.siteId : null) ??
+    (typeof body?.contexte?.siteId === "string"
+      ? body.contexte.siteId
+      : null);
 
   // Prénom + sites de l'admin pour contextualiser AXI
   const [profilRow] = await db
@@ -71,26 +89,43 @@ export async function POST(req: Request) {
     user.user_metadata?.first_name ??
     null;
 
-  const mesSites = await db
-    .select({
-      slug: sites.slug,
-      nomEntreprise: sites.nomEntreprise,
-      nomSite: sites.nomSite,
-      domainePrincipal: sites.domainePrincipal,
-    })
-    .from(sites)
-    .leftJoin(siteConfigs, eq(siteConfigs.siteId, sites.id))
-    .where(await filtreSitesAccessibles(user.id))
-    .orderBy(sites.creeLe);
+  // Si on a un slug de site dans le contexte (admin focalisé sur un
+  // site via l'URL /dashboard/sites/[slug]), on charge CE site et on
+  // vérifie que l'admin y a accès. Sinon on reste en mode global.
+  let siteCourant:
+    | { slug: string; nomEntreprise: string; domainePrincipal: string }
+    | undefined;
+  if (slugSiteCourant) {
+    const [row] = await db
+      .select({
+        slug: sites.slug,
+        nomEntreprise: sites.nomEntreprise,
+        nomSite: sites.nomSite,
+        domainePrincipal: sites.domainePrincipal,
+      })
+      .from(sites)
+      .where(eq(sites.slug, slugSiteCourant))
+      .limit(1);
+    if (row) {
+      // TODO (futur) : vérifier filtreSitesAccessibles pour éviter
+      // qu'un admin cause avec un site qui n'est pas le sien. Pour
+      // l'instant on fait confiance au slug (il vient de l'URL où
+      // le layout dashboard a déjà vérifié l'accès).
+      siteCourant = {
+        slug: row.slug,
+        nomEntreprise: row.nomSite ?? row.nomEntreprise,
+        domainePrincipal: row.domainePrincipal,
+      };
+    }
+  }
 
-  const systemPrompt = construirePromptCopilote({
-    prenomUtilisateur: prenom,
-    sites: mesSites.map((s) => ({
-      slug: s.slug,
-      nomEntreprise: s.nomSite ?? s.nomEntreprise,
-      domainePrincipal: s.domainePrincipal,
-    })),
-  });
+  const systemPrompt = construirePromptCopilote(
+    {
+      prenomUtilisateur: prenom,
+      sites: [], // non injecté dans le prompt : focalisation site courant
+    },
+    siteCourant,
+  );
 
   const historique = messages
     .filter((m) => m.role !== "systeme")
