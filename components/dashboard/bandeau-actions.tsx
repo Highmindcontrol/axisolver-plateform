@@ -3,6 +3,7 @@
 import {
   History,
   LineChart,
+  Plug,
   Search,
   Settings,
   ShieldCheck,
@@ -73,6 +74,12 @@ export function BandeauActions({
       label: "Publicité",
       icone: Target,
       href: `/dashboard/sites/${siteSlug}/ads`,
+    },
+    {
+      cle: "connecteurs",
+      label: "Connecteurs",
+      icone: Plug,
+      href: `/dashboard/sites/${siteSlug}/connecteurs`,
     },
     {
       cle: "parametrages",
