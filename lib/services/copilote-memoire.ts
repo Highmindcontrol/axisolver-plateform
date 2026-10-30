@@ -1,5 +1,6 @@
-import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm";
 
+import { embedUn } from "@/lib/axi-solver/connaissance/embeddings";
 import { db } from "@/lib/db";
 import { copiloteConversations, copiloteMessages } from "@/lib/db/schema";
 
@@ -120,9 +121,14 @@ export async function lireMessagesContexte(
 }
 
 /**
- * Insère un ou plusieurs messages. Un seul insert batch pour
- * atomicité. Le trigger SQL met à jour `derniere_activite_le`
- * automatiquement sur chaque insertion.
+ * Insère un ou plusieurs messages. Calcule l'embedding OpenAI pour
+ * chacun (si OPENAI_API_KEY disponible) afin de permettre la
+ * recherche sémantique long terme (RAG). Si l'embedding échoue,
+ * on persiste quand même le message en base — mémoire brute avant
+ * mémoire enrichie.
+ *
+ * Le trigger SQL met à jour `derniere_activite_le` automatiquement
+ * sur chaque insertion.
  */
 export async function appendMessages(
   conversationId: string,
@@ -134,15 +140,112 @@ export async function appendMessages(
   }>,
 ): Promise<void> {
   if (messages.length === 0) return;
+
+  // Calcul embeddings en parallèle (meilleur effort — jamais bloquant)
+  const embeddings = await Promise.all(
+    messages.map((m) =>
+      embedUn(m.contenu).catch(() => null as number[] | null),
+    ),
+  );
+
   await db.insert(copiloteMessages).values(
-    messages.map((m) => ({
+    messages.map((m, i) => ({
       conversationId,
       role: m.role,
       contenu: m.contenu,
       tokensInput: m.tokensInput ?? 0,
       tokensOutput: m.tokensOutput ?? 0,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      embedding: (embeddings[i]
+        ? (`[${embeddings[i]!.join(",")}]` as unknown)
+        : null) as any,
     })),
   );
+}
+
+/**
+ * Recherche sémantique dans TOUT l'historique de l'utilisateur, en
+ * excluant les N derniers messages du fil courant (déjà en contexte
+ * Claude). Permet à AXI de « se souvenir » d'un détail évoqué il y a
+ * plusieurs mois.
+ */
+export async function chercherMessagesPertinents(options: {
+  userId: string;
+  conversationId: string;
+  requete: string;
+  limite?: number;
+  seuilSimilarite?: number;
+}): Promise<
+  Array<{
+    role: "user" | "assistant" | "system";
+    contenu: string;
+    creeLe: Date;
+    similarite: number;
+  }>
+> {
+  let embeddingRequete: number[];
+  try {
+    embeddingRequete = await embedUn(options.requete);
+  } catch {
+    return [];
+  }
+
+  const vecteurTexte = `[${embeddingRequete.join(",")}]`;
+  try {
+    const rows = await db.execute(sql`
+      SELECT role, contenu, cree_le, similarite
+      FROM copilote_rag_messages_pertinents(
+        ${options.conversationId}::uuid,
+        ${options.userId}::uuid,
+        ${vecteurTexte}::vector,
+        ${options.limite ?? 5}::integer,
+        ${options.seuilSimilarite ?? 0.65}::float,
+        60::integer
+      )
+    `);
+    return (rows as unknown as Array<{
+      role: string;
+      contenu: string;
+      cree_le: string | Date;
+      similarite: number;
+    }>).map((r) => ({
+      role: r.role as "user" | "assistant" | "system",
+      contenu: r.contenu,
+      creeLe: new Date(r.cree_le),
+      similarite: Number(r.similarite),
+    }));
+  } catch (e) {
+    console.warn("[copilote-memoire] RAG indisponible", e);
+    return [];
+  }
+}
+
+/**
+ * Compte le nombre total de messages d'un fil. Utilisé pour décider
+ * s'il faut déclencher une condensation (résumé long terme).
+ */
+export async function compterMessages(
+  conversationId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(copiloteMessages)
+    .where(eq(copiloteMessages.conversationId, conversationId));
+  return Number(row?.n ?? 0);
+}
+
+/**
+ * Met à jour la mémoire longue (synthèse texte) d'un fil. Utilisée
+ * par le job de condensation qui résume les anciens messages.
+ */
+export async function majMemoireLongue(
+  conversationId: string,
+  memoireLongue: string,
+): Promise<void> {
+  await db
+    .update(copiloteConversations)
+    .set({ memoireLongue })
+    .where(eq(copiloteConversations.id, conversationId));
 }
 
 /**

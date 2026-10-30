@@ -1192,6 +1192,7 @@ export const copiloteMessages = pgTable(
     contenu: text("contenu").notNull(),
     tokensInput: integer("tokens_input").notNull().default(0),
     tokensOutput: integer("tokens_output").notNull().default(0),
+    embedding: vector("embedding", { dimensions: 1536 }),
     creeLe: timestamp("cree_le", { withTimezone: true })
       .defaultNow()
       .notNull(),

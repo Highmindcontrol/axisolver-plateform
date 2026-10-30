@@ -3,11 +3,17 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { construirePromptCopilote } from "@/lib/axi-solver/system-prompt-copilote";
+import { enArrierePlan } from "@/lib/background";
 import { db } from "@/lib/db";
 import { sites, users } from "@/lib/db/schema";
 import {
+  condenserFil,
+  peutDeclencherCondensation,
+} from "@/lib/services/copilote-condensation";
+import {
   appendMessages,
   chargerOuCreerFil,
+  chercherMessagesPertinents,
   lireMessagesContexte,
 } from "@/lib/services/copilote-memoire";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -129,6 +135,18 @@ export async function POST(req: Request) {
   const fil = await chargerOuCreerFil(user.id, slugSiteCourant);
   const historiqueBase = await lireMessagesContexte(fil.id);
 
+  // Recherche RAG : messages pertinents dans TOUT l'historique de
+  // l'utilisateur (hors fenêtre récente). Si AXI parle d'un sujet
+  // évoqué il y a plusieurs mois, on le retrouve par similarité
+  // sémantique et on l'injecte en préambule.
+  const messagesPertinents = await chercherMessagesPertinents({
+    userId: user.id,
+    conversationId: fil.id,
+    requete: dernierVisiteur.contenu,
+    limite: 5,
+    seuilSimilarite: 0.65,
+  });
+
   // Enregistre d'abord le nouveau message user AVANT d'appeler Claude
   // (préserver la mémoire même en cas d'échec Claude)
   await appendMessages(fil.id, [
@@ -140,6 +158,22 @@ export async function POST(req: Request) {
     { prenomUtilisateur: prenom, sites: [] },
     siteCourant,
   );
+
+  // Préambule RAG : si des messages pertinents ont été repêchés dans
+  // l'historique long terme (hors fenêtre récente), on les ajoute au
+  // system prompt sous forme de notes contextuelles.
+  const preambuleRag =
+    messagesPertinents.length > 0
+      ? `\n\n## Messages pertinents repêchés depuis l'historique\n\nTu as repéré ces échanges passés qui touchent au sujet actuel. Utilise-les si c'est utile, cite-les naturellement sans dire « j'ai cherché » :\n\n${messagesPertinents
+          .map(
+            (m) =>
+              `[${m.creeLe.toISOString().slice(0, 10)}] ${
+                m.role === "user" ? "ADMIN" : "AXI"
+              } : ${m.contenu.slice(0, 500)}`,
+          )
+          .join("\n\n")}`
+      : "";
+
   const messagesClaude = [
     ...historiqueBase.map((m) => ({
       role: (m.role === "assistant" ? "assistant" : "user") as
@@ -157,9 +191,9 @@ export async function POST(req: Request) {
       model: "claude-sonnet-4-5-20250929",
       max_tokens: 1024,
       system:
-        fil.memoireLongue
-          ? `${systemPrompt}\n\n## Mémoire longue (synthèses d'anciennes conversations)\n\n${fil.memoireLongue}`
-          : systemPrompt,
+        (fil.memoireLongue
+          ? `${systemPrompt}\n\n## Mémoire longue (synthèse des anciennes conversations)\n\n${fil.memoireLongue}`
+          : systemPrompt) + preambuleRag,
       messages: messagesClaude,
     });
 
@@ -176,6 +210,17 @@ export async function POST(req: Request) {
         tokensOutput: reponse.usage.output_tokens,
       },
     ]);
+
+    // Condensation en arrière-plan si le fil dépasse le seuil (120
+    // messages). Permet de garder une mémoire longue à jour sans
+    // bloquer la réponse à l'admin.
+    if (await peutDeclencherCondensation(fil.id)) {
+      enArrierePlan(
+        condenserFil(fil.id).catch((e) =>
+          console.error("[copilote-condensation] échouée", e),
+        ),
+      );
+    }
 
     return NextResponse.json({ contenu });
   } catch (e) {
