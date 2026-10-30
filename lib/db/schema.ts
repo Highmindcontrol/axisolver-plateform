@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
   pgTable,
@@ -1220,4 +1221,52 @@ export const tokensApiForteresse = pgTable(
     revoqueLe: timestamp("revoque_le", { withTimezone: true }),
   },
   (t) => [index("idx_tokens_forteresse_hash").on(t.tokenHash)],
+);
+
+/* ─── Composio managed connectors (lot 1 — fondations) ───────── */
+
+export const composioConnections = pgTable(
+  "composio_connections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    siteId: uuid("site_id").references(() => sites.id, { onDelete: "cascade" }),
+    packSlug: text("pack_slug").notNull(),
+    connectorSlug: text("connector_slug").notNull(),
+    composioConnectionId: text("composio_connection_id").notNull(),
+    oauthStatus: text("oauth_status").notNull().default("pending"),
+    scopes: text("scopes").array().notNull().default(sql`'{}'::text[]`),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    connecteLe: timestamp("connecte_le", { withTimezone: true }),
+    expireLe: timestamp("expire_le", { withTimezone: true }),
+    derniereErreur: text("derniere_erreur"),
+  },
+  (t) => [
+    index("idx_composio_connections_user_site").on(t.userId, t.siteId),
+    index("idx_composio_connections_status").on(t.oauthStatus),
+  ],
+);
+
+export const composioUsageMensuel = pgTable(
+  "composio_usage_mensuel",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull(),
+    siteId: uuid("site_id").references(() => sites.id, { onDelete: "cascade" }),
+    packSlug: text("pack_slug").notNull(),
+    connectorSlug: text("connector_slug").notNull(),
+    bucketMois: text("bucket_mois").notNull(),
+    nbToolCalls: integer("nb_tool_calls").notNull().default(0),
+    nbTriggers: integer("nb_triggers").notNull().default(0),
+    coutEstimeCents: integer("cout_estime_cents").notNull().default(0),
+    majLe: timestamp("maj_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("idx_composio_usage_user_bucket").on(t.userId, t.bucketMois),
+    index("idx_composio_usage_site_bucket").on(t.siteId, t.bucketMois),
+  ],
 );
