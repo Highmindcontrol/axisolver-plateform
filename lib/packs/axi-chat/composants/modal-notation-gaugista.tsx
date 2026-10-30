@@ -208,7 +208,7 @@ export function ModalNotationGaugista({
       onSubmit={soumettre}
       role="dialog"
       aria-label={titre}
-      className="mx-auto flex h-full w-full max-w-xl flex-col overflow-hidden"
+      className="mx-auto flex h-full w-full max-w-xl flex-col justify-center overflow-y-auto py-6"
     >
       <header className="relative flex items-start justify-between gap-3 pb-4">
         <div>
@@ -240,7 +240,7 @@ export function ModalNotationGaugista({
         </button>
       </header>
 
-      <div className="flex-1 space-y-4 overflow-y-auto py-2">
+      <div className="space-y-4 py-2">
         {jauges.map((j) => (
           <Jauge
             key={j.cle}
