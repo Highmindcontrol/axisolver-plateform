@@ -105,7 +105,7 @@ export function ModalNotationGaugista({
     return (
       <div
         role="status"
-        className="flex h-full flex-col items-center justify-center p-8 text-center"
+        className="mx-auto flex h-full w-full max-w-xl flex-col items-center justify-center p-8 text-center"
       >
         <Loader2
           className="mb-3 h-6 w-6 animate-spin"
@@ -126,7 +126,7 @@ export function ModalNotationGaugista({
     return (
       <div
         role="alert"
-        className="flex h-full flex-col items-center justify-center p-8 text-center"
+        className="mx-auto flex h-full w-full max-w-xl flex-col items-center justify-center p-8 text-center"
       >
         <p
           className="text-sm font-semibold"
@@ -162,7 +162,7 @@ export function ModalNotationGaugista({
       <div
         role="dialog"
         aria-label="Notation envoyée"
-        className="flex h-full flex-col items-center justify-center p-8 text-center"
+        className="mx-auto flex h-full w-full max-w-xl flex-col items-center justify-center p-8 text-center"
       >
         <span
           className="mb-4 flex h-14 w-14 items-center justify-center"
@@ -208,7 +208,7 @@ export function ModalNotationGaugista({
       onSubmit={soumettre}
       role="dialog"
       aria-label={titre}
-      className="flex h-full flex-col overflow-hidden"
+      className="mx-auto flex h-full w-full max-w-xl flex-col overflow-hidden"
     >
       <header className="relative flex items-start justify-between gap-3 pb-4">
         <div>
