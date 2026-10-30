@@ -172,6 +172,12 @@ export type MessageAxi = {
 export type EndpointsAxiChat = {
   /** POST — envoi d'un message + reçoit la réponse (streaming OK). */
   urlChat: string;
+  /**
+   * GET — charge l'historique persisté du fil au mount du composant.
+   * Attendu : `{ messages: MessageAxi[] }`. Si non fourni, le chat
+   * démarre toujours vierge (comportement sans mémoire).
+   */
+  urlHistorique?: string;
   /** POST — synthèse vocale (texte → audio). */
   urlVoix?: string;
   /** POST — dictée (audio → texte). */

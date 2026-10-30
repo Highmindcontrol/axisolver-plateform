@@ -5,6 +5,11 @@ import { eq } from "drizzle-orm";
 import { construirePromptCopilote } from "@/lib/axi-solver/system-prompt-copilote";
 import { db } from "@/lib/db";
 import { sites, users } from "@/lib/db/schema";
+import {
+  appendMessages,
+  chargerOuCreerFil,
+  lireMessagesContexte,
+} from "@/lib/services/copilote-memoire";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -16,24 +21,24 @@ type MessagePack = {
   contenu: string;
 };
 
-type ContexteRecu = {
-  siteId?: string; // on reçoit un slug (voir trois-ecrans.tsx)
-};
-
 /**
  * POST /api/dashboard/chat
  *
- * Endpoint consommé par le pack axi-chat variante back-office-copilote
- * (toggle « Converser avec AXI » du dashboard admin).
+ * Endpoint du chat copilote AXI (admin AxiSolver). Pattern mémoire
+ * repris d'AxiHub : persistance granulaire message-par-message en
+ * base, chargement des derniers N messages (60) à chaque appel pour
+ * reconstituer le contexte Claude.
  *
- * Reçoit :
- *   { messages: MessagePack[], contexte?, channel?: "back-office-copilote" }
+ * Doctrine : AXI se souvient de TOUT depuis le premier jour, sans
+ * perte. Le client envoie uniquement le NOUVEAU message visiteur ;
+ * tout l'historique est reconstruit côté serveur depuis la DB.
  *
- * Retourne :
- *   { contenu: string }
+ * Payload reçu :
+ *   { messages: [MessagePack], contexte?: { siteId? }, siteId? }
  *
- * Authentification obligatoire — l'admin doit être connecté. On charge
- * ses sites pour construire un system prompt contextualisé.
+ * Note : on prend le DERNIER message visiteur du payload comme
+ * nouveau message à envoyer. Les anciens messages du payload sont
+ * ignorés — c'est la DB qui fait foi.
  */
 export async function POST(req: Request) {
   const supabase = await createSupabaseServerClient();
@@ -49,36 +54,44 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         contenu:
-          "AXI copilote est momentanément indisponible — la clé Claude n'est pas configurée côté serveur. Préviens François.",
+          "AXI copilote est momentanément indisponible — la clé Claude n'est pas configurée côté serveur.",
       },
       { status: 200 },
     );
   }
 
-  let body: {
+  type BodyRecu = {
     messages?: MessagePack[];
-    contexte?: ContexteRecu;
+    contexte?: { siteId?: string };
     siteId?: string;
-  } | null = null;
+  };
+  let body: BodyRecu | null = null;
   try {
-    body = (await req.json()) as {
-      messages?: MessagePack[];
-      contexte?: ContexteRecu;
-      siteId?: string;
-    };
+    body = (await req.json()) as BodyRecu;
   } catch {
     return NextResponse.json({ erreur: "body_invalide" }, { status: 400 });
   }
+
   const messages = Array.isArray(body?.messages) ? body!.messages : [];
-  // Le pack axi-chat envoie siteId au niveau racine du payload et dans
-  // contexte.siteId — on prend l'un ou l'autre.
   const slugSiteCourant =
-    (typeof body?.siteId === "string" ? body.siteId : null) ??
-    (typeof body?.contexte?.siteId === "string"
+    (typeof body?.siteId === "string" && body.siteId.length > 0
+      ? body.siteId
+      : null) ??
+    (typeof body?.contexte?.siteId === "string" && body.contexte.siteId.length > 0
       ? body.contexte.siteId
       : null);
 
-  // Prénom + sites de l'admin pour contextualiser AXI
+  // On prend le DERNIER message visiteur (le nouveau à traiter)
+  const dernierVisiteur = [...messages]
+    .reverse()
+    .find((m) => m.role === "visiteur");
+  if (!dernierVisiteur) {
+    return NextResponse.json({
+      contenu: "Je n'ai pas reçu de message. Dis-moi ce qui t'intéresse.",
+    });
+  }
+
+  // Prénom + site courant pour le system prompt
   const [profilRow] = await db
     .select({ nomAffiche: users.nomAffiche })
     .from(users)
@@ -89,9 +102,6 @@ export async function POST(req: Request) {
     user.user_metadata?.first_name ??
     null;
 
-  // Si on a un slug de site dans le contexte (admin focalisé sur un
-  // site via l'URL /dashboard/sites/[slug]), on charge CE site et on
-  // vérifie que l'admin y a accès. Sinon on reste en mode global.
   let siteCourant:
     | { slug: string; nomEntreprise: string; domainePrincipal: string }
     | undefined;
@@ -107,10 +117,6 @@ export async function POST(req: Request) {
       .where(eq(sites.slug, slugSiteCourant))
       .limit(1);
     if (row) {
-      // TODO (futur) : vérifier filtreSitesAccessibles pour éviter
-      // qu'un admin cause avec un site qui n'est pas le sien. Pour
-      // l'instant on fait confiance au slug (il vient de l'URL où
-      // le layout dashboard a déjà vérifié l'accès).
       siteCourant = {
         slug: row.slug,
         nomEntreprise: row.nomSite ?? row.nomEntreprise,
@@ -119,26 +125,30 @@ export async function POST(req: Request) {
     }
   }
 
+  // Charge ou crée le fil pour (user, siteSlug)
+  const fil = await chargerOuCreerFil(user.id, slugSiteCourant);
+  const historiqueBase = await lireMessagesContexte(fil.id);
+
+  // Enregistre d'abord le nouveau message user AVANT d'appeler Claude
+  // (préserver la mémoire même en cas d'échec Claude)
+  await appendMessages(fil.id, [
+    { role: "user", contenu: dernierVisiteur.contenu },
+  ]);
+
+  // Construit le system prompt + le payload Claude
   const systemPrompt = construirePromptCopilote(
-    {
-      prenomUtilisateur: prenom,
-      sites: [], // non injecté dans le prompt : focalisation site courant
-    },
+    { prenomUtilisateur: prenom, sites: [] },
     siteCourant,
   );
-
-  const historique = messages
-    .filter((m) => m.role !== "systeme")
-    .map((m) => ({
-      role: m.role === "visiteur" ? ("user" as const) : ("assistant" as const),
+  const messagesClaude = [
+    ...historiqueBase.map((m) => ({
+      role: (m.role === "assistant" ? "assistant" : "user") as
+        | "user"
+        | "assistant",
       content: m.contenu,
-    }));
-
-  if (historique.length === 0) {
-    return NextResponse.json({
-      contenu: "Je n'ai pas reçu de message. Dis-moi ce qui t'intéresse.",
-    });
-  }
+    })),
+    { role: "user" as const, content: dernierVisiteur.contenu },
+  ];
 
   const anthropic = new Anthropic({ apiKey: cle });
 
@@ -146,13 +156,26 @@ export async function POST(req: Request) {
     const reponse = await anthropic.messages.create({
       model: "claude-sonnet-4-5-20250929",
       max_tokens: 1024,
-      system: systemPrompt,
-      messages: historique,
+      system:
+        fil.memoireLongue
+          ? `${systemPrompt}\n\n## Mémoire longue (synthèses d'anciennes conversations)\n\n${fil.memoireLongue}`
+          : systemPrompt,
+      messages: messagesClaude,
     });
 
     const bloc = reponse.content.find((b) => b.type === "text");
     const contenu =
       bloc && bloc.type === "text" ? bloc.text : "Désolé, pas de réponse.";
+
+    // Persistance de la réponse d'AXI
+    await appendMessages(fil.id, [
+      {
+        role: "assistant",
+        contenu,
+        tokensInput: reponse.usage.input_tokens,
+        tokensOutput: reponse.usage.output_tokens,
+      },
+    ]);
 
     return NextResponse.json({ contenu });
   } catch (e) {

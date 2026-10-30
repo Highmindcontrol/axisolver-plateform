@@ -42,6 +42,39 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
   const [brouillon, setBrouillon] = useState("");
   const [envoiEnCours, setEnvoiEnCours] = useState(false);
 
+  // ─── Chargement de l'historique persisté au mount ────────
+  // Si urlHistorique est fournie, on remplace les messages locaux par
+  // le fil réel récupéré depuis le serveur. Garantit que l'admin
+  // retrouve sa conversation exactement là où il l'avait laissée,
+  // même après fermeture complète du navigateur.
+  useEffect(() => {
+    const url = config.endpoints.urlHistorique;
+    if (!url) return;
+    let annule = false;
+    fetch(url, { headers: config.endpoints.entetes })
+      .then(async (resp) => {
+        if (!resp.ok) return;
+        const data = (await resp.json()) as { messages?: MessageAxi[] };
+        if (annule) return;
+        if (data.messages && data.messages.length > 0) {
+          setMessages(
+            data.messages.map((m) => ({
+              ...m,
+              horodatage: m.horodatage ? new Date(m.horodatage) : undefined,
+            })),
+          );
+        }
+      })
+      .catch(() => {
+        // Silence : si le chargement échoue, on garde les messages
+        // par défaut (accueil). L'admin pourra toujours écrire.
+      });
+    return () => {
+      annule = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.endpoints.urlHistorique]);
+
   // ─── Dictée (STT) ─────────────────────────────────────────
   const dictee = useDictee({
     langue: localeDepuisLangue(config.contexte?.langue),

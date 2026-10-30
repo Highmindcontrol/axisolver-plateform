@@ -1151,6 +1151,54 @@ export const coutsFournisseursMensuel = pgTable(
   ],
 );
 
+/* ─── Mémoire persistante du copilote AXI (admin) ──────────────── */
+
+export const copiloteConversations = pgTable(
+  "copilote_conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    siteSlug: text("site_slug"),
+    titre: text("titre").notNull().default("Nouvelle conversation"),
+    memoireLongue: text("memoire_longue"),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    derniereActiviteLe: timestamp("derniere_activite_le", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("idx_copilote_conv_user_site_activite").on(
+      t.userId,
+      t.siteSlug,
+      t.derniereActiviteLe,
+    ),
+  ],
+);
+
+export const copiloteMessages = pgTable(
+  "copilote_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => copiloteConversations.id, { onDelete: "cascade" }),
+    role: text("role").notNull(),
+    contenu: text("contenu").notNull(),
+    tokensInput: integer("tokens_input").notNull().default(0),
+    tokensOutput: integer("tokens_output").notNull().default(0),
+    creeLe: timestamp("cree_le", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [index("idx_copilote_messages_conversation").on(t.conversationId, t.creeLe)],
+);
+
 /* ─── Tokens API Forteresse Ataraxis ────────────────────────────── */
 
 export const tokensApiForteresse = pgTable(

@@ -65,6 +65,9 @@ export function TroisEcrans({
       },
       endpoints: {
         urlChat: "/api/dashboard/chat",
+        urlHistorique: siteCourant
+          ? `/api/dashboard/chat/fil?siteSlug=${encodeURIComponent(siteCourant.slug)}`
+          : "/api/dashboard/chat/fil",
       },
       fonctionnalites: {
         dictee: false,
