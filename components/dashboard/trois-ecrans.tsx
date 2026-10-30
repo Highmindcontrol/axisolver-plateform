@@ -82,29 +82,6 @@ export function TroisEcrans({
     });
   }, []);
 
-  const surNouvelleConversation = useCallback(async () => {
-    try {
-      const resp = await fetch("/api/dashboard/chat/fil/nouveau", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ siteSlug: siteCourant?.slug ?? null }),
-      });
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      const data = (await resp.json()) as { filId?: string };
-      if (!data.filId) return;
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(cleStorage, data.filId);
-        window.dispatchEvent(
-          new CustomEvent("axichat-fil-change", { detail: data.filId }),
-        );
-      }
-      setFilIdActif(data.filId);
-      setOrdres([]);
-    } catch (e) {
-      console.warn("[trois-ecrans] création nouveau fil échouée", e);
-    }
-  }, [siteCourant?.slug, cleStorage]);
-
   const config: ConfigAxiChat = useMemo(() => {
     const nomSiteCourant = siteCourant?.nomEntreprise;
     const accueil = nomSiteCourant
@@ -154,12 +131,15 @@ export function TroisEcrans({
       },
       accueilPersonnalise: accueil,
       surOrdre,
-      surNouvelleConversation,
+      // Pas d'entête interne au chat : le bouton « Nouvelle conversation »
+      // vit dans la barre toggle au-dessus, et le titre AXI serait
+      // redondant avec « Conversation avec AXI ».
+      avecEntete: false,
       // cleReload change à chaque bascule → force le re-fetch de
       // l'historique et le reset du brouillon dans le pack.
       cleReload: `${siteCourant?.slug ?? "GLOBAL"}::${filIdActif ?? "DEFAUT"}`,
     };
-  }, [prenom, siteCourant, surOrdre, surNouvelleConversation, filIdActif]);
+  }, [prenom, siteCourant, surOrdre, filIdActif]);
 
   return (
     <AxiChatCopilote

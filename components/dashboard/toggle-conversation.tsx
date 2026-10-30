@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PlusCircle } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { TroisEcrans } from "./trois-ecrans";
@@ -20,8 +21,12 @@ type SiteChantier = {
  * Pleine largeur, collée en haut du contenu principal, sans radius —
  * elle fait office de header de la zone centrale. Clic → déplie le
  * triptyque (ailette sites + chat AXI + carnet de session) juste en
- * dessous. Second clic → replie. Rien d'autre entre la sidebar et
- * cette barre.
+ * dessous. Second clic → replie.
+ *
+ * À droite, à côté du chevron : bouton « Nouvelle conversation » qui
+ * crée un fil vierge pour le site courant. L'ancien reste intact en
+ * base. Visible uniquement quand le panneau est ouvert — c'est un
+ * contrôle de session.
  */
 export function ToggleConversation({
   prenom,
@@ -31,6 +36,32 @@ export function ToggleConversation({
   sites: ReadonlyArray<SiteChantier>;
 }) {
   const [ouvert, setOuvert] = useState(false);
+  const pathname = usePathname();
+
+  const siteSlugCourant = extraireSlugSite(pathname);
+  const cleStorage = `axichat::fil-courant::${siteSlugCourant ?? "GLOBAL"}`;
+
+  async function creerNouveauFil(e: React.MouseEvent) {
+    e.stopPropagation();
+    try {
+      const resp = await fetch("/api/dashboard/chat/fil/nouveau", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ siteSlug: siteSlugCourant ?? null }),
+      });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = (await resp.json()) as { filId?: string };
+      if (!data.filId) return;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(cleStorage, data.filId);
+        window.dispatchEvent(
+          new CustomEvent("axichat-fil-change", { detail: data.filId }),
+        );
+      }
+    } catch (err) {
+      console.warn("[toggle-conversation] création nouveau fil échouée", err);
+    }
+  }
 
   return (
     <>
@@ -42,8 +73,7 @@ export function ToggleConversation({
         className="group relative flex w-full items-center justify-between gap-5 overflow-hidden border-b border-slate-200 bg-white px-6 py-6 text-left transition-colors hover:bg-slate-50 md:px-14 lg:px-16"
       >
         {/* Reflet lumineux fin qui traverse de gauche à droite toutes
-            les 7 secondes pour signaler que le bouton est vivant.
-            Blanc translucide + léger blur, effet verre. */}
+            les 7 secondes pour signaler que le bouton est vivant. */}
         {!ouvert && (
           <span
             aria-hidden
@@ -76,14 +106,37 @@ export function ToggleConversation({
             </p>
           </div>
         </div>
-        <span
-          className={`relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
-            ouvert ? "rotate-180" : ""
-          }`}
-          aria-hidden
-        >
-          <ChevronDown className="h-4 w-4" strokeWidth={2.2} />
-        </span>
+
+        <div className="relative flex items-center gap-3">
+          {ouvert && (
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={creerNouveauFil}
+              onKeyDown={(ev) => {
+                if (ev.key === "Enter" || ev.key === " ") {
+                  ev.preventDefault();
+                  creerNouveauFil(
+                    ev as unknown as React.MouseEvent,
+                  );
+                }
+              }}
+              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+              aria-label="Démarrer une nouvelle conversation"
+            >
+              <PlusCircle className="h-3.5 w-3.5" strokeWidth={2.2} aria-hidden />
+              Nouvelle conversation
+            </span>
+          )}
+          <span
+            className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all group-hover:border-indigo-300 group-hover:text-indigo-700 ${
+              ouvert ? "rotate-180" : ""
+            }`}
+            aria-hidden
+          >
+            <ChevronDown className="h-4 w-4" strokeWidth={2.2} />
+          </span>
+        </div>
       </button>
 
       <div
@@ -112,4 +165,11 @@ function BackdropFondu() {
       <div className="absolute top-1/3 right-1/4 h-80 w-80 rounded-full bg-violet-500/15 blur-3xl" />
     </div>
   );
+}
+
+function extraireSlugSite(pathname: string | null): string | null {
+  if (!pathname) return null;
+  const match = /\/dashboard\/sites\/([^/]+)/.exec(pathname);
+  if (!match || match[1] === "nouveau") return null;
+  return match[1];
 }

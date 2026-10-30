@@ -275,15 +275,17 @@ export function AxiChatRoot({ config }: { config: ConfigAxiChat }) {
         />
       ) : (
         <>
-          <EnteteChat
-            contexte={config.contexte}
-            onTerminer={
-              peutDeclencherParBouton
-                ? () => setNotationOuverte(true)
-                : undefined
-            }
-            onNouvelleConversation={config.surNouvelleConversation}
-          />
+          {config.avecEntete !== false && (
+            <EnteteChat
+              contexte={config.contexte}
+              onTerminer={
+                peutDeclencherParBouton
+                  ? () => setNotationOuverte(true)
+                  : undefined
+              }
+              onNouvelleConversation={config.surNouvelleConversation}
+            />
+          )}
 
           <div className="flex-1 space-y-3 overflow-y-auto py-2">
             {messages.map((m) => (

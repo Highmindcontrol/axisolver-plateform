@@ -283,4 +283,11 @@ export type ConfigAxiChat = {
    * l'historique. Utilisé pour basculer d'un fil à l'autre.
    */
   cleReload?: string;
+  /**
+   * Affichage de l'entête (nom AXI + sousTitre + boutons). Défaut
+   * `true`. Mettre à `false` dans les variantes dashboard où l'entête
+   * est redondant avec un bandeau externe (ex: back-office-copilote
+   * sous la barre « Conversation avec AXI »).
+   */
+  avecEntete?: boolean;
 };

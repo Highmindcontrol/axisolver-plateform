@@ -59,21 +59,21 @@ export function AxiChatCopilote({
     >
       {avecAilettes && (
         <>
-          <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-10 md:block">
+          <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-0 md:block">
             {aileteGauche ?? null}
           </aside>
           {separateur}
         </>
       )}
 
-      <main className="relative z-10 flex min-w-0 flex-1 flex-col pt-10">
+      <main className="relative z-10 flex min-w-0 flex-1 flex-col pt-0">
         <AxiChatRoot config={config} />
       </main>
 
       {avecAilettes && (
         <>
           {separateur}
-          <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-10 md:block">
+          <aside className="hidden min-w-0 flex-[0_0_29%] self-stretch pt-0 md:block">
             {aileteDroite ?? null}
           </aside>
         </>
