@@ -1,4 +1,4 @@
-import type { PaletteTheme } from "../types";
+import type { NomPalettePreset, PaletteTheme } from "../types";
 
 /**
  * Palettes standards du pack @axi-chat.
@@ -79,11 +79,32 @@ export const PALETTE_INSTITUTIONNEL: PaletteTheme = {
   texteSurAccent: "#ffffff",
 };
 
-export const PALETTES_PRESETS = {
+/**
+ * Palette alternative vibrant — violet vif + orange chaud, pensée pour
+ * les sites e-commerce coloré, lifestyle, créatif. Donne de l'énergie
+ * sans tomber dans le flashy fluo. Fond blanc crémé pour maximiser le
+ * contraste des accents.
+ */
+export const PALETTE_VIBRANT: PaletteTheme = {
+  fond: "#fffbf5", // crème clair
+  surface: "#fff5ea",
+  surfaceInteractive: "#ffecd4",
+  texte: "#1a1033", // violet nuit
+  texteSecondaire: "#4b3b7a",
+  texteTertiaire: "#8578b0",
+  bordure: "#f3e4c7",
+  bordureAccent: "#8b5cf6", // violet-500
+  accent: "#7c3aed", // violet-600
+  accentSecondaire: "#f97316", // orange-500
+  texteSurAccent: "#ffffff",
+};
+
+export const PALETTES_PRESETS: Record<NomPalettePreset, PaletteTheme> = {
   sombre: PALETTE_SOMBRE,
   clair: PALETTE_CLAIR,
   ecommerceChaud: PALETTE_ECOMMERCE_CHAUD,
   institutionnel: PALETTE_INSTITUTIONNEL,
-} as const;
+  vibrant: PALETTE_VIBRANT,
+};
 
-export type NomPalettePreset = keyof typeof PALETTES_PRESETS;
+export type { NomPalettePreset };

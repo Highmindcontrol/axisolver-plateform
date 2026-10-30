@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { PaletteTheme, ThemeAxiChat } from "../types";
 
@@ -10,6 +10,25 @@ import {
   PALETTES_PRESETS,
   type NomPalettePreset,
 } from "./palettes";
+
+/**
+ * Détecte la préférence utilisateur `prefers-color-scheme`. Renvoie
+ * `"sombre"` ou `"clair"`. SSR-safe (défaut sombre côté serveur).
+ */
+function usePrefersColorScheme(): "sombre" | "clair" {
+  const [mode, setMode] = useState<"sombre" | "clair">("sombre");
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const update = () => setMode(mq.matches ? "sombre" : "clair");
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  return mode;
+}
 
 /**
  * Résout le thème final (palette + CSS variables) à partir du theme
@@ -31,9 +50,14 @@ export function useTheme(theme: ThemeAxiChat | undefined): {
   variablesCss: Record<string, string>;
   classeConteneur: string;
 } {
+  // Mode `"auto"` → suit la préférence système de l'utilisateur, mise
+  // à jour en temps réel si l'utilisateur change ses préférences OS.
+  const prefSysteme = usePrefersColorScheme();
+
   return useMemo(() => {
-    const mode = theme?.mode ?? "sombre";
-    const base = palettePreset(mode);
+    const modeDeclare = theme?.mode ?? "sombre";
+    const modeEffectif = modeDeclare === "auto" ? prefSysteme : modeDeclare;
+    const base = palettePreset(modeEffectif, theme?.preset);
     const palette: PaletteTheme = { ...base, ...(theme?.palette ?? {}) };
     const variablesCss: Record<string, string> = {
       "--axi-chat-fond": palette.fond,
@@ -59,12 +83,22 @@ export function useTheme(theme: ThemeAxiChat | undefined): {
   }, [theme]);
 }
 
-function palettePreset(mode: ThemeAxiChat["mode"]): PaletteTheme {
+/**
+ * Résout le preset de base. Un preset nommé (ex: `"ecommerceChaud"`,
+ * `"institutionnel"`, `"vibrant"`) a toujours priorité sur le mode
+ * clair/sombre — ces presets ont leur propre identité. Le mode ne
+ * détermine le preset de base que pour les cas génériques
+ * `"clair"`/`"sombre"`/`"auto"` (où auto a déjà été résolu amont).
+ */
+function palettePreset(
+  mode: "clair" | "sombre" | "personnalise",
+  preset?: NomPalettePreset,
+): PaletteTheme {
+  if (preset && preset in PALETTES_PRESETS) {
+    return PALETTES_PRESETS[preset];
+  }
   if (mode === "clair") return PALETTE_CLAIR;
-  if (mode === "sombre") return PALETTE_SOMBRE;
-  if (mode === "personnalise") return PALETTE_SOMBRE; // fallback
-  // mode = "auto" → sombre par défaut côté serveur ; côté client,
-  // on pourrait écouter prefers-color-scheme. V1 : sombre.
+  if (mode === "personnalise") return PALETTE_SOMBRE; // fallback — l'user remplace via theme.palette
   return PALETTE_SOMBRE;
 }
 

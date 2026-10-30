@@ -1,12 +1,38 @@
 "use client";
 
-import { MessageCircle, X } from "lucide-react";
+import {
+  Bot,
+  Headphones,
+  HelpCircle,
+  MessageCircle,
+  MessageSquare,
+  Sparkles,
+  X,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 
 import { AxiChatRoot } from "../composants/axi-chat-root";
 import { useTheme } from "../theme/use-theme";
-import type { ConfigAxiChat, PositionWidgetFlottant } from "../types";
+import type {
+  BoutonBulleTheme,
+  ConfigAxiChat,
+  PositionWidgetFlottant,
+} from "../types";
+
+/** Map des icônes autorisées pour le bouton bulle (évite d'importer
+ *  dynamiquement toute la lib lucide-react). */
+const ICONES_BULLE: Record<NonNullable<BoutonBulleTheme["nomIcone"]>, LucideIcon> = {
+  MessageCircle,
+  MessageSquare,
+  Sparkles,
+  Headphones,
+  HelpCircle,
+  Bot,
+  Zap,
+};
 
 /**
  * Variante « widget flottant » — bulle ancrée dans un coin de l'écran,
@@ -55,6 +81,18 @@ export function AxiChatWidgetFlottant({
   const { ancreVertical, ancreHorizontal, origineTransformation } =
     coordonneesPosition(position);
 
+  // Paramétrage effectif du bouton bulle : theme.bouton (configuration
+  // site hôte) > prop tailleBulle (compat descendante) > défauts.
+  const paramBouton = config.theme?.bouton ?? {};
+  const diametre = paramBouton.taille ?? tailleBulle;
+  const IconeBouton = paramBouton.nomIcone
+    ? ICONES_BULLE[paramBouton.nomIcone]
+    : MessageCircle;
+  const fondBouton =
+    paramBouton.couleur ??
+    `linear-gradient(135deg, ${palette.accent}, ${palette.accentSecondaire})`;
+  const animationBouton = paramBouton.animation ?? "aucune";
+
   const stylePositionCommun: React.CSSProperties = {
     position: "fixed",
     [ancreVertical]: `${marge}px`,
@@ -74,18 +112,23 @@ export function AxiChatWidgetFlottant({
             type="button"
             onClick={() => setOuvert(true)}
             aria-label="Ouvrir la conversation avec AXI"
-            className="flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+            className={`flex items-center justify-center shadow-lg transition-transform hover:scale-110 ${
+              animationBouton === "pulse" ? "axiChatPulse" : ""
+            }`}
             style={{
-              width: `${tailleBulle}px`,
-              height: `${tailleBulle}px`,
+              width: `${diametre}px`,
+              height: `${diametre}px`,
               borderRadius: "9999px",
-              background: `linear-gradient(135deg, ${palette.accent}, ${palette.accentSecondaire})`,
+              background: fondBouton,
               color: palette.texteSurAccent,
             }}
           >
             {logo ?? (
-              <MessageCircle
-                className="h-6 w-6"
+              <IconeBouton
+                style={{
+                  width: `${Math.round(diametre * 0.42)}px`,
+                  height: `${Math.round(diametre * 0.42)}px`,
+                }}
                 strokeWidth={2.2}
                 aria-hidden
               />
@@ -146,6 +189,13 @@ export function AxiChatWidgetFlottant({
         }
         .animate-axiChatOuverture {
           animation: axiChatOuverture 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes axiChatPulseKf {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6); }
+          50% { box-shadow: 0 0 0 14px rgba(99, 102, 241, 0); }
+        }
+        .axiChatPulse {
+          animation: axiChatPulseKf 2.2s ease-in-out infinite;
         }
       `}</style>
     </>

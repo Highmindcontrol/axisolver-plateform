@@ -27,8 +27,10 @@ export type {
   EndpointsAxiChat,
   FonctionnalitesAxiChat,
   JaugeConfig,
+  BoutonBulleTheme,
   MessageAxi,
   ModeTheme,
+  NomPalettePreset,
   NotationGaugistaConfig,
   OrdreAxi,
   RepereAxi,
@@ -49,8 +51,8 @@ export {
   PALETTE_ECOMMERCE_CHAUD,
   PALETTE_INSTITUTIONNEL,
   PALETTE_SOMBRE,
+  PALETTE_VIBRANT,
   PALETTES_PRESETS,
-  type NomPalettePreset,
 } from "./theme/palettes";
 export { paletteDepuisPreset, useTheme } from "./theme/use-theme";
 

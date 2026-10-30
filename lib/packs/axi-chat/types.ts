@@ -61,8 +61,42 @@ export type PaletteTheme = {
   texteSurAccent: string;
 };
 
+/** Nom d'un preset de palette prêt à l'emploi (voir theme/palettes.ts). */
+export type NomPalettePreset =
+  | "sombre"
+  | "clair"
+  | "ecommerceChaud"
+  | "institutionnel"
+  | "vibrant";
+
+/** Paramétrage visuel du bouton bulle d'une variante widget-flottant. */
+export type BoutonBulleTheme = {
+  /** Couleur unie du fond du bouton. Si absent, gradient accent → accentSecondaire. */
+  couleur?: string;
+  /** Taille (diamètre) de la bulle en px. Défaut 56. */
+  taille?: number;
+  /** Nom d'icône lucide-react à utiliser (ex: 'MessageCircle', 'Sparkles'). Défaut MessageCircle. */
+  nomIcone?:
+    | "MessageCircle"
+    | "MessageSquare"
+    | "Sparkles"
+    | "Headphones"
+    | "HelpCircle"
+    | "Bot"
+    | "Zap";
+  /** Animation subtile sur la bulle au chargement (pulse ou aucune). */
+  animation?: "aucune" | "pulse";
+};
+
 export type ThemeAxiChat = {
   mode: ModeTheme;
+  /**
+   * Preset de palette prêt à l'emploi. Si fourni, prend le pas sur
+   * `mode` pour la couleur de base (le mode reste utilisé pour le
+   * suivi `prefers-color-scheme` quand mode = "auto"). Les overrides
+   * `palette` s'appliquent par-dessus le preset.
+   */
+  preset?: NomPalettePreset;
   /** Si mode = 'personnalise', fournir la palette complète. */
   palette?: Partial<PaletteTheme>;
   /** Rayons de coins (en Tailwind-like : 'sm', 'md', 'lg', 'xl', 'full'). */
@@ -71,6 +105,12 @@ export type ThemeAxiChat = {
   police?: string;
   /** Densité verticale ('compact' | 'confortable' | 'spacieux'). */
   densite?: "compact" | "confortable" | "spacieux";
+  /**
+   * Paramétrage du bouton bulle (variante widget-flottant). Permet au
+   * site hôte de surcharger couleur/taille/icône/animation sans fork
+   * du composant.
+   */
+  bouton?: BoutonBulleTheme;
 };
 
 /* ────── Contexte métier ──────────────────────────────────────── */
