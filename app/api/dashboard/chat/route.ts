@@ -28,69 +28,113 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 type MessagePack = {
   role: "visiteur" | "axi" | "systeme";
   contenu: string;
 };
 
+type EventStream =
+  | { type: "speech_delta"; text: string }
+  | { type: "ordre"; ordre: OrdreClient }
+  | { type: "done"; contenu: string; ordres: OrdreClient[] }
+  | { type: "error"; message: string };
+
+type OrdreClient = {
+  id: string;
+  libelle: string;
+  statut: "termine" | "echoue" | "en_cours";
+  horodatage: string;
+  resume?: string;
+};
+
 /**
  * POST /api/dashboard/chat
  *
- * Endpoint du chat copilote AXI (admin AxiSolver). Pattern mémoire
- * repris d'AxiHub : persistance granulaire message-par-message en
- * base, chargement des derniers N messages (60) à chaque appel pour
- * reconstituer le contexte Claude.
+ * Streaming NDJSON du copilote AXI (admin AxiSolver). Pattern repris
+ * de AxiHub `/api/axihub/turn-stream` :
+ *   - une ligne JSON par événement (séparateur `\n`)
+ *   - TTFB ~500ms au lieu de 5-10s en non-streaming
+ *   - permet au client d'afficher le texte progressivement ET de
+ *     déclencher le TTS phrase par phrase sans attendre la fin
  *
- * Doctrine : AXI se souvient de TOUT depuis le premier jour, sans
- * perte. Le client envoie uniquement le NOUVEAU message visiteur ;
- * tout l'historique est reconstruit côté serveur depuis la DB.
+ * Événements :
+ *   - speech_delta : chunk de texte émis par Claude (à afficher + TTS)
+ *   - ordre        : tool exécuté (alimente l'ailette d'ordres)
+ *   - done         : fin, contenu complet + liste finale des ordres
+ *   - error        : erreur fatale, message convivial pour l'UI
  *
- * Payload reçu :
- *   { messages: [MessagePack], contexte?: { siteId? }, siteId? }
- *
- * Note : on prend le DERNIER message visiteur du payload comme
- * nouveau message à envoyer. Les anciens messages du payload sont
- * ignorés — c'est la DB qui fait foi.
+ * Préserve TOUTE la logique précédente : mémoire persistante
+ * fallback-safe, RAG, X-Axi-Fil-Id, boucle agentic 5 itérations,
+ * condensation en arrière-plan, génération auto titre.
  */
 export async function POST(req: Request) {
-  try {
-    return await traiterChat(req);
-  } catch (e) {
-    const detail =
-      e instanceof Error
-        ? `${e.name}: ${e.message}\n${e.stack ?? ""}`
-        : String(e);
-    console.error("[dashboard/chat] erreur fatale\n", detail);
-    return NextResponse.json(
-      {
-        contenu:
-          "AXI est momentanément indisponible. Réessaie dans un instant — je garde la mémoire de notre échange.",
-      },
-      { status: 200 },
-    );
-  }
+  const encoder = new TextEncoder();
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const emit = (evt: EventStream) => {
+        try {
+          controller.enqueue(encoder.encode(JSON.stringify(evt) + "\n"));
+        } catch {
+          // Flux déjà fermé — ignoré.
+        }
+      };
+
+      try {
+        await traiterChatStream(req, emit);
+      } catch (e) {
+        const detail =
+          e instanceof Error
+            ? `${e.name}: ${e.message}\n${e.stack ?? ""}`
+            : String(e);
+        console.error("[dashboard/chat] erreur fatale\n", detail);
+        emit({
+          type: "error",
+          message:
+            "AXI est momentanément indisponible. Réessaie dans un instant — je garde la mémoire de notre échange.",
+        });
+      } finally {
+        try {
+          controller.close();
+        } catch {
+          // ignoré
+        }
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-cache, no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }
 
-async function traiterChat(req: Request) {
+async function traiterChatStream(
+  req: Request,
+  emit: (evt: EventStream) => void,
+): Promise<void> {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ erreur: "non_authentifie" }, { status: 401 });
+    emit({ type: "error", message: "Non authentifié." });
+    return;
   }
 
   const cle = process.env.ANTHROPIC_API_KEY;
   if (!cle) {
-    return NextResponse.json(
-      {
-        contenu:
-          "AXI copilote est momentanément indisponible — la clé Claude n'est pas configurée côté serveur.",
-      },
-      { status: 200 },
-    );
+    emit({
+      type: "error",
+      message:
+        "AXI copilote est momentanément indisponible — la clé Claude n'est pas configurée côté serveur.",
+    });
+    return;
   }
 
   type BodyRecu = {
@@ -102,7 +146,8 @@ async function traiterChat(req: Request) {
   try {
     body = (await req.json()) as BodyRecu;
   } catch {
-    return NextResponse.json({ erreur: "body_invalide" }, { status: 400 });
+    emit({ type: "error", message: "Requête invalide." });
+    return;
   }
 
   const messages = Array.isArray(body?.messages) ? body!.messages : [];
@@ -114,19 +159,19 @@ async function traiterChat(req: Request) {
       ? body.contexte.siteId
       : null);
 
-  // On prend le DERNIER message visiteur (le nouveau à traiter)
   const dernierVisiteur = [...messages]
     .reverse()
     .find((m) => m.role === "visiteur");
   if (!dernierVisiteur) {
-    return NextResponse.json({
+    emit({
+      type: "done",
       contenu: "Je n'ai pas reçu de message. Dis-moi ce qui t'intéresse.",
+      ordres: [],
     });
+    return;
   }
 
-  // Prénom + site courant pour le system prompt — tolérant aux erreurs
-  // DB : si une table manque ou RLS bloque, on continue sans ces infos
-  // plutôt que de 500. L'important est qu'AXI réponde.
+  // Prénom + site courant — tolérants aux erreurs DB
   let prenom: string | null = null;
   try {
     const [profilRow] = await db
@@ -170,9 +215,7 @@ async function traiterChat(req: Request) {
     }
   }
 
-  // Mémoire persistante — fallback-safe : si DB plante, on marche en
-  // mode "pas de mémoire" plutôt que de 500. Diagnostic via logs
-  // Vercel : filtrer sur [copilote-memoire] / [dashboard/chat].
+  // Mémoire persistante — fallback-safe
   let fil: { id: string; memoireLongue: string | null } | null = null;
   let historiqueBase: Array<{
     role: "user" | "assistant" | "system";
@@ -185,25 +228,21 @@ async function traiterChat(req: Request) {
     similarite: number;
   }> = [];
 
-  // Header X-Axi-Fil-Id : permet au client de forcer un fil spécifique
-  // (bascule depuis le journal). Sinon on prend le dernier fil actif
-  // pour (user, site) via chargerOuCreerFil.
   const filIdForce = req.headers.get("x-axi-fil-id")?.trim() || null;
 
   try {
     if (filIdForce) {
       const trouve = await lireFilParId(filIdForce, user.id);
-      if (trouve) {
-        fil = trouve;
-      } else {
-        fil = await chargerOuCreerFil(user.id, slugSiteCourant);
-      }
+      fil = trouve ?? (await chargerOuCreerFil(user.id, slugSiteCourant));
     } else {
       fil = await chargerOuCreerFil(user.id, slugSiteCourant);
     }
     historiqueBase = await lireMessagesContexte(fil.id);
   } catch (e) {
-    console.error("[dashboard/chat] mémoire indisponible — fallback sans mémoire", e);
+    console.error(
+      "[dashboard/chat] mémoire indisponible — fallback sans mémoire",
+      e,
+    );
   }
 
   if (fil) {
@@ -228,15 +267,11 @@ async function traiterChat(req: Request) {
     }
   }
 
-  // Construit le system prompt + le payload Claude
   const systemPrompt = construirePromptCopilote(
     { prenomUtilisateur: prenom, sites: [] },
     siteCourant,
   );
 
-  // Préambule RAG : si des messages pertinents ont été repêchés dans
-  // l'historique long terme (hors fenêtre récente), on les ajoute au
-  // system prompt sous forme de notes contextuelles.
   const preambuleRag =
     messagesPertinents.length > 0
       ? `\n\n## Messages pertinents repêchés depuis l'historique\n\nTu as repéré ces échanges passés qui touchent au sujet actuel. Utilise-les si c'est utile, cite-les naturellement sans dire « j'ai cherché » :\n\n${messagesPertinents
@@ -249,8 +284,6 @@ async function traiterChat(req: Request) {
           .join("\n\n")}`
       : "";
 
-  // Historique sous forme de messages Anthropic (text content). Le
-  // dernier message user est ajouté explicitement en fin.
   const messagesClaude: Anthropic.Messages.MessageParam[] = [
     ...historiqueBase.map(
       (m) =>
@@ -268,138 +301,145 @@ async function traiterChat(req: Request) {
       ? `${systemPrompt}\n\n## Mémoire longue (synthèse des anciennes conversations)\n\n${fil.memoireLongue}`
       : systemPrompt) + preambuleRag;
 
-  // Boucle agentic : Claude peut appeler des tools (lire_metriques_site,
-  // etc.) ; on les exécute, on relance Claude avec les tool_results.
-  // Garde-fou : max 5 itérations pour éviter boucle infinie.
+  // Boucle agentic streaming : à chaque itération on ouvre un stream
+  // Claude, on émet les deltas de texte au client en live, puis on
+  // récupère la réponse finale pour inspecter les éventuels tool_use.
   const ordresPris: OrdreTool[] = [];
   let totalTokensIn = 0;
   let totalTokensOut = 0;
   let contenuFinal = "Désolé, pas de réponse.";
 
-  try {
-    for (let iter = 0; iter < 5; iter++) {
-      const reponse = await anthropic.messages.create({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 2048,
-        system: systemFinal,
-        tools: COPILOTE_TOOLS,
-        messages: messagesClaude,
-      });
-      totalTokensIn += reponse.usage.input_tokens;
-      totalTokensOut += reponse.usage.output_tokens;
-
-      const toolUses = reponse.content.filter(
-        (b) => b.type === "tool_use",
-      ) as Anthropic.Messages.ToolUseBlock[];
-      const texteBlocs = reponse.content.filter(
-        (b) => b.type === "text",
-      ) as Anthropic.Messages.TextBlock[];
-
-      // Pousse la réponse assistant dans l'historique Claude
-      messagesClaude.push({ role: "assistant", content: reponse.content });
-
-      // Si pas de tool_use, c'est la réponse finale
-      if (toolUses.length === 0 || reponse.stop_reason === "end_turn") {
-        contenuFinal =
-          texteBlocs.map((b) => b.text).join("\n").trim() || contenuFinal;
-        break;
-      }
-
-      // Exécute chaque tool et prépare les tool_results
-      const toolResults: Anthropic.Messages.ToolResultBlockParam[] = [];
-      for (const t of toolUses) {
-        const { resultat, ordre } = await executerTool(
-          t.name,
-          (t.input as Record<string, unknown>) ?? {},
-          { userId: user.id },
-        );
-        ordresPris.push(ordre);
-        toolResults.push({
-          type: "tool_result",
-          tool_use_id: t.id,
-          content: resultat,
-          is_error: ordre.statut === "echoue",
-        });
-      }
-      messagesClaude.push({ role: "user", content: toolResults });
-
-      // Si Claude a aussi parlé en texte dans cette itération, on
-      // garde ça comme réponse de secours au cas où la boucle plafonne.
-      if (texteBlocs.length > 0) {
-        contenuFinal = texteBlocs.map((b) => b.text).join("\n").trim();
-      }
-    }
-
-    // Persistance de la réponse finale d'AXI (si mémoire dispo)
-    if (fil) {
-      try {
-        await appendMessages(fil.id, [
-          {
-            role: "assistant",
-            contenu: contenuFinal,
-            tokensInput: totalTokensIn,
-            tokensOutput: totalTokensOut,
-          },
-        ]);
-      } catch (e) {
-        console.warn("[dashboard/chat] persistance réponse AXI échouée", e);
-      }
-
-      // Condensation en arrière-plan si le fil dépasse le seuil (120
-      // messages). Permet de garder une mémoire longue à jour sans
-      // bloquer la réponse à l'admin.
-      try {
-        if (await peutDeclencherCondensation(fil.id)) {
-          enArrierePlan(
-            condenserFil(fil.id).catch((e) =>
-              console.error("[copilote-condensation] échouée", e),
-            ),
-          );
-        }
-      } catch (e) {
-        console.warn("[dashboard/chat] test condensation échoué", e);
-      }
-
-      // Génération auto du titre si le fil atteint le seuil de messages
-      // et porte encore un titre par défaut. En arrière-plan — ne bloque
-      // pas la réponse à l'admin.
-      try {
-        const n = await compterMessages(fil.id);
-        if (n >= 6) {
-          const filId = fil.id;
-          enArrierePlan(
-            genererTitreSiPertinent(filId, user.id).catch((e) =>
-              console.warn("[copilote-titre] génération échouée", e),
-            ),
-          );
-        }
-      } catch (e) {
-        console.warn("[dashboard/chat] test génération titre échoué", e);
-      }
-    }
-
-    return NextResponse.json({
-      contenu: contenuFinal,
-      ordres: ordresPris.map((o) => ({
-        id: o.id,
-        libelle: o.libelle,
-        statut: o.statut === "termine" ? "termine" : o.statut === "echoue" ? "echoue" : "en_cours",
-        horodatage: o.horodatage.toISOString(),
-        resume: o.resume,
-      })),
+  for (let iter = 0; iter < 5; iter++) {
+    const streamClaude = anthropic.messages.stream({
+      model: "claude-sonnet-4-5-20250929",
+      max_tokens: 2048,
+      system: systemFinal,
+      tools: COPILOTE_TOOLS,
+      messages: messagesClaude,
     });
-  } catch (e) {
-    const detail =
-      e instanceof Error
-        ? `${e.name}: ${e.message}\n${e.stack ?? ""}`
-        : String(e);
-    console.error("[dashboard/chat] erreur Claude\n", detail);
-    return NextResponse.json(
-      {
-        contenu:
-          "J'ai eu un petit souci pour te répondre. Réessaie dans un instant.",
-      },
-      { status: 200 },
-    );
+
+    // Relaie chaque delta de texte au client au fur et à mesure.
+    // Les deltas de tool_use (input_json_delta) ne sont pas émis au
+    // TTS — ils seront exposés comme ordres après exécution.
+    for await (const event of streamClaude) {
+      if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "text_delta" &&
+        event.delta.text
+      ) {
+        emit({ type: "speech_delta", text: event.delta.text });
+      }
+    }
+
+    const reponse = await streamClaude.finalMessage();
+    totalTokensIn += reponse.usage.input_tokens;
+    totalTokensOut += reponse.usage.output_tokens;
+
+    const toolUses = reponse.content.filter(
+      (b) => b.type === "tool_use",
+    ) as Anthropic.Messages.ToolUseBlock[];
+    const texteBlocs = reponse.content.filter(
+      (b) => b.type === "text",
+    ) as Anthropic.Messages.TextBlock[];
+
+    messagesClaude.push({ role: "assistant", content: reponse.content });
+
+    if (toolUses.length === 0 || reponse.stop_reason === "end_turn") {
+      contenuFinal =
+        texteBlocs.map((b) => b.text).join("\n").trim() || contenuFinal;
+      break;
+    }
+
+    const toolResults: Anthropic.Messages.ToolResultBlockParam[] = [];
+    for (const t of toolUses) {
+      const { resultat, ordre } = await executerTool(
+        t.name,
+        (t.input as Record<string, unknown>) ?? {},
+        { userId: user.id },
+      );
+      ordresPris.push(ordre);
+      emit({
+        type: "ordre",
+        ordre: ordreVersClient(ordre),
+      });
+      toolResults.push({
+        type: "tool_result",
+        tool_use_id: t.id,
+        content: resultat,
+        is_error: ordre.statut === "echoue",
+      });
+    }
+    messagesClaude.push({ role: "user", content: toolResults });
+
+    if (texteBlocs.length > 0) {
+      contenuFinal = texteBlocs.map((b) => b.text).join("\n").trim();
+    }
   }
+
+  // Persistance de la réponse finale + arrière-plan (titre + condensation)
+  if (fil) {
+    try {
+      await appendMessages(fil.id, [
+        {
+          role: "assistant",
+          contenu: contenuFinal,
+          tokensInput: totalTokensIn,
+          tokensOutput: totalTokensOut,
+        },
+      ]);
+    } catch (e) {
+      console.warn("[dashboard/chat] persistance réponse AXI échouée", e);
+    }
+
+    try {
+      if (await peutDeclencherCondensation(fil.id)) {
+        enArrierePlan(
+          condenserFil(fil.id).catch((e) =>
+            console.error("[copilote-condensation] échouée", e),
+          ),
+        );
+      }
+    } catch (e) {
+      console.warn("[dashboard/chat] test condensation échoué", e);
+    }
+
+    try {
+      const n = await compterMessages(fil.id);
+      if (n >= 6) {
+        const filId = fil.id;
+        enArrierePlan(
+          genererTitreSiPertinent(filId, user.id).catch((e) =>
+            console.warn("[copilote-titre] génération échouée", e),
+          ),
+        );
+      }
+    } catch (e) {
+      console.warn("[dashboard/chat] test génération titre échoué", e);
+    }
+  }
+
+  emit({
+    type: "done",
+    contenu: contenuFinal,
+    ordres: ordresPris.map(ordreVersClient),
+  });
 }
+
+function ordreVersClient(o: OrdreTool): OrdreClient {
+  return {
+    id: o.id,
+    libelle: o.libelle,
+    statut:
+      o.statut === "termine"
+        ? "termine"
+        : o.statut === "echoue"
+          ? "echoue"
+          : "en_cours",
+    horodatage: o.horodatage.toISOString(),
+    resume: o.resume ?? undefined,
+  };
+}
+
+// Garde-fou TypeScript : NextResponse n'est plus utilisé mais on garde
+// l'import pour cohérence des types (import "server-only" implicite).
+void NextResponse;
