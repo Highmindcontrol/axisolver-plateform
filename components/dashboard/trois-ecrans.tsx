@@ -68,11 +68,13 @@ export function TroisEcrans({
         urlHistorique: siteCourant
           ? `/api/dashboard/chat/fil?siteSlug=${encodeURIComponent(siteCourant.slug)}`
           : "/api/dashboard/chat/fil",
+        urlDictee: "/api/transcrire",
+        urlVoix: "/api/synthese-vocale",
       },
       fonctionnalites: {
-        dictee: false,
+        dictee: true,
         piecesJointes: false,
-        voixSynthese: false,
+        voixSynthese: true,
         suggestionsRapides: false,
       },
       accueilPersonnalise: accueil,
