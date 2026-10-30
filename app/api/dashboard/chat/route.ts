@@ -55,7 +55,11 @@ export async function POST(req: Request) {
   try {
     return await traiterChat(req);
   } catch (e) {
-    console.error("[dashboard/chat] erreur fatale", e);
+    const detail =
+      e instanceof Error
+        ? `${e.name}: ${e.message}\n${e.stack ?? ""}`
+        : String(e);
+    console.error("[dashboard/chat] erreur fatale\n", detail);
     return NextResponse.json(
       {
         contenu:
@@ -117,61 +121,95 @@ async function traiterChat(req: Request) {
     });
   }
 
-  // Prénom + site courant pour le system prompt
-  const [profilRow] = await db
-    .select({ nomAffiche: users.nomAffiche })
-    .from(users)
-    .where(eq(users.id, user.id))
-    .limit(1);
-  const prenom =
-    profilRow?.nomAffiche?.split(" ")[0] ??
-    user.user_metadata?.first_name ??
-    null;
+  // Prénom + site courant pour le system prompt — tolérant aux erreurs
+  // DB : si une table manque ou RLS bloque, on continue sans ces infos
+  // plutôt que de 500. L'important est qu'AXI réponde.
+  let prenom: string | null = null;
+  try {
+    const [profilRow] = await db
+      .select({ nomAffiche: users.nomAffiche })
+      .from(users)
+      .where(eq(users.id, user.id))
+      .limit(1);
+    prenom =
+      profilRow?.nomAffiche?.split(" ")[0] ??
+      user.user_metadata?.first_name ??
+      null;
+  } catch (e) {
+    console.warn("[dashboard/chat] lecture users échouée", e);
+    prenom = user.user_metadata?.first_name ?? null;
+  }
 
   let siteCourant:
     | { slug: string; nomEntreprise: string; domainePrincipal: string }
     | undefined;
   if (slugSiteCourant) {
-    const [row] = await db
-      .select({
-        slug: sites.slug,
-        nomEntreprise: sites.nomEntreprise,
-        nomSite: sites.nomSite,
-        domainePrincipal: sites.domainePrincipal,
-      })
-      .from(sites)
-      .where(eq(sites.slug, slugSiteCourant))
-      .limit(1);
-    if (row) {
-      siteCourant = {
-        slug: row.slug,
-        nomEntreprise: row.nomSite ?? row.nomEntreprise,
-        domainePrincipal: row.domainePrincipal,
-      };
+    try {
+      const [row] = await db
+        .select({
+          slug: sites.slug,
+          nomEntreprise: sites.nomEntreprise,
+          nomSite: sites.nomSite,
+          domainePrincipal: sites.domainePrincipal,
+        })
+        .from(sites)
+        .where(eq(sites.slug, slugSiteCourant))
+        .limit(1);
+      if (row) {
+        siteCourant = {
+          slug: row.slug,
+          nomEntreprise: row.nomSite ?? row.nomEntreprise,
+          domainePrincipal: row.domainePrincipal,
+        };
+      }
+    } catch (e) {
+      console.warn("[dashboard/chat] lecture sites échouée", e);
     }
   }
 
-  // Charge ou crée le fil pour (user, siteSlug)
-  const fil = await chargerOuCreerFil(user.id, slugSiteCourant);
-  const historiqueBase = await lireMessagesContexte(fil.id);
+  // Mémoire persistante — fallback-safe : si DB plante, on marche en
+  // mode "pas de mémoire" plutôt que de 500. Diagnostic via logs
+  // Vercel : filtrer sur [copilote-memoire] / [dashboard/chat].
+  let fil: { id: string; memoireLongue: string | null } | null = null;
+  let historiqueBase: Array<{
+    role: "user" | "assistant" | "system";
+    contenu: string;
+  }> = [];
+  let messagesPertinents: Array<{
+    role: "user" | "assistant" | "system";
+    contenu: string;
+    creeLe: Date;
+    similarite: number;
+  }> = [];
 
-  // Recherche RAG : messages pertinents dans TOUT l'historique de
-  // l'utilisateur (hors fenêtre récente). Si AXI parle d'un sujet
-  // évoqué il y a plusieurs mois, on le retrouve par similarité
-  // sémantique et on l'injecte en préambule.
-  const messagesPertinents = await chercherMessagesPertinents({
-    userId: user.id,
-    conversationId: fil.id,
-    requete: dernierVisiteur.contenu,
-    limite: 5,
-    seuilSimilarite: 0.65,
-  });
+  try {
+    fil = await chargerOuCreerFil(user.id, slugSiteCourant);
+    historiqueBase = await lireMessagesContexte(fil.id);
+  } catch (e) {
+    console.error("[dashboard/chat] mémoire indisponible — fallback sans mémoire", e);
+  }
 
-  // Enregistre d'abord le nouveau message user AVANT d'appeler Claude
-  // (préserver la mémoire même en cas d'échec Claude)
-  await appendMessages(fil.id, [
-    { role: "user", contenu: dernierVisiteur.contenu },
-  ]);
+  if (fil) {
+    try {
+      messagesPertinents = await chercherMessagesPertinents({
+        userId: user.id,
+        conversationId: fil.id,
+        requete: dernierVisiteur.contenu,
+        limite: 5,
+        seuilSimilarite: 0.65,
+      });
+    } catch (e) {
+      console.warn("[dashboard/chat] RAG indisponible", e);
+    }
+
+    try {
+      await appendMessages(fil.id, [
+        { role: "user", contenu: dernierVisiteur.contenu },
+      ]);
+    } catch (e) {
+      console.warn("[dashboard/chat] persistance message user échouée", e);
+    }
+  }
 
   // Construit le system prompt + le payload Claude
   const systemPrompt = construirePromptCopilote(
@@ -209,7 +247,7 @@ async function traiterChat(req: Request) {
 
   const anthropic = new Anthropic({ apiKey: cle });
   const systemFinal =
-    (fil.memoireLongue
+    (fil?.memoireLongue
       ? `${systemPrompt}\n\n## Mémoire longue (synthèse des anciennes conversations)\n\n${fil.memoireLongue}`
       : systemPrompt) + preambuleRag;
 
@@ -275,25 +313,35 @@ async function traiterChat(req: Request) {
       }
     }
 
-    // Persistance de la réponse finale d'AXI
-    await appendMessages(fil.id, [
-      {
-        role: "assistant",
-        contenu: contenuFinal,
-        tokensInput: totalTokensIn,
-        tokensOutput: totalTokensOut,
-      },
-    ]);
+    // Persistance de la réponse finale d'AXI (si mémoire dispo)
+    if (fil) {
+      try {
+        await appendMessages(fil.id, [
+          {
+            role: "assistant",
+            contenu: contenuFinal,
+            tokensInput: totalTokensIn,
+            tokensOutput: totalTokensOut,
+          },
+        ]);
+      } catch (e) {
+        console.warn("[dashboard/chat] persistance réponse AXI échouée", e);
+      }
 
-    // Condensation en arrière-plan si le fil dépasse le seuil (120
-    // messages). Permet de garder une mémoire longue à jour sans
-    // bloquer la réponse à l'admin.
-    if (await peutDeclencherCondensation(fil.id)) {
-      enArrierePlan(
-        condenserFil(fil.id).catch((e) =>
-          console.error("[copilote-condensation] échouée", e),
-        ),
-      );
+      // Condensation en arrière-plan si le fil dépasse le seuil (120
+      // messages). Permet de garder une mémoire longue à jour sans
+      // bloquer la réponse à l'admin.
+      try {
+        if (await peutDeclencherCondensation(fil.id)) {
+          enArrierePlan(
+            condenserFil(fil.id).catch((e) =>
+              console.error("[copilote-condensation] échouée", e),
+            ),
+          );
+        }
+      } catch (e) {
+        console.warn("[dashboard/chat] test condensation échoué", e);
+      }
     }
 
     return NextResponse.json({
@@ -307,7 +355,11 @@ async function traiterChat(req: Request) {
       })),
     });
   } catch (e) {
-    console.error("[dashboard/chat] erreur Claude", e);
+    const detail =
+      e instanceof Error
+        ? `${e.name}: ${e.message}\n${e.stack ?? ""}`
+        : String(e);
+    console.error("[dashboard/chat] erreur Claude\n", detail);
     return NextResponse.json(
       {
         contenu:
