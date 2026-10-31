@@ -24,6 +24,19 @@ export type Secteur = {
 
 export const CATALOGUE_SECTEURS: Secteur[] = [
   {
+    slug: "site_entreprise",
+    nom: "Site d'entreprise / vitrine généraliste",
+    ton: "professionnel_chaleureux",
+    optionsAccueil: [
+      "Je souhaite en savoir plus sur votre entreprise.",
+      "Je cherche à être mis en relation avec votre équipe.",
+      "Je voudrais obtenir un devis ou une estimation.",
+      "J'aimerais recevoir de la documentation.",
+    ],
+    exemple:
+      "Site corporate d'entreprise, cabinet, agence, PME. AxiSolver qualifie le visiteur, répond aux questions sur l'offre et oriente vers le bon interlocuteur.",
+  },
+  {
     slug: "e_commerce",
     nom: "E-commerce",
     ton: "convivial",
@@ -128,8 +141,99 @@ export const CATALOGUE_SECTEURS: Secteur[] = [
       "Association humanitaire, sportive, culturelle, environnementale. AxiSolver canalise les demandes bénévoles/dons/partenaires et les oriente vers la bonne équipe.",
   },
   {
+    slug: "tourisme_hotellerie",
+    nom: "Tourisme / hôtellerie",
+    ton: "convivial",
+    optionsAccueil: [
+      "Je souhaite réserver un séjour.",
+      "Quels sont vos disponibilités et vos tarifs ?",
+      "J'ai une question sur les prestations incluses.",
+      "Je prépare un voyage et j'ai besoin de conseils.",
+    ],
+    exemple:
+      "Hôtel, gîte, chambre d'hôtes, agence de voyage, camping. AxiSolver qualifie la demande (dates, nombre, type de séjour) et oriente vers la réservation.",
+  },
+  {
+    slug: "beaute_bien_etre",
+    nom: "Beauté / bien-être",
+    ton: "convivial",
+    optionsAccueil: [
+      "Je voudrais prendre rendez-vous.",
+      "Je cherche à connaître vos prestations.",
+      "Quels sont vos tarifs ?",
+      "Je souhaite offrir un soin en cadeau.",
+    ],
+    exemple:
+      "Salon de coiffure, institut de beauté, spa, barbier, naturopathe. AxiSolver qualifie la demande, propose les prestations et oriente vers la prise de RDV.",
+  },
+  {
+    slug: "automobile_mobilite",
+    nom: "Automobile / mobilité",
+    ton: "professionnel_chaleureux",
+    optionsAccueil: [
+      "Je cherche à acheter un véhicule.",
+      "Je souhaite prendre rendez-vous pour un entretien.",
+      "J'aimerais une estimation pour la reprise de mon véhicule.",
+      "J'ai une question sur un service après-vente.",
+    ],
+    exemple:
+      "Concessionnaire, garage, carrosserie, loueur, mobilité verte. AxiSolver pré-qualifie l'intention (achat/entretien/reprise) et oriente vers la bonne équipe.",
+  },
+  {
+    slug: "evenementiel_mariage",
+    nom: "Événementiel / mariage",
+    ton: "convivial",
+    optionsAccueil: [
+      "J'organise un événement et je cherche un prestataire.",
+      "Nous préparons un mariage.",
+      "Je voudrais connaître vos tarifs et disponibilités.",
+      "J'aimerais être rappelé pour en discuter.",
+    ],
+    exemple:
+      "Wedding planner, agence événementielle, lieu de réception, traiteur événementiel, DJ, photographe. AxiSolver pré-qualifie le projet et capte les informations clés.",
+  },
+  {
+    slug: "culture_loisirs",
+    nom: "Culture / loisirs",
+    ton: "convivial",
+    optionsAccueil: [
+      "Quels sont les horaires et tarifs ?",
+      "Je souhaite réserver des billets.",
+      "Quels événements avez-vous à venir ?",
+      "Je prépare une sortie en groupe.",
+    ],
+    exemple:
+      "Musée, salle de spectacle, parc d'attractions, cinéma, galerie, festival. AxiSolver informe sur la programmation et oriente vers la billetterie.",
+  },
+  {
+    slug: "industrie_btp",
+    nom: "Industrie / BTP / artisanat",
+    ton: "professionnel_chaleureux",
+    optionsAccueil: [
+      "Je souhaite demander un devis.",
+      "J'ai un projet et je cherche un artisan.",
+      "Pouvez-vous intervenir dans ma région ?",
+      "J'ai une question technique.",
+    ],
+    exemple:
+      "Entreprise de BTP, artisan (plombier, électricien, menuisier…), fabricant industriel, bureau d'études. AxiSolver qualifie le projet et récupère les coordonnées.",
+  },
+  {
+    slug: "agriculture_producteur",
+    nom: "Agriculture / producteur",
+    ton: "convivial",
+    optionsAccueil: [
+      "Je souhaite commander vos produits.",
+      "Où puis-je vous trouver (points de vente, marchés) ?",
+      "Je voudrais visiter votre exploitation.",
+      "Quels sont vos produits de saison ?",
+    ],
+    exemple:
+      "Producteur fermier, viticulteur, maraîcher, apiculteur, vente directe. AxiSolver renseigne sur les produits, les points de vente et prépare les commandes.",
+  },
+  {
     slug: "generaliste",
-    nom: "Autre / généraliste",
+    nom: "Autre / non listé",
     ton: "professionnel_chaleureux",
     optionsAccueil: [
       "Je souhaite en savoir plus sur votre offre.",
