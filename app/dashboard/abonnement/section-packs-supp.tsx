@@ -1,4 +1,4 @@
-import { Plus, PackagePlus, Clock } from "lucide-react";
+import { Plus, PackagePlus, Clock, Globe } from "lucide-react";
 import { FORMULES, type SlugPlan } from "@/lib/stripe/formules";
 
 /**
@@ -6,6 +6,10 @@ import { FORMULES, type SlugPlan } from "@/lib/stripe/formules";
  * V1 : UI explicative + redirection vers le portail Stripe pour l'achat.
  * V2 (différée task #221) : achat one-shot direct depuis AxiSolver avec
  * report automatique du solde non consommé sur 3 mois.
+ *
+ * Contient également le pack « Site supplémentaire » (doctrine multisite
+ * 31 oct 2026) : au-delà des 3 sites inclus, chaque site 4+ coûte
+ * 29 €/mois HT et ajoute +100 conversations au quota global.
  */
 export function SectionPacksSupplementaires({
   planActuel,
@@ -16,7 +20,10 @@ export function SectionPacksSupplementaires({
   if (!formule) return null;
 
   return (
-    <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section
+      id="sites-supplementaires"
+      className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+    >
       <header className="mb-5 flex items-center gap-3">
         <span
           className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700"
@@ -68,22 +75,54 @@ export function SectionPacksSupplementaires({
           </button>
         </div>
 
-        <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-5">
-          <h3 className="text-sm font-semibold text-slate-900">
-            Alternative : passer au palier supérieur
-          </h3>
+        <div className="rounded-xl border border-amber-300 bg-amber-50/60 p-5">
+          <div className="flex items-center gap-2">
+            <Globe
+              className="h-4 w-4 text-amber-700"
+              strokeWidth={2.4}
+              aria-hidden
+            />
+            <h3 className="text-sm font-semibold text-slate-900">
+              Site supplémentaire (au-delà des 3 inclus)
+            </h3>
+          </div>
+          <p className="mt-2 flex items-baseline gap-1">
+            <span className="text-2xl font-bold text-slate-900">29</span>
+            <span className="text-sm text-slate-500">€ HT / mois</span>
+          </p>
           <p className="mt-2 text-xs leading-relaxed text-slate-700">
-            Si tu dépasses régulièrement ton quota, il peut être plus
-            rentable de passer au plan 500 conversations plutôt que
-            d&apos;acheter des packs supplémentaires au fil de l&apos;eau.
-            Le prorata Stripe s&apos;applique automatiquement, pas de
-            double facturation.
+            Chaque site 4<sup>e</sup>, 5<sup>e</sup>, 6<sup>e</sup>… ajoute
+            <strong> +100 conversations/mois</strong> à votre quota global
+            partagé entre tous vos sites. Chaque site conserve ses propres
+            paramètres (voix, prompts, base de connaissances). Résiliable
+            à tout moment, facturation au prorata.
           </p>
-          <p className="mt-3 text-[11px] text-slate-500">
-            Choisis le plan supérieur dans la section « Toutes les formules »
-            ci-dessous.
-          </p>
+          <button
+            type="button"
+            disabled
+            className="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-700"
+          >
+            <Clock className="h-3.5 w-3.5" strokeWidth={2.2} />
+            Bientôt disponible
+          </button>
         </div>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/40 p-5">
+        <h3 className="text-sm font-semibold text-slate-900">
+          Alternative : passer au palier supérieur
+        </h3>
+        <p className="mt-2 text-xs leading-relaxed text-slate-700">
+          Si tu dépasses régulièrement ton quota, il peut être plus
+          rentable de passer au plan 500 conversations plutôt que
+          d&apos;acheter des packs supplémentaires au fil de l&apos;eau.
+          Le prorata Stripe s&apos;applique automatiquement, pas de
+          double facturation.
+        </p>
+        <p className="mt-3 text-[11px] text-slate-500">
+          Choisis le plan supérieur dans la section « Toutes les formules »
+          ci-dessous.
+        </p>
       </div>
     </section>
   );

@@ -82,24 +82,28 @@ export function HeaderSites({
         )}
 
         <Link
-          href={peutAjouterSite ? "/dashboard/sites/nouveau" : "#"}
-          aria-disabled={!peutAjouterSite}
+          href={
+            peutAjouterSite
+              ? "/dashboard/sites/nouveau"
+              : "/dashboard/abonnement#sites-supplementaires"
+          }
           title={
             peutAjouterSite
-              ? "Ajouter un site (jusqu'à 3 avec votre formule)"
-              : "Limite de 3 sites atteinte — passez à l'offre Agence pour en gérer plus"
+              ? "Ajouter un site (3 sites inclus dans votre abonnement)"
+              : "3 sites inclus atteints — ajoutez un site supplémentaire (29 €/mois HT, +100 conv/mois)"
           }
           className={`inline-flex items-center gap-1 rounded-md border border-dashed px-3 py-2 text-xs font-medium transition ${
             peutAjouterSite
               ? "border-slate-300 bg-white text-slate-500 hover:border-indigo-500 hover:text-indigo-700"
-              : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+              : "border-amber-300 bg-amber-50 text-amber-800 hover:border-amber-500 hover:bg-amber-100"
           }`}
-          onClick={(e) => {
-            if (!peutAjouterSite) e.preventDefault();
-          }}
         >
           <Plus className="h-3.5 w-3.5" strokeWidth={2.6} aria-hidden />
-          {nbSites === 0 ? "Créer mon premier site" : "Nouveau site"}
+          {nbSites === 0
+            ? "Créer mon premier site"
+            : peutAjouterSite
+              ? "Nouveau site"
+              : "+ 1 site (29 €/mois)"}
         </Link>
       </div>
     </div>
