@@ -244,8 +244,13 @@ export async function estMembreWorkspace(
 
 /**
  * Vérifie qu'un user a accès à un site : soit via ownership legacy
- * (owner_user_id), soit via workspace membership. Pattern unifié qui
- * couvre à la fois les sites migrés et les sites pré-workspace.
+ * (owner_user_id), soit via workspace membership en respectant le
+ * scope `sites_accessibles` (doctrine multisite 31 oct 2026).
+ *
+ * Scope `sites_accessibles` :
+ *   - `null` → full access (tous les sites du workspace)
+ *   - `[]` → lecture seule, aucun accès à un site précis
+ *   - `[uuid1, …]` → accès uniquement aux sites listés
  */
 export async function aAccesSite(
   userId: string,
@@ -262,10 +267,27 @@ export async function aAccesSite(
       .limit(1);
     if (!row) return false;
     if (row.ownerUserId === userId) return true;
-    if (row.workspaceId) {
-      return await estMembreWorkspace(userId, row.workspaceId);
-    }
-    return false;
+    if (!row.workspaceId) return false;
+
+    // Membre du workspace ? Avec quel scope ?
+    const [membre] = await db
+      .select({ scope: workspaceMembers.sitesAccessibles })
+      .from(workspaceMembers)
+      .where(
+        and(
+          eq(workspaceMembers.userId, userId),
+          eq(workspaceMembers.workspaceId, row.workspaceId),
+        ),
+      )
+      .limit(1);
+    if (!membre) return false;
+
+    // Full access
+    if (membre.scope === null) return true;
+    // Lecture seule (scope vide) → aucun accès précis
+    if (membre.scope.length === 0) return false;
+    // Scope limité
+    return membre.scope.includes(siteId);
   } catch {
     return false;
   }
