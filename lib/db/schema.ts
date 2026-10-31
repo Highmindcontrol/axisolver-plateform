@@ -768,6 +768,12 @@ export const stripeSubscriptions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    /** Workspace lié à l'abonnement (doctrine multisite 31 oct 2026).
+     *  Nullable pour compat descendante avec abonnements legacy. */
+    workspaceId: uuid("workspace_id").references(
+      (): AnyPgColumn => workspaces.id,
+      { onDelete: "cascade" },
+    ),
     stripeCustomerId: text("stripe_customer_id").notNull(),
     stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
     stripePriceId: text("stripe_price_id").notNull(),
@@ -778,12 +784,22 @@ export const stripeSubscriptions = pgTable(
       .notNull()
       .default(false),
     essaiFinLe: timestamp("essai_fin_le", { withTimezone: true }),
+    /** Nombre de sites au-delà des 3 inclus (29 €/mois chacun).
+     *  Synchronisé avec Stripe via subscription.quantity. */
+    sitesSupplementaires: integer("sites_supplementaires")
+      .notNull()
+      .default(0),
+    /** Conversations bonus cumulées (sites_supplementaires × 100). */
+    bonusConversations: integer("bonus_conversations").notNull().default(0),
     creeLe: timestamp("cree_le", { withTimezone: true })
       .defaultNow()
       .notNull(),
     majLe: timestamp("maj_le", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [index("idx_stripe_subscriptions_user_id").on(t.userId)],
+  (t) => [
+    index("idx_stripe_subscriptions_user_id").on(t.userId),
+    index("idx_stripe_subscriptions_workspace_id").on(t.workspaceId),
+  ],
 );
 
 /* ─── Comptage conversations par site et par mois ──────────────── */
@@ -963,6 +979,11 @@ export const workspaceMembers = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     role: workspaceRoleEnum("role").notNull().default("admin"),
+    /** Scope d'accès (doctrine multisite 31 oct 2026) :
+     *  - `null` = full access (tous les sites du workspace)
+     *  - `[]` = aucun site (lecture seule, cas site supprimé)
+     *  - `[uuid1, uuid2, …]` = scope limité à ces sites */
+    sitesAccessibles: jsonb("sites_accessibles").$type<string[] | null>(),
     ajouteLe: timestamp("ajoute_le", { withTimezone: true })
       .defaultNow()
       .notNull(),
