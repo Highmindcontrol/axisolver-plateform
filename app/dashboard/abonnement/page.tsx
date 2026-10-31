@@ -19,13 +19,15 @@ export default async function PageAbonnement() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/connexion");
 
-  const [abonnement, consommation] = await Promise.all([
-    etatAbonnement(user.id),
-    consommationMois(user.id),
-  ]);
+  const abonnement = await etatAbonnement(user.id);
+  const consommation = await consommationMois({
+    userId: user.id,
+    workspaceId: abonnement.workspaceId,
+  });
 
   const formule = abonnement.plan ? FORMULES[abonnement.plan] : null;
-  const limiteConv = formule?.nbConversationsMoisMax ?? 50;
+  const limiteConv =
+    (formule?.nbConversationsMoisMax ?? 50) + abonnement.bonusConversations;
   const tauxConv = Math.min(
     100,
     Math.round((consommation.nbConversations / limiteConv) * 100),
