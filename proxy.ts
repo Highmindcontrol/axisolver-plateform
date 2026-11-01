@@ -13,7 +13,7 @@ import { checkPreviewAuth } from "@/lib/preview-auth";
  *     transcrire, embed) — elles font leur propre auth via site_id
  *     + Origin check au lieu de la session utilisateur
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const gate = checkPreviewAuth(request);
   if (gate) return gate;
   return updateSupabaseSession(request);
