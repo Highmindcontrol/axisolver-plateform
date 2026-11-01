@@ -1,5 +1,6 @@
 import { type NextRequest } from "next/server";
 import { updateSupabaseSession } from "@/lib/supabase/session";
+import { checkPreviewAuth } from "@/lib/preview-auth";
 
 /**
  * Middleware racine — rafraîchit la session Supabase sur chaque
@@ -13,6 +14,8 @@ import { updateSupabaseSession } from "@/lib/supabase/session";
  *     + Origin check au lieu de la session utilisateur
  */
 export async function middleware(request: NextRequest) {
+  const gate = checkPreviewAuth(request);
+  if (gate) return gate;
   return updateSupabaseSession(request);
 }
 
